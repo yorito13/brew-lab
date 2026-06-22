@@ -2583,7 +2583,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.15.13</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.16.1</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -4410,10 +4410,15 @@ const POL_FIELD_MAP = {
 const POL_POUR_MAP = { time:'t', water:'w', pourEnd:'e', temp:'p', valve:'v', bypass:'b' };
 const POL_REV_FIELD = Object.fromEntries(Object.entries(POL_FIELD_MAP).map(([k,v]) => [v,k]));
 const POL_REV_POUR  = Object.fromEntries(Object.entries(POL_POUR_MAP).map(([k,v]) => [v,k]));
+// v13.16.1: 派生数据黑名单（不分享，避免 QR 码体积爆炸）
+//   - llmEvaluation: LLM 评估结果是派生数据，接收方应用自己的 LLM 重新评估
+//   - updatedAt: 修改时间对接收方无意义
+const POL_SKIP_FIELDS = new Set(['llmEvaluation', 'updatedAt']);
 
 function polCompactify(r) {
   const c = {};
   for (const k of Object.keys(r)) {
+    if (POL_SKIP_FIELDS.has(k)) continue;
     const v = r[k];
     if (v === '' || v === null || v === undefined) continue;
     if (k === 'pours' && Array.isArray(v)) {
@@ -9728,7 +9733,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.16.0 连秤模式已就绪');
+    log('Brew Lab v13.16.1 连秤模式已就绪');
   }
 
   // 暴露调试入口
