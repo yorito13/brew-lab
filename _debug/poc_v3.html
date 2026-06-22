@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Brew Lab · 蓝牙秤 PoC v13.16.0</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;margin:0;padding:14px;background:#f8f5f0;color:#2c1d12;max-width:520px;margin:0 auto;line-height:1.45}
+  h1{font-size:18px;margin:0 0 4px}
+  h1 small{font-weight:normal;color:#888;font-size:12px}
+  .lead{font-size:12px;color:#888;margin:4px 0 12px}
+  .panel{background:#fff;border-radius:12px;padding:14px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+  .panel h2{margin:0 0 10px;font-size:14px;color:#6b4a2b;border-bottom:1px solid #efe7d8;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+  .panel.brew{background:linear-gradient(180deg,#fff,#fbf6ec);border:1px solid #e8d8b8}
+  .panel.brew h2{color:#3d2614}
+  button{font:inherit;padding:8px 14px;margin:3px 4px 3px 0;border:1px solid #d4b88e;background:#fff;border-radius:8px;color:#6b4a2b;cursor:pointer}
+  button.primary{background:#6b4a2b;color:#fff;border-color:#6b4a2b}
+  button.danger{background:#c0392b;color:#fff;border-color:#c0392b}
+  button.big{padding:14px 22px;font-size:16px;font-weight:600;width:100%;margin:6px 0}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  select,input{font:inherit;padding:6px 10px;border-radius:6px;border:1px solid #d4b88e;background:#fff}
+  input.amount{width:80px;text-align:right;font-variant-numeric:tabular-nums}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .stat{background:#faf6ee;padding:8px 10px;border-radius:8px}
+  .stat .k{font-size:11px;color:#888;margin-bottom:2px}
+  .stat .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+  .stat .v small{font-size:12px;font-weight:normal;color:#888}
+  .log{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#1d160e;color:#d4b88e;padding:10px;border-radius:8px;height:140px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;white-space:nowrap}
+  .badge.ok{background:#d4edda;color:#155724}
+  .badge.no{background:#f8d7da;color:#721c24}
+  .badge.warn{background:#fff3cd;color:#856404}
+  .badge.brew{background:#6b4a2b;color:#fff}
+  .seg{padding:8px 10px;border-radius:8px;margin:5px 0;font-size:13px;font-variant-numeric:tabular-nums;border:1px solid transparent}
+  .seg.pour{background:#fff8d6;border-color:#d4b88e}
+  .seg.drip{background:#f0ebe0;border-style:dashed;border-color:#bdb194;color:#5a4d3a}
+  .seg.done{background:#efe7d8;border-color:#d4b88e}
+  .seg .top{display:flex;justify-content:space-between;align-items:center}
+  .seg .top b{font-size:14px}
+  .seg .meta{font-size:11px;color:#777;margin-top:2px}
+  .env{font-size:11px;color:#888;margin:6px 0 0}
+  .env span{margin-right:8px}
+  .hero{text-align:center;padding:14px 8px}
+  .hero .icon{font-size:36px;line-height:1;margin-bottom:6px}
+  .hero .title{font-size:16px;font-weight:600;margin-bottom:3px;color:#3d2614}
+  .hero .desc{font-size:12px;color:#777}
+  .timer-big{font-size:48px;font-weight:300;font-variant-numeric:tabular-nums;text-align:center;color:#6b4a2b;line-height:1.1;margin:6px 0}
+  .timer-big small{font-size:14px;color:#888;font-weight:normal}
+  .undo-bar{background:#fff3cd;border:1px solid #856404;color:#856404;padding:10px 12px;border-radius:8px;margin:8px 0;display:flex;align-items:center;justify-content:space-between;font-size:13px;animation:undoSlide .3s ease-out}
+  @keyframes undoSlide{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+  .undo-bar button{padding:6px 12px;margin:0;background:#856404;color:#fff;border-color:#856404;font-size:13px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:99;padding:20px}
+  .modal.show{display:flex}
+  .modal-card{background:#fff;border-radius:14px;padding:18px;max-width:400px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+  .modal-card h3{margin:0 0 8px;font-size:16px;color:#3d2614}
+  .modal-card p{margin:0 0 14px;font-size:13px;color:#666}
+  details.adv{margin:6px 0}
+  details.adv summary{font-size:12px;color:#888;cursor:pointer;padding:4px 0}
+  details.adv summary:hover{color:#6b4a2b}
+  footer{margin:18px 0 30px;font-size:11px;color:#999;text-align:center}
+  footer a{color:#6b4a2b}
+  .summary-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
+  .summary-grid .stat{background:#fff;border:1px solid #e8d8b8}
+  .ratio{font-size:24px;font-weight:600;color:#6b4a2b;text-align:center;margin:8px 0}
+</style>
+</head>
+<body>
+
+<h1>Brew Lab · 蓝牙秤 PoC <small>v13.16.0 · 状态机版</small></h1>
+<div class="lead">完整冲煮模式状态机 + ScaleAdapter 协议解码。<br>验证通过后嵌入主程序 pour_over_log.html。</div>
+
+<!-- ① 适配器选择 -->
+<div class="panel">
+  <h2>① 设备 <span id="connStatus" class="badge no">未连接</span></h2>
+  <div class="row">
+    <label>类型：</label>
+    <select id="adapterType">
+      <option value="mock">Mock 模拟（无需真机）</option>
+      <option value="bookoo">BOOKOO Themis Mini / Ultra</option>
+    </select>
+    <button id="btnConnect" class="primary">🔗 连接</button>
+    <button id="btnDisconnect" class="danger" disabled>断开</button>
+  </div>
+  <div class="env" id="envCheck"></div>
+</div>
+
+<!-- ② 实时数据 -->
+<div class="panel">
+  <h2>② 实时数据</h2>
+  <div class="grid">
+    <div class="stat"><div class="k">重量</div><div class="v"><span id="weight">--</span> <small>g</small></div></div>
+    <div class="stat"><div class="k">秤计时</div><div class="v"><span id="timer">--</span> <small>s</small></div></div>
+    <div class="stat"><div class="k">瞬时流速</div><div class="v"><span id="flow">--</span> <small>g/s</small></div></div>
+    <div class="stat"><div class="k">电量</div><div class="v"><span id="battery">--</span> <small>%</small></div></div>
+  </div>
+</div>
+
+<!-- ③ 冲煮模式（核心） -->
+<div class="panel brew">
+  <h2>③ 冲煮模式 <span id="brewStateBadge" class="badge brew">IDLE</span></h2>
+  <div id="brewView"></div>
+  <div id="undoSlot"></div>
+</div>
+
+<!-- ④ 高级命令（折叠） -->
+<div class="panel">
+  <h2>④ 高级命令</h2>
+  <details class="adv">
+    <summary>底层命令（调试用）</summary>
+    <div class="row">
+      <button class="cmd" data-cmd="tare" disabled>去皮</button>
+      <button class="cmd" data-cmd="startTimer" disabled>开始计时</button>
+      <button class="cmd" data-cmd="stopTimer" disabled>停止计时</button>
+      <button class="cmd" data-cmd="resetTimer" disabled>重置</button>
+      <button class="cmd primary" data-cmd="tareAndStart" disabled>去皮+开始</button>
+    </div>
+  </details>
+</div>
+
+<!-- ⑤ 事件日志 -->
+<div class="panel">
+  <h2>⑤ 事件日志</h2>
+  <div id="log" class="log"></div>
+</div>
+
+<!-- v3 单路径化：删除 pathModal 和 dryDoseModal —— 启动按钮直接 tare → ARMED -->
+
+<!-- bypass 录入 modal -->
+<div class="modal" id="bypassModal">
+  <div class="modal-card">
+    <h3>记录 bypass 水量</h3>
+    <p>bypass = 萃取完成后绕过滤杯直接加入下壶的水。<br>不计入 brew water，但影响最终饮用浓度。</p>
+    <div class="row">
+      <input id="bypassInput" type="number" step="1" min="0" max="500" value="0" class="amount">
+      <span>g</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="btnBypassConfirm" class="primary">保存</button>
+      <button id="btnBypassCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 完成确认 modal -->
+<div class="modal" id="finishModal">
+  <div class="modal-card">
+    <h3>确认本次冲煮已完成？</h3>
+    <p>确认后将停止计时并锁定数据。</p>
+    <div class="row">
+      <button id="btnFinishConfirm" class="primary">确认完成</button>
+      <button id="btnFinishCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Brew Lab v13.16.0 · Snarkex × 星刻<br>
+  协议来源：<a href="https://github.com/BooKooCode/OpenSource" target="_blank">BOOKOO OpenSource (MIT)</a>
+</footer>
+
+<script>
+'use strict';
+
+/* ============================================================
+ * Brew Lab v13.16.0 · ScaleAdapter
+ * 协议：github.com/BooKooCode/OpenSource (Mini 2025-07-25 / Ultra 2025-12-07)
+ * ============================================================ */
+
+class BaseScaleAdapter {
+  constructor() { this._listeners = {}; this.connected = false; this.deviceName = ''; }
+  on(event, fn) { (this._listeners[event] = this._listeners[event] || []).push(fn); return this; }
+  emit(event, payload) {
+    (this._listeners[event] || []).forEach(fn => {
+      try { fn(payload); } catch (e) { console.error('[ScaleAdapter]', event, e); }
+    });
+  }
+  async connect()       { throw new Error('not implemented'); }
+  async disconnect()    { throw new Error('not implemented'); }
+  async tare()          { throw new Error('not implemented'); }
+  async startTimer()    { throw new Error('not implemented'); }
+  async stopTimer()     { throw new Error('not implemented'); }
+  async resetTimer()    { throw new Error('not implemented'); }
+  async tareAndStart()  { throw new Error('not implemented'); }
+}
+
+// ---------- MockScaleAdapter ----------
+// 演示一台 Themis Ultra 在做 3 段注水冲煮 + 滤杯移开
+//   阶段时间线（基于 brewSimT0，由 startBrewSimulation() 触发）：
+//     0~2s    : 等待（重量 0）
+//     2~12s   : 闷蒸 30g（流速 3.0 g/s）
+//     12~25s  : 闷蒸 drip（重量 30g，流速 0）
+//     25~50s  : 1 段 +80g → 110g（流速 3.2 g/s）
+//     50~60s  : drip
+//     60~85s  : 2 段 +110g → 220g（流速 4.4 g/s）
+//     85~100s : drip + 缓慢滴落 220g → 215g
+//     100~101s: 滤杯移开 → 重量骤减到 5g
+//     101~120s: POST_BREW（稳定）
+//     120s+   : 循环重置
+class MockScaleAdapter extends BaseScaleAdapter {
+  constructor() {
+    super();
+    this._ticker = null;
+    this._connectedAt = 0;
+    this._brewSimT0 = 0;       // 冲煮模拟起始时间（仅在 startBrewSimulation 后非 0）
+    this._inBrewSim = false;
+    this._tareOffset = 0;
+    this._weight = 0;
+    this._timerMs = 0;
+    this._timerRunning = false;
+    this._lastBatt = -1;
+  }
+  async connect() {
+    await new Promise(r => setTimeout(r, 350));
+    this.deviceName = 'BOOKOO_SC_U_MOCK (演示)';
+    this.connected = true;
+    this._connectedAt = Date.now();
+    this.emit('connected', { name: this.deviceName, deviceId: 'mock' });
+    this._ticker = setInterval(() => this._tick(), 100);
+    this.emit('battery', { percent: 87 });
+  }
+  async disconnect() {
+    if (this._ticker) { clearInterval(this._ticker); this._ticker = null; }
+    this.connected = false;
+    this._inBrewSim = false;
+    this.emit('disconnected', {});
+  }
+  // 由 BrewSession 在进入 ARMED 时调用（duck typing）
+  startBrewSimulation() {
+    this._brewSimT0 = Date.now();
+    this._inBrewSim = true;
+    this._tareOffset = 0;
+    this._weight = 0;
+  }
+  _curveAt(t) {
+    // 返回 { rawWeight, flow }，rawWeight 是真实重量（未减 tareOffset）
+    if (t < 2)        return { rawWeight: 0,    flow: 0    };
+    if (t < 12)       { const p=(t-2)/10;  return { rawWeight: 30*p,         flow: 3.0  }; }
+    if (t < 25)       return { rawWeight: 30,   flow: 0    };
+    if (t < 50)       { const p=(t-25)/25; return { rawWeight: 30+80*p,      flow: 3.2  }; }
+    if (t < 60)       return { rawWeight: 110,  flow: 0    };
+    if (t < 85)       { const p=(t-60)/25; return { rawWeight: 110+110*p,    flow: 4.4  }; }
+    if (t < 100)      { const p=(t-85)/15; return { rawWeight: 220-5*p,      flow: -0.33}; }
+    if (t < 101)      { const p=(t-100);   return { rawWeight: 215-210*p,    flow: -210 }; } // 极速跌
+    return { rawWeight: 5, flow: 0 };
+  }
+  _tick() {
+    const ts = Date.now();
+    let raw = 0, flow = 0;
+    if (this._inBrewSim) {
+      const t = (ts - this._brewSimT0) / 1000;
+      if (t > 130) { // 循环重置
+        this._brewSimT0 = ts;
+        this._tareOffset = 0;
+      }
+      const c = this._curveAt(Math.min(t, 130));
+      raw = c.rawWeight;
+      flow = c.flow;
+    }
+    // 加抖动
+    raw += (Math.random() - 0.5) * 0.05;
+    this._weight = Math.max(-5, raw - this._tareOffset);
+    this.emit('weight', { weight: +this._weight.toFixed(2), raw: null, ts });
+    this.emit('flow',   { flowRate: +flow.toFixed(2), ts });
+    if (this._timerRunning) {
+      this._timerMs += 100;
+      this.emit('timer', { ms: this._timerMs, ts });
+    }
+  }
+  async tare()         { this._tareOffset = this._inBrewSim ? this._curveAt((Date.now()-this._brewSimT0)/1000).rawWeight : 0; this._weight = 0; this.emit('weight', { weight: 0, ts: Date.now() }); }
+  async startTimer()   { this._timerRunning = true; }
+  async stopTimer()    { this._timerRunning = false; }
+  async resetTimer()   { this._timerMs = 0; this.emit('timer', { ms: 0, ts: Date.now() }); }
+  async tareAndStart() { await this.tare(); await this.resetTimer(); this._timerRunning = true; }
+}
+
+// ---------- BookooThemisAdapter ----------
+class BookooThemisAdapter extends BaseScaleAdapter {
+  static SERVICE_UUID  = 0x0FFE;
+  static CHAR_WEIGHT   = 0xFF11;
+  static CHAR_COMMAND  = 0xFF12;
+  static NAME_PREFIXES = ['BOOKOO_SC ', 'BOOKOO_SC_U '];
+  static _xor(bytes) { return bytes.reduce((a, b) => a ^ b, 0); }
+  static _buildCmd(cmd, d2 = 0x00, d3 = 0x00) {
+    const head = [0x03, 0x0A, cmd, d2, d3];
+    return new Uint8Array([...head, BookooThemisAdapter._xor(head)]);
+  }
+  async connect() {
+    if (!navigator.bluetooth) { const e = { code: 'NO_WEB_BLUETOOTH', message: '当前浏览器不支持 Web Bluetooth' }; this.emit('error', e); throw new Error(e.message); }
+    if (!window.isSecureContext) { const e = { code: 'INSECURE_CONTEXT', message: 'Web Bluetooth 需要 HTTPS' }; this.emit('error', e); throw new Error(e.message); }
+    try {
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: BookooThemisAdapter.NAME_PREFIXES.map(p => ({ namePrefix: p })),
+        optionalServices: [BookooThemisAdapter.SERVICE_UUID]
+      });
+      this.deviceName = this.device.name || '(unnamed)';
+      this.device.addEventListener('gattserverdisconnected', () => { this.connected = false; this.emit('disconnected', { reason: 'gatt_lost' }); });
+      this.server = await this.device.gatt.connect();
+      this.service = await this.server.getPrimaryService(BookooThemisAdapter.SERVICE_UUID);
+      this.weightChar  = await this.service.getCharacteristic(BookooThemisAdapter.CHAR_WEIGHT);
+      this.commandChar = await this.service.getCharacteristic(BookooThemisAdapter.CHAR_COMMAND);
+      await this.weightChar.startNotifications();
+      this.weightChar.addEventListener('characteristicvaluechanged', e => this._onWeightPacket(e));
+      try {
+        await this.commandChar.startNotifications();
+        this.commandChar.addEventListener('characteristicvaluechanged', e => this._onCommandPacket(e));
+      } catch (_) {}
+      this.connected = true;
+      this.emit('connected', { name: this.deviceName, deviceId: this.device.id });
+    } catch (e) { this.emit('error', { code: 'CONNECT_FAILED', message: e.message || String(e) }); throw e; }
+  }
+  async disconnect() {
+    try { if (this.device && this.device.gatt && this.device.gatt.connected) this.device.gatt.disconnect(); } catch(_) {}
+    this.connected = false;
+    this.emit('disconnected', { reason: 'manual' });
+  }
+  _onWeightPacket(event) {
+    const dv = event.target.value;
+    if (dv.byteLength < 20) return;
+    const b = new Uint8Array(dv.buffer, dv.byteOffset || 0, dv.byteLength);
+    if (b[0] !== 0x03 || b[1] !== 0x0B) return;
+    let cs = 0; for (let i = 0; i < 19; i++) cs ^= b[i];
+    if (cs !== b[19]) { this.emit('error', { code: 'CHECKSUM', message: 'weight pkt cs mismatch' }); return; }
+    const ms     = (b[2] << 16) | (b[3] << 8) | b[4];
+    const wSign  = b[6] === 0x2D ? -1 : 1;
+    const wRaw   = ((b[7] << 16) | (b[8] << 8) | b[9]) / 100;
+    const weight = wSign * wRaw;
+    const fSign  = b[10] === 0x2D ? -1 : 1;
+    const fRaw   = ((b[11] << 8) | b[12]) / 100;
+    const flow   = fSign * fRaw;
+    const batt   = b[13];
+    const ts = Date.now();
+    this.emit('weight', { weight: +weight.toFixed(2), raw: b, ts });
+    this.emit('timer',  { ms, ts });
+    this.emit('flow',   { flowRate: +flow.toFixed(2), ts });
+    if (this._lastBatt !== batt) { this._lastBatt = batt; this.emit('battery', { percent: batt }); }
+  }
+  _onCommandPacket(event) {
+    const dv = event.target.value;
+    const b = new Uint8Array(dv.buffer, dv.byteOffset || 0, dv.byteLength);
+    this.emit('error', { code: 'CMD_NOTIFY', message: 'cmd notify: ' + Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join(' ') });
+  }
+  async _send(cmd, d2, d3) {
+    if (!this.commandChar) throw new Error('not connected');
+    await this.commandChar.writeValue(BookooThemisAdapter._buildCmd(cmd, d2, d3));
+  }
+  async tare()         { await this._send(0x01); }
+  async startTimer()   { await this._send(0x04); }
+  async stopTimer()    { await this._send(0x05); }
+  async resetTimer()   { await this._send(0x06); }
+  async tareAndStart() { await this._send(0x07); }
+}
+
+function createScaleAdapter(type) {
+  switch ((type || '').toLowerCase()) {
+    case 'mock':   return new MockScaleAdapter();
+    case 'bookoo': return new BookooThemisAdapter();
+    default:       return null;
+  }
+}
+
+/* ============================================================
+ * Detectors
+ * ============================================================ */
+
+// PourDetector — 基于 weight stream 推断段开始/结束
+//   阈值（v2 调整，区分滴滤）：
+//     起始：flow ≥ 1.0 g/s 持续 0.5s
+//     停止：flow ≤ 0.3 g/s 持续 1.5s
+class PourDetector {
+  constructor(opts = {}) {
+    this.START_FLOW    = opts.startFlow    ?? 1.0;
+    this.START_HOLD_MS = opts.startHoldMs  ?? 500;
+    this.STOP_FLOW     = opts.stopFlow     ?? 0.3;
+    this.STOP_HOLD_MS  = opts.stopHoldMs   ?? 1500;
+    this.reset();
+    this._listeners = {};
+  }
+  on(event, fn) { (this._listeners[event] = this._listeners[event] || []).push(fn); return this; }
+  _emit(event, p) { (this._listeners[event] || []).forEach(fn => fn(p)); }
+  reset() {
+    this.inPour = false;
+    this._aboveSinceTs = 0;
+    this._belowSinceTs = 0;
+    this.startAt = 0;
+    this.startWeight = 0;
+    this._flowSum = 0;
+    this._flowSamples = 0;
+  }
+  feed({ weight, flowRate, ts }) {
+    if (!this.inPour) {
+      if (flowRate >= this.START_FLOW) {
+        if (!this._aboveSinceTs) this._aboveSinceTs = ts;
+        if (ts - this._aboveSinceTs >= this.START_HOLD_MS) {
+          this.inPour = true;
+          this.startAt = ts;
+          this.startWeight = weight;
+          this._belowSinceTs = 0;
+          this._flowSum = flowRate;
+          this._flowSamples = 1;
+          this._aboveSinceTs = 0;
+          this._emit('start', { at: ts, weight });
+        }
+      } else {
+        this._aboveSinceTs = 0;
+      }
+    } else {
+      this._flowSum += Math.max(0, flowRate);
+      this._flowSamples++;
+      if (Math.abs(flowRate) <= this.STOP_FLOW) {
+        if (!this._belowSinceTs) this._belowSinceTs = ts;
+        if (ts - this._belowSinceTs >= this.STOP_HOLD_MS) {
+          const segWeight = weight - this.startWeight;
+          const durationMs = ts - this.startAt;
+          const avgFlow = this._flowSamples > 0 ? this._flowSum / this._flowSamples : 0;
+          this._emit('end', { at: ts, weight, segWeight: +segWeight.toFixed(1), avgFlow: +avgFlow.toFixed(2), durationMs });
+          this.reset();
+        }
+      } else {
+        this._belowSinceTs = 0;
+      }
+    }
+  }
+}
+
+// LiftDetector — 滤杯移开检测
+//   1s 滚动窗口内最大重量与当前差 ≥ 30g
+class LiftDetector {
+  constructor(opts = {}) {
+    this.threshold = opts.threshold ?? 30;
+    this.windowMs  = opts.windowMs  ?? 1000;
+    this.window = [];
+    this.armed = false;
+  }
+  arm()    { this.armed = true; this.window = []; }
+  disarm() { this.armed = false; this.window = []; }
+  feed({ weight, ts }) {
+    if (!this.armed) return false;
+    this.window.push({ ts, w: weight });
+    while (this.window.length && ts - this.window[0].ts > this.windowMs) this.window.shift();
+    if (this.window.length < 3) return false;
+    const maxW = this.window.reduce((m, s) => Math.max(m, s.w), -Infinity);
+    return (maxW - weight) >= this.threshold;
+  }
+}
+
+/* ============================================================
+ * BrewSession — 一键冲煮模式状态机
+ *   states: IDLE | ARMED | POURING | DRIPPING | LIFT_PENDING | POST_BREW
+ *   v3 移除 WEIGHING_DOSE 中间态：启动按钮直接 tare → ARMED 等首次注水
+ *   pathUsed 固定为 'singleTare'（v2 双路径 'preWeighed' / 'weighOnScale' 已下线）
+ * ============================================================ */
+class BrewSession {
+  constructor(adapter) {
+    this.adapter = adapter;
+    this.state = 'IDLE';
+    this.brew = this._emptyBrew();
+    this._currentSeg = null;
+    this._latestFlow = 0;
+    this._pour = new PourDetector();
+    this._lift = new LiftDetector();
+    this._liftTimer = null;
+    this._listeners = {};
+    this._setupDetectors();
+  }
+  _emptyBrew() {
+    return {
+      brewId: '',
+      dryDose: 0,
+      pathUsed: '',          // 'preWeighed' | 'weighOnScale'
+      segments: [],
+      startedAt: 0,
+      liftedAt: 0,
+      totalBrewTime: 0,
+      totalPourTime: 0,
+      totalPourWater: 0,
+      bypass: { amount: 0, note: '' },
+      brewRatio: ''
+    };
+  }
+  on(event, fn) { (this._listeners[event] = this._listeners[event] || []).push(fn); return this; }
+  _emit(event, p) { (this._listeners[event] || []).forEach(fn => fn(p)); }
+  _setState(s) { if (this.state !== s) { const prev = this.state; this.state = s; this._emit('stateChange', { from: prev, to: s, brew: this.brew }); } }
+  _setupDetectors() {
+    this._pour.on('start', ({ at, weight }) => {
+      // 段开始：从 ARMED 或 DRIPPING → POURING
+      if (this.state !== 'ARMED' && this.state !== 'DRIPPING') return;
+      const isFirst = this.brew.segments.length === 0;
+      if (isFirst) this.brew.startedAt = at;
+      this._currentSeg = {
+        index: this.brew.segments.length + 1,
+        startAt: at,
+        endAt: 0,
+        startWeight: +weight.toFixed(1),
+        endWeight: 0,
+        pourAmount: 0,
+        peakFlow: 0,
+        avgFlow: 0,
+        durationMs: 0,
+        curve: []
+      };
+      this.brew.segments.push(this._currentSeg);
+      this._setState('POURING');
+      this._emit('segmentStart', { seg: this._currentSeg, isFirst });
+    });
+    this._pour.on('end', ({ at, weight, segWeight, avgFlow, durationMs }) => {
+      if (this.state !== 'POURING' || !this._currentSeg) return;
+      this._currentSeg.endAt = at;
+      this._currentSeg.endWeight = +weight.toFixed(1);
+      this._currentSeg.pourAmount = +segWeight.toFixed(1);
+      this._currentSeg.avgFlow = +avgFlow.toFixed(2);
+      this._currentSeg.durationMs = durationMs;
+      this._setState('DRIPPING');
+      this._lift.arm(); // 进入 DRIPPING 才启用滤杯移开检测
+      this._emit('segmentEnd', { seg: this._currentSeg });
+      this._currentSeg = null;
+    });
+  }
+  // —— 用户行为入口 ——
+  // v3 单路径：启动按钮 = tare + ARMED + 等首次注水
+  // 注：dryDose 不再绑定到启动路径，由用户在 ARMED 屏可选填写或在记录页面手填
+  async startBrewMode() {
+    if (this.state !== 'IDLE') throw new Error('当前不是 IDLE 状态');
+    this.brew = this._emptyBrew();
+    this.brew.brewId = this._genBrewId();
+    this.brew.pathUsed = 'singleTare';
+    this._currentSeg = null;
+    this._pour.reset();
+    this._lift.disarm();
+    // 立即 tare（无论秤上是空滤杯、含粉滤杯还是空着）
+    if (this.adapter && this.adapter.connected) {
+      try { await this.adapter.tare(); } catch(_) {}
+      // Mock 路径：tare 后 startBrewSimulation
+      if (typeof this.adapter.startBrewSimulation === 'function') this.adapter.startBrewSimulation();
+    }
+    this._setState('ARMED');
+  }
+  // dryDose 可选录入：用户在 ARMED 屏手填或留空
+  setDryDose(grams) {
+    const v = parseFloat(grams);
+    if (!isNaN(v) && v > 0 && v < 100) {
+      this.brew.dryDose = +v;
+      this._recalcSummary();
+      this._emit('dryDoseSet', { dryDose: this.brew.dryDose });
+    }
+  }
+  cancelLift() {
+    if (this.state !== 'LIFT_PENDING') return;
+    if (this._liftTimer) { clearTimeout(this._liftTimer); this._liftTimer = null; }
+    this._setState('DRIPPING');
+    this._lift.arm();
+    this._emit('liftCancelled', {});
+  }
+  setBypass(amount, note = '') {
+    this.brew.bypass.amount = +amount;
+    this.brew.bypass.note = note;
+    this._recalcSummary();
+    this._emit('bypassUpdated', { bypass: this.brew.bypass });
+  }
+  finishBrew() {
+    // 任何状态下手动完成
+    if (this.state === 'POST_BREW' || this.state === 'IDLE') return;
+    if (this._liftTimer) { clearTimeout(this._liftTimer); this._liftTimer = null; }
+    // 如果还在 POURING，强制结束当前段
+    if (this.state === 'POURING' && this._currentSeg) {
+      this._currentSeg.endAt = Date.now();
+      this._currentSeg.endWeight = +parseFloat(document.getElementById('weight').textContent || 0);
+      this._currentSeg.pourAmount = +(this._currentSeg.endWeight - this._currentSeg.startWeight).toFixed(1);
+      this._currentSeg.durationMs = this._currentSeg.endAt - this._currentSeg.startAt;
+      this._emit('segmentEnd', { seg: this._currentSeg, forced: true });
+      this._currentSeg = null;
+    }
+    this.brew.liftedAt = Date.now();
+    this._setState('POST_BREW');
+    this._lift.disarm();
+    this._recalcSummary();
+    this._emit('brewEnd', { brew: this.brew, manual: true });
+  }
+  reset() {
+    if (this._liftTimer) { clearTimeout(this._liftTimer); this._liftTimer = null; }
+    this.brew = this._emptyBrew();
+    this._currentSeg = null;
+    this._pour.reset();
+    this._lift.disarm();
+    this._setState('IDLE');
+  }
+  // —— 数据流入口 ——
+  feed({ weight, flowRate, ts }) {
+    this._latestFlow = flowRate;
+    // 段曲线采样：POURING 和 DRIPPING 都记录
+    if (this._currentSeg && this.state === 'POURING') {
+      this._currentSeg.curve.push({ t: ts - this._currentSeg.startAt, w: +weight.toFixed(2), f: +flowRate.toFixed(2), phase: 'pour' });
+      if (flowRate > this._currentSeg.peakFlow) this._currentSeg.peakFlow = +flowRate.toFixed(2);
+    } else if (this.state === 'DRIPPING' && this.brew.segments.length > 0) {
+      const lastSeg = this.brew.segments[this.brew.segments.length - 1];
+      lastSeg.curve.push({ t: ts - lastSeg.startAt, w: +weight.toFixed(2), f: +flowRate.toFixed(2), phase: 'drip' });
+    }
+    // PourDetector
+    if (this.state === 'ARMED' || this.state === 'POURING' || this.state === 'DRIPPING') {
+      this._pour.feed({ weight, flowRate, ts });
+    }
+    // LiftDetector
+    if (this.state === 'DRIPPING' && this._lift.feed({ weight, ts })) {
+      this._enterLiftPending(ts, weight);
+    }
+  }
+  _enterLiftPending(ts, weight) {
+    this._lift.disarm();
+    this.brew.liftedAt = ts;
+    this._setState('LIFT_PENDING');
+    this._emit('lift', { at: ts, weight });
+    // 3s 后无撤销 → POST_BREW
+    this._liftTimer = setTimeout(() => {
+      this._liftTimer = null;
+      if (this.state === 'LIFT_PENDING') {
+        this._setState('POST_BREW');
+        this._recalcSummary();
+        this._emit('brewEnd', { brew: this.brew, manual: false });
+      }
+    }, 3000);
+  }
+  _recalcSummary() {
+    const segs = this.brew.segments;
+    this.brew.totalPourTime = segs.reduce((s, x) => s + x.durationMs, 0) / 1000;
+    this.brew.totalPourWater = +segs.reduce((s, x) => s + x.pourAmount, 0).toFixed(1);
+    this.brew.totalBrewTime = this.brew.startedAt && this.brew.liftedAt
+      ? +((this.brew.liftedAt - this.brew.startedAt) / 1000).toFixed(1) : 0;
+    if (this.brew.dryDose > 0 && this.brew.totalPourWater > 0) {
+      const r = this.brew.totalPourWater / this.brew.dryDose;
+      this.brew.brewRatio = `1:${r.toFixed(1)}`;
+    }
+  }
+  _genBrewId() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  }
+}
+
+/* ============================================================
+ * UI
+ * ============================================================ */
+const $ = (id) => document.getElementById(id);
+const log = (msg, level = 'info') => {
+  const t = new Date().toLocaleTimeString('zh-CN', { hour12: false }) + '.' + String(Date.now()%1000).padStart(3,'0');
+  const prefix = level === 'err' ? '⚠️' : level === 'evt' ? '·' : level === 'cmd' ? '→' : level === 'state' ? '▶' : '';
+  $('log').textContent = `[${t}] ${prefix} ${msg}\n` + $('log').textContent;
+};
+const setStatus = (text, cls) => { $('connStatus').textContent = text; $('connStatus').className = 'badge ' + cls; };
+const setCmdEnabled = (on) => document.querySelectorAll('button.cmd').forEach(b => b.disabled = !on);
+const fmtTime = (ms) => {
+  const s = ms / 1000;
+  const m = Math.floor(s / 60);
+  const r = s - m * 60;
+  return m > 0 ? `${m}:${r.toFixed(1).padStart(4,'0')}` : r.toFixed(1);
+};
+
+function envCheck() {
+  const checks = [];
+  checks.push({ ok: window.isSecureContext, label: 'HTTPS', fail: '当前不是安全上下文' });
+  checks.push({ ok: !!navigator.bluetooth, label: 'Web Bluetooth', fail: '不支持' });
+  checks.push({ ok: !!navigator.bluetooth?.getDevices, label: '设备记忆', fail: '受限', warn: true });
+  $('envCheck').innerHTML = checks.map(c => {
+    if (c.ok) return `<span style="color:#27ae60">✓ ${c.label}</span>`;
+    if (c.warn) return `<span style="color:#f39c12">○ ${c.label}：${c.fail}</span>`;
+    return `<span style="color:#c0392b">✗ ${c.label}：${c.fail}</span>`;
+  }).join(' ');
+}
+envCheck();
+
+let adapter = null;
+let session = null;
+let sessionStartTs = 0;
+let sessionTimerEl = null;
+
+function bindAdapter(a) {
+  a.on('connected', ({ name, deviceId }) => {
+    log(`已连接：${name} (${deviceId.slice(0,8)})`);
+    setStatus('已连接 · ' + name, 'ok');
+    $('btnConnect').disabled = true;
+    $('btnDisconnect').disabled = false;
+    setCmdEnabled(true);
+    // 初始化 BrewSession
+    session = new BrewSession(a);
+    bindSession(session);
+    renderBrewView();
+  });
+  a.on('disconnected', ({ reason }) => {
+    log('已断开' + (reason ? ' · ' + reason : ''));
+    setStatus('未连接', 'no');
+    $('btnConnect').disabled = false;
+    $('btnDisconnect').disabled = true;
+    setCmdEnabled(false);
+    if (session) { session.reset(); session = null; }
+    renderBrewView();
+  });
+  a.on('error', ({ code, message }) => log(`[${code}] ${message}`, 'err'));
+  let _flow = 0;
+  a.on('flow', ({ flowRate }) => {
+    _flow = flowRate;
+    $('flow').textContent = flowRate.toFixed(2);
+  });
+  a.on('weight', ({ weight, ts }) => {
+    $('weight').textContent = weight.toFixed(1);
+    if (session) session.feed({ weight, flowRate: _flow, ts });
+  });
+  a.on('timer',   ({ ms })       => $('timer').textContent = (ms / 1000).toFixed(1));
+  a.on('battery', ({ percent })  => $('battery').textContent = percent);
+}
+
+function bindSession(s) {
+  s.on('stateChange', ({ from, to }) => {
+    log(`[BrewSession] ${from} → ${to}`, 'state');
+    $('brewStateBadge').textContent = to;
+    renderBrewView();
+  });
+  s.on('segmentStart', ({ seg, isFirst }) => {
+    log(`段 ${seg.index} 开始 @ ${seg.startWeight}g${isFirst ? ' （首段）' : ''}`, 'evt');
+    if (isFirst) { sessionStartTs = seg.startAt; startSessionTimer(); }
+    renderBrewView();
+  });
+  s.on('segmentEnd', ({ seg, forced }) => {
+    log(`段 ${seg.index} 结束 · 段水量 ${seg.pourAmount}g · ${(seg.durationMs/1000).toFixed(1)}s${forced ? '（手动）' : ''}`, 'evt');
+    renderBrewView();
+  });
+  s.on('lift', ({ weight }) => {
+    log(`检测到滤杯移开 @ ${weight.toFixed(1)}g，3s 内可撤销`, 'evt');
+    showUndoBar();
+  });
+  s.on('liftCancelled', () => {
+    log('已撤销滤杯移开判定，恢复 DRIPPING', 'evt');
+    hideUndoBar();
+    renderBrewView();
+  });
+  s.on('brewEnd', ({ brew, manual }) => {
+    log(`冲煮结束${manual ? '（手动）' : ''} · 总耗时 ${brew.totalBrewTime}s · 注水 ${brew.totalPourWater}g · 比例 ${brew.brewRatio}`, 'evt');
+    hideUndoBar();
+    stopSessionTimer();
+    renderBrewView();
+  });
+  s.on('bypassUpdated', () => renderBrewView());
+}
+
+function startSessionTimer() {
+  if (sessionTimerEl) clearInterval(sessionTimerEl);
+  sessionTimerEl = setInterval(() => {
+    const el = document.getElementById('brewTimer');
+    if (el && session && session.state !== 'POST_BREW' && session.state !== 'IDLE') {
+      const ms = Date.now() - sessionStartTs;
+      el.textContent = fmtTime(ms);
+    }
+  }, 100);
+}
+function stopSessionTimer() { if (sessionTimerEl) { clearInterval(sessionTimerEl); sessionTimerEl = null; } }
+
+// —— Brew View 渲染 ——
+function renderBrewView() {
+  const el = $('brewView');
+  if (!session) {
+    el.innerHTML = `
+      <div class="hero">
+        <div class="icon">⏸</div>
+        <div class="title">请先连接秤</div>
+        <div class="desc">连接后即可启动一键冲煮模式</div>
+      </div>`;
+    return;
+  }
+  const s = session.state;
+  const b = session.brew;
+  if (s === 'IDLE') {
+    el.innerHTML = `
+      <div class="hero">
+        <div class="icon">☕</div>
+        <div class="title">准备就绪</div>
+        <div class="desc">点下方按钮开启一杯新的冲煮</div>
+      </div>
+      <button id="btnStartBrew" class="big primary">🚀 启动冲煮模式</button>
+      <div style="text-align:center;font-size:11px;color:#888;margin-top:8px">
+        按下后秤会自动清零 → 等待首次注水<br>
+        干粉重量稍后录入即可（与启动路径解耦）
+      </div>
+    `;
+    $('btnStartBrew').addEventListener('click', async () => {
+      try {
+        await session.startBrewMode();
+        log('[v3] 单路径启动：tare 完成，进入 ARMED 等首次注水', 'evt');
+      } catch (e) {
+        log('启动失败：' + e.message, 'err');
+      }
+    });
+  } else if (s === 'ARMED') {
+    el.innerHTML = `
+      <div class="hero">
+        <div class="icon">💧</div>
+        <div class="title">就绪 · 等待注水</div>
+        <div class="desc">注水开始后自动计时</div>
+      </div>
+      <div class="timer-big">00:00.0 <small>等待中</small></div>
+      <div class="row" style="justify-content:center;margin:10px 0;gap:8px">
+        <span style="font-size:12px;color:#666">干粉重量（可选）</span>
+        <input id="armedDryDose" type="number" step="0.1" min="0.1" max="100" placeholder="--" class="amount" style="width:80px" value="${b.dryDose || ''}">
+        <span style="font-size:12px;color:#666">g</span>
+      </div>
+      <button id="btnFinishNow" class="danger">✋ 取消本次冲煮</button>
+    `;
+    $('armedDryDose').addEventListener('change', (e) => {
+      session.setDryDose(e.target.value);
+      log(`[v3] 干粉重量录入：${e.target.value}g`, 'evt');
+    });
+    $('btnFinishNow').addEventListener('click', () => session.reset());
+  } else if (s === 'POURING' || s === 'DRIPPING') {
+    const elapsed = (Date.now() - sessionStartTs) / 1000;
+    el.innerHTML = `
+      <div class="timer-big" id="brewTimer">${fmtTime((Date.now()-sessionStartTs))}</div>
+      <div style="text-align:center;font-size:12px;color:#888;margin-bottom:6px">
+        干粉 <b>${b.dryDose}g</b> · 当前 <b>${$('weight').textContent}g</b> · 累计水量 <b>${b.totalPourWater || (b.segments.reduce((s,x)=>s+(x.pourAmount||(parseFloat($('weight').textContent)-x.startWeight)),0)).toFixed(1)}g</b>
+      </div>
+      ${renderSegList(b)}
+      <button id="btnFinishBrew" class="danger" style="margin-top:8px">✋ 完成冲煮（手动）</button>
+    `;
+    $('btnFinishBrew').addEventListener('click', () => $('finishModal').classList.add('show'));
+  } else if (s === 'LIFT_PENDING') {
+    el.innerHTML = `
+      <div class="timer-big">${b.liftedAt && b.startedAt ? fmtTime(b.liftedAt - b.startedAt) : '—'} <small>已锁定</small></div>
+      <div style="text-align:center;font-size:13px;color:#856404;margin:8px 0">⚠️ 已检测到滤杯移开，3 秒内可撤销</div>
+      ${renderSegList(b)}
+    `;
+  } else if (s === 'POST_BREW') {
+    el.innerHTML = `
+      <div class="hero">
+        <div class="icon">✅</div>
+        <div class="title">冲煮完成</div>
+      </div>
+      <div class="ratio">${b.brewRatio || '—'}</div>
+      <div class="summary-grid">
+        <div class="stat"><div class="k">干粉</div><div class="v">${b.dryDose || '--'} <small>g</small></div></div>
+        <div class="stat"><div class="k">总注水量</div><div class="v">${b.totalPourWater} <small>g</small></div></div>
+        <div class="stat"><div class="k">萃取耗时</div><div class="v">${b.totalBrewTime} <small>s</small></div></div>
+        <div class="stat"><div class="k">段数</div><div class="v">${b.segments.length}</div></div>
+      </div>
+      ${renderSegList(b, true)}
+      <div style="margin-top:8px;padding:10px;background:#faf6ee;border-radius:8px;font-size:13px">
+        <b>Bypass 水量：</b>${b.bypass.amount}g
+        <button id="btnAddBypass" style="float:right;margin:0">${b.bypass.amount > 0 ? '修改' : '+ 添加 bypass'}</button>
+      </div>
+      <button id="btnNewBrew" class="big primary" style="margin-top:12px">☕ 开始下一杯</button>
+      <button id="btnExportBrew">📋 导出 brew.json</button>
+    `;
+    $('btnAddBypass').addEventListener('click', () => {
+      $('bypassInput').value = b.bypass.amount || 0;
+      $('bypassModal').classList.add('show');
+    });
+    $('btnNewBrew').addEventListener('click', () => session.reset());
+    $('btnExportBrew').addEventListener('click', () => {
+      const txt = JSON.stringify(b, null, 2);
+      navigator.clipboard?.writeText(txt).then(() => log('brew.json 已复制到剪贴板（' + txt.length + ' 字符）'))
+        .catch(() => { log('剪贴板失败，输出到日志：'); log(txt); });
+    });
+  }
+}
+
+function renderSegList(brew, terminal = false) {
+  if (!brew.segments.length) return '<div style="font-size:12px;color:#aaa;text-align:center;padding:8px">暂无注水段</div>';
+  return brew.segments.map((seg, i) => {
+    const isLast = i === brew.segments.length - 1;
+    const isLive = isLast && !seg.endAt && !terminal;
+    const phase = isLive ? 'pour' : (seg.endAt ? 'done' : 'pour');
+    const startT = brew.startedAt ? ((seg.startAt - brew.startedAt) / 1000).toFixed(1) : '0.0';
+    const endT = seg.endAt && brew.startedAt ? ((seg.endAt - brew.startedAt) / 1000).toFixed(1) : '—';
+    return `
+      <div class="seg ${phase}">
+        <div class="top">
+          <b>段 ${seg.index}${i === 0 ? ' (闷蒸)' : ''}</b>
+          <span>${isLive ? '注水中…' : seg.pourAmount + 'g'}</span>
+        </div>
+        <div class="meta">
+          ${startT}s → ${endT}s · 起始重 ${seg.startWeight}g${seg.endWeight ? ' → 段尾 '+seg.endWeight+'g' : ''}
+          ${seg.avgFlow ? ' · 平均流速 '+seg.avgFlow+'g/s' : ''}
+          ${seg.peakFlow ? ' · 峰值 '+seg.peakFlow+'g/s' : ''}
+          ${seg.curve.length ? ' · '+seg.curve.length+'个采样点' : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function showUndoBar() {
+  const el = $('undoSlot');
+  el.innerHTML = `
+    <div class="undo-bar">
+      <span>检测到滤杯移开，已结束计时</span>
+      <button id="btnUndoLift">撤销</button>
+    </div>`;
+  $('btnUndoLift').addEventListener('click', () => session.cancelLift());
+}
+function hideUndoBar() { $('undoSlot').innerHTML = ''; }
+
+// —— Modal 事件 ——
+// v3 单路径化：删除 pathModal / dryDoseModal 相关 click handler（已移除对应 DOM）
+$('btnBypassConfirm').addEventListener('click', () => {
+  const v = parseFloat($('bypassInput').value);
+  if (isNaN(v) || v < 0) { alert('请输入合理数值'); return; }
+  session.setBypass(v);
+  $('bypassModal').classList.remove('show');
+});
+$('btnBypassCancel').addEventListener('click', () => $('bypassModal').classList.remove('show'));
+$('btnFinishConfirm').addEventListener('click', () => {
+  $('finishModal').classList.remove('show');
+  session.finishBrew();
+});
+$('btnFinishCancel').addEventListener('click', () => $('finishModal').classList.remove('show'));
+
+// —— 连接按钮 ——
+$('btnConnect').addEventListener('click', async () => {
+  const type = $('adapterType').value;
+  adapter = createScaleAdapter(type);
+  if (!adapter) { log('未知适配器类型', 'err'); return; }
+  bindAdapter(adapter);
+  setStatus('扫描中…', 'warn');
+  log(`[connect] 启动 ${type} 适配器…`);
+  try { await adapter.connect(); }
+  catch (e) {
+    log('连接失败：' + (e.message || e), 'err');
+    setStatus('未连接', 'no');
+  }
+});
+$('btnDisconnect').addEventListener('click', async () => { if (adapter) await adapter.disconnect(); });
+
+document.querySelectorAll('button.cmd').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const cmd = btn.dataset.cmd;
+    if (!adapter || !adapter.connected) return;
+    try { log(`命令：${cmd}`, 'cmd'); await adapter[cmd](); }
+    catch (e) { log(`命令失败 ${cmd}：${e.message || e}`, 'err'); }
+  });
+});
+
+renderBrewView();
+log('PoC v2 已就绪。点「连接」后即可启动「冲煮模式」体验完整状态机。');
+</script>
+
+</body>
+</html>
