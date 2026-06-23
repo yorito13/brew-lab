@@ -2583,7 +2583,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.16.1</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.17.0</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3384,12 +3384,28 @@ function getPours() {
     if (isBypass) {
       obj.bypass = '1';
     }
+    // V13.17: 段内瞬时点（蓝牙模式 syncSegmentEnd 写入 dataset；BP 段不携带）
+    if (!isBypass && item.dataset.samples) {
+      try {
+        const s = JSON.parse(item.dataset.samples);
+        if (Array.isArray(s) && s.length >= 2) obj.samples = s;
+      } catch (e) {}
+    }
     return obj;
   }).filter(p => p.water || p.time || p.temp || p.valve || p.bypass || p.pourEnd);
 }
 function setPours(pours) {
   document.getElementById('pour-list').innerHTML = '';
   (pours || []).forEach(p => addPour(p.water, p.time, p.temp, p.valve || '', p.bypass || '', p.pourEnd || ''));
+  // V13.17: 回写 samples 到对应 pour-item.dataset（仅当记录里有；旧数据/手动模式天然没有）
+  if (Array.isArray(pours) && pours.length > 0) {
+    const items = document.querySelectorAll('#pour-list .pour-item');
+    pours.forEach((p, i) => {
+      if (p && Array.isArray(p.samples) && p.samples.length >= 2 && items[i]) {
+        try { items[i].dataset.samples = JSON.stringify(p.samples); } catch (e) {}
+      }
+    });
+  }
   if (!pours || pours.length === 0) {
     // V12.1: 第 1 段固定为 0:00（注水起点）；2、3 段留空，由打点写入
     addPour('', '0:00', '', '', '', '');
@@ -4414,6 +4430,10 @@ const POL_REV_POUR  = Object.fromEntries(Object.entries(POL_POUR_MAP).map(([k,v]
 //   - llmEvaluation: LLM 评估结果是派生数据，接收方应用自己的 LLM 重新评估
 //   - updatedAt: 修改时间对接收方无意义
 const POL_SKIP_FIELDS = new Set(['llmEvaluation', 'updatedAt']);
+// v13.17.0: pour 级别派生数据黑名单
+//   - samples: 段内瞬时采样曲线，只对当次冲煮复盘有价值，作为框架分享无限接近于噪音
+//     单段 ~30 点 ≈ 500B，3 段就能把 V19 炸回 V35+，必须剥离
+const POL_POUR_SKIP_FIELDS = new Set(['samples']);
 
 function polCompactify(r) {
   const c = {};
@@ -4425,6 +4445,7 @@ function polCompactify(r) {
       const arr = v.map(p => {
         const o = {};
         for (const pk of Object.keys(p)) {
+          if (POL_POUR_SKIP_FIELDS.has(pk)) continue;
           const pv = p[pk];
           if (pv === '' || pv === null || pv === undefined) continue;
           o[POL_POUR_MAP[pk] || pk] = pv;
@@ -7870,14 +7891,14 @@ function buildCompareCurvesSVG(records, colors) {
     if (!r || !Array.isArray(r.pours)) return null;
     const raw = [];
     let prevCum = 0, prevStart = -1;
-    r.pours.forEach((p) => {
+    r.pours.forEach((p, i) => {
       const cum = parseFloat(p.water);
       const startSec = parseDurationSec(p.time);
       if (!isFinite(cum) || cum < 0) return;
       if (startSec === null || startSec < prevStart) return;
       let pourEnd = parseDurationSec(p.pourEnd);
       if (pourEnd === null || pourEnd < startSec) pourEnd = null;
-      raw.push({ startSec, pourEnd, cumWater: cum, bypass: p.bypass === '1' });
+      raw.push({ origIdx: i, startSec, pourEnd, cumWater: cum, bypass: p.bypass === '1' });
       prevCum = cum;
       prevStart = startSec;
     });
@@ -7905,7 +7926,24 @@ function buildCompareCurvesSVG(records, colors) {
       const lastT = points[points.length - 1].t;
       const lastG = points[points.length - 1].g;
       if (s.startSec > lastT) points.push({ t: s.startSec, g: lastG });
-      points.push({ t: s.pourEnd, g: s.cumWater });
+      // V13.17: 对比视图同样使用 samples 瞬时点（保持与单条曲线一致）
+      const srcPour = r.pours[s.origIdx];
+      const samples = srcPour && Array.isArray(srcPour.samples) && srcPour.samples.length >= 2 ? srcPour.samples : null;
+      if (samples) {
+        for (const sm of samples) {
+          const absT = s.startSec + sm[0];
+          if (absT > s.pourEnd) break;
+          if (absT > points[points.length - 1].t) {
+            points.push({ t: absT, g: sm[1] });
+          }
+        }
+        const tail = points[points.length - 1];
+        if (tail.t < s.pourEnd || Math.abs(tail.g - s.cumWater) > 0.05) {
+          points.push({ t: s.pourEnd, g: s.cumWater });
+        }
+      } else {
+        points.push({ t: s.pourEnd, g: s.cumWater });
+      }
       if (s.restEnd > s.pourEnd) points.push({ t: s.restEnd, g: s.cumWater });
     }
     if (!isLastBypass && totalTimeSec !== null && points.length > 0 && totalTimeSec > points[points.length - 1].t) {
@@ -8055,6 +8093,7 @@ function buildBrewCurveHTML(brew) {
   });
 
   // 累计水量主折线：注水段爬升 + 焖蒸段平台（V12.4: 最后段 bypass 时跳过，不连入主曲线）
+  // V13.17: 有 samples（蓝牙模式段内瞬时点）时按瞬时点绘制；无则沿用端点直线
   const mainSegCount = isLastBypass ? lastIdx : segs.length;
   const points = mainSegCount > 0 ? [{ t: segs[0].startSec, g: 0 }] : [];
   for (let i = 0; i < mainSegCount; i++) {
@@ -8065,8 +8104,27 @@ function buildBrewCurveHTML(brew) {
     if (s.startSec > lastT) {
       points.push({ t: s.startSec, g: lastG });
     }
-    // 注水段：爬升到 cumWater
-    points.push({ t: s.pourEnd, g: s.cumWater });
+    // V13.17: 段内瞬时采样回放（samples 中 t 单位秒，相对段起；w 是秤上累计重量）
+    const srcPour = brew.pours[s.origIdx];
+    const samples = srcPour && Array.isArray(srcPour.samples) && srcPour.samples.length >= 2 ? srcPour.samples : null;
+    if (samples) {
+      for (const sm of samples) {
+        const absT = s.startSec + sm[0];
+        // 时间裁剪：不超出本段 pourEnd，避免与下段连入混乱
+        if (absT > s.pourEnd) break;
+        if (absT > points[points.length - 1].t) {
+          points.push({ t: absT, g: sm[1] });
+        }
+      }
+      // 强制贴段端点（防止抽稀末点不严格等于 cumWater，导致与下段 restEnd 平台错位）
+      const tail = points[points.length - 1];
+      if (tail.t < s.pourEnd || Math.abs(tail.g - s.cumWater) > 0.05) {
+        points.push({ t: s.pourEnd, g: s.cumWater });
+      }
+    } else {
+      // 注水段：爬升到 cumWater（无瞬时数据时的直线兜底）
+      points.push({ t: s.pourEnd, g: s.cumWater });
+    }
     // 焖蒸段：平台到 restEnd
     if (s.restEnd > s.pourEnd) {
       points.push({ t: s.restEnd, g: s.cumWater });
@@ -9326,6 +9384,27 @@ setupListFilterEvents();
   }
 
   // 段结束 → 把对应段的 pour-water (累计) 和 pour-end 填上
+  // V13.17: 段内瞬时点抽稀（累计 1g 触发自适应）→ 紧凑数组 [[t秒1位, w克1位], ...]
+  // 输入 curve: [{t: 毫秒(相对段起), w, f, phase}, ...]，只用 phase='pour' 的点（注水阶段）
+  // 设计：首点必留；之后累计水量较上次保留点增长 ≥1g 时保留；末点必留（防止"末点不满 1g"丢失段终点）
+  // 慢萃取段自动加密（流速慢则点距时间长），快萃取段不冗余（流速快则点距时间短）
+  function _thinSegmentCurve(curve) {
+    if (!Array.isArray(curve) || curve.length === 0) return null;
+    const pourOnly = curve.filter(p => p && p.phase === 'pour' && isFinite(p.t) && isFinite(p.w));
+    if (pourOnly.length < 2) return null;
+    const out = [];
+    let lastW = -Infinity;
+    for (let i = 0; i < pourOnly.length; i++) {
+      const p = pourOnly[i];
+      const isLast = (i === pourOnly.length - 1);
+      if (i === 0 || (p.w - lastW) >= 1.0 || isLast) {
+        out.push([+(p.t / 1000).toFixed(1), +p.w.toFixed(1)]);
+        lastW = p.w;
+      }
+    }
+    return out.length >= 2 ? out : null;
+  }
+
   function syncSegmentEnd(seg, brewStartedAt) {
     const list = document.getElementById('pour-list');
     if (!list) return;
@@ -9342,6 +9421,11 @@ setupListFilterEvents();
       const relSec = (seg.endAt - brewStartedAt) / 1000;
       eEl.value = fmtMmSs(relSec);
       flashEl(eEl);
+    }
+    // V13.17: 段内瞬时采样写入 DOM dataset（getPours/setPours 桥接到 record.pours[i].samples）
+    const samples = _thinSegmentCurve(seg.curve);
+    if (samples) {
+      try { item.dataset.samples = JSON.stringify(samples); } catch (e) {}
     }
     if (typeof window.markAnalysisStale === 'function') window.markAnalysisStale();
   }
@@ -9733,7 +9817,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.16.1 连秤模式已就绪');
+    log('Brew Lab v13.17.0 连秤模式已就绪');
   }
 
   // 暴露调试入口
