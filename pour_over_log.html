@@ -2630,7 +2630,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.17.2</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.18.0</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -2980,7 +2980,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.17.2</div>
+    <div class="about-version">Brew Lab · v13.18.0</div>
   </div>
 </div>
 
@@ -6300,6 +6300,83 @@ function gatherFiveStarCases(ctx) {
   };
 }
 
+// === v13.18.0: 同豆识别 + 同豆历史上下文构建（LLM 分析上下文挂载用）===
+// 与上方 gatherFiveStarCases 的相似度打分职责不同——那是跨豆聚合找 5 星方案参考；
+// 本函数用于同豆归组，宁可漏检不错检：产地+豆种一致仅是必要条件，
+// 还需辅助信号（Agtron ±3 / 庄园一致 / 处理法+地块或批次一致）之一命中，
+// 避免埃塞原生种、瑰夏这类高撞车组合被错误合并污染 LLM 上下文。
+function isSameBean(A, B) {
+  if (!A || !B) return false;
+  // 必要条件：origin + variety 都要有值且一致
+  if (!A.origin || !B.origin || A.origin !== B.origin) return false;
+  if (!A.variety || !B.variety || A.variety !== B.variety) return false;
+
+  // 辅助信号：至少命中一条
+  const agtronMatch = A.agtron && B.agtron &&
+                       Math.abs(parseFloat(A.agtron) - parseFloat(B.agtron)) <= 3;
+  const farmMatch = A.farm && B.farm && A.farm === B.farm;
+  const processPlus = A.process && B.process && A.process === B.process &&
+                       ((A.plot && B.plot && A.plot === B.plot) ||
+                        (A.batch && B.batch && A.batch === B.batch));
+
+  return !!(agtronMatch || farmMatch || processPlus);
+}
+
+// v13.18.0: 同豆历史上下文拼接（供 buildSingleEvalPrompt 挂载）
+// 返回可直接拼进 prompt 的多行字符串；若无同豆历史则返回 null，由调用方决定是否跳过。
+function buildSameBeanHistoryBlock(currentRecord) {
+  if (!currentRecord) return null;
+  let all = [];
+  try { all = (typeof loadAll === 'function') ? loadAll() : []; } catch (e) { all = []; }
+  if (!all || !all.length) return null;
+
+  // 排除当前记录本身（按 id；无 id 时按 createdAt 兜底）
+  const sameBean = all.filter(function (r) {
+    if (!r) return false;
+    if (currentRecord.id && r.id && r.id === currentRecord.id) return false;
+    if (!currentRecord.id && currentRecord.createdAt && r.createdAt === currentRecord.createdAt) return false;
+    return isSameBean(currentRecord, r);
+  });
+  if (sameBean.length === 0) return null;
+
+  // 按时间倒序（createdAt 为空的排最后）
+  sameBean.sort(function (a, b) {
+    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return tb - ta;
+  });
+  const total = sameBean.length;
+  const picked = sameBean.slice(0, 5);
+
+  const lines = picked.map(function (r, i) {
+    let dateStr = '';
+    if (r.createdAt) {
+      const d = new Date(r.createdAt);
+      if (!isNaN(d.getTime())) dateStr = d.toISOString().slice(0, 10);
+    }
+    const params = [];
+    if (r.grinder || r.grindSize) {
+      params.push('磨' + [r.grinder, r.grindSize].filter(Boolean).join(' '));
+    }
+    if (r.temp)      params.push(r.temp + '℃');
+    if (r.ratio)     params.push('比' + r.ratio);
+    if (r.totalTime) params.push(r.totalTime);
+    if (r.dripper)   params.push(r.dripper);
+    if (r.bypass)    params.push('Bp' + r.bypass + 'g');
+    const stars = r.rating ? '★' + r.rating : '?';
+    const flavor = (r.flavor || '').slice(0, 80).replace(/\s+/g, ' ').trim();
+    const parts = ['[' + (i + 1) + ']'];
+    if (dateStr) parts.push(dateStr);
+    parts.push(params.length ? params.join(' / ') : '（参数缺失）');
+    parts.push('评分：' + stars);
+    if (flavor) parts.push('反馈：' + flavor);
+    return parts.join(' | ');
+  });
+
+  const header = '该豆过去的冲煮历史（共 ' + total + ' 条同豆记录，展示近 ' + picked.length + ' 条，按时间倒序）：';
+  return header + '\n' + lines.join('\n');
+}
+
 // === V13.15.6: 注水分段构造（默认 2 段，新手友好；产地解锁或案例支持时 3 段） ===
 function buildPours(strategy, segmentTarget, bloomWater, remainingWater, baseTemp) {
   if (segmentTarget <= 2) {
@@ -6907,6 +6984,16 @@ function buildSingleEvalPrompt(record) {
     sections.push('');
     sections.push('【本地分析已得出的结论（你的输出禁止重复，只能在此之上提供增量价值）】');
     sections.push(localDigest);
+  }
+  // v13.18.0: 同豆历史上下文挂载
+  //   - 若为该豆首次冲煮（无同豆历史），buildSameBeanHistoryBlock 返回 null，本段跳过，
+  //     用户端 UI/交互体验与原版完全一致，只让有历史的分析更有针对性。
+  //   - 同豆判定用独立的 isSameBean（宁可漏检不错检），不复用上方跨豆聚合的相似度打分。
+  const sameBeanHistory = (typeof buildSameBeanHistoryBlock === 'function') ? buildSameBeanHistoryBlock(record) : null;
+  if (sameBeanHistory) {
+    sections.push('');
+    sections.push('【该豆过去的冲煮历史（同豆识别，供 LLM 参考调优方向，不得直接照抄参数）】');
+    sections.push(sameBeanHistory);
   }
   sections.push('');
   sections.push('请按系统提示要求的 JSON 格式输出此次冲煮的差异化评估（聚焦 flavor_inference / priority_actions / cross_dim_insight / next_recipe，禁止重复上方本地结论）。');
@@ -9899,7 +9986,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.17.2 连秤模式已就绪');
+    log('Brew Lab v13.18.0 连秤模式已就绪');
   }
 
   // 暴露调试入口
