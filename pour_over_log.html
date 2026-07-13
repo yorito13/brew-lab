@@ -2630,7 +2630,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.18.0</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.19.0</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -2807,7 +2807,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         <div class="row">
           <div class="field">
             <label>水温 (℃)</label>
-            <input type="number" id="temp" step="0.5" placeholder="92">
+            <input type="number" id="temp" step="0.5" placeholder="92" oninput="onMainTempChange(this)">
           </div>
           <div class="field">
             <label>总时长</label>
@@ -2980,7 +2980,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.18.0</div>
+    <div class="about-version">Brew Lab · v13.19.0</div>
   </div>
 </div>
 
@@ -3348,6 +3348,9 @@ document.getElementById('dose').addEventListener('input', calcRatio);
 function addPour(water = '', time = '', temp = '', valve = '', bypass = '', pourEnd = '') {
   const list = document.getElementById('pour-list');
   const idx = list.children.length + 1;
+  // v13.19.0: 未显式指定段温时，默认填主水温（可覆盖）
+  const mainTemp = (document.getElementById('temp') || {}).value || '';
+  const tempFill = (temp !== '' && temp != null) ? temp : mainTemp;
   const div = document.createElement('div');
   div.className = 'pour-item' + (bypass === '1' ? ' bypass-on' : '');
   div.innerHTML = `
@@ -3355,7 +3358,7 @@ function addPour(water = '', time = '', temp = '', valve = '', bypass = '', pour
     <input type="number" placeholder="累计g" value="${water}" class="pour-water" inputmode="decimal" title="该段结束时秤上的累计水量（含本段，秤不归零）">
     <input type="text" placeholder="段开始 0:00" value="${time}" class="pour-time" title="该段注水开始时刻（首段固定 0:00）">
     <input type="text" placeholder="停水 0:15" value="${pourEnd}" class="pour-end" title="该段注水停止时间（之后是焖蒸/等待）">
-    <input type="number" placeholder="温℃" value="${temp}" class="pour-temp" inputmode="decimal" step="0.5">
+    <input type="number" placeholder="温℃" value="${tempFill}" class="pour-temp" inputmode="decimal" step="0.5" data-auto-temp="${tempFill === mainTemp && tempFill !== '' ? '1' : ''}" oninput="this.dataset.autoTemp=''">
     <select class="pour-valve" data-state="${valve}" onchange="onValveChange(this)">
       <option value="">阀</option>
       <option value="closed">关</option>
@@ -3369,6 +3372,18 @@ function addPour(water = '', time = '', temp = '', valve = '', bypass = '', pour
   const sel = div.querySelector('.pour-valve');
   if (valve) sel.value = valve;
   updateBypassVisibility();
+  if (typeof markAnalysisStale === 'function') markAnalysisStale();
+}
+// v13.19.0: 主水温联动 — 把仍处于「自动跟随」状态的段温（data-auto-temp="1"）同步到新值
+// 用户手改段温后会清除 data-auto-temp 标记，此后主水温调整不会覆盖该段
+function onMainTempChange(inp) {
+  const v = inp && inp.value != null ? String(inp.value) : '';
+  document.querySelectorAll('#pour-list .pour-temp').forEach(t => {
+    if (t.dataset.autoTemp === '1' || t.value === '') {
+      t.value = v;
+      t.dataset.autoTemp = v !== '' ? '1' : '';
+    }
+  });
   if (typeof markAnalysisStale === 'function') markAnalysisStale();
 }
 function onValveChange(sel) {
@@ -9379,7 +9394,16 @@ setupListFilterEvents();
       this._pour.on('start', ({ at, weight }) => {
         if (this.state !== 'ARMED' && this.state !== 'DRIPPING') return;
         const isFirst = this.brew.segments.length === 0;
-        if (isFirst) this.brew.startedAt = at;
+        if (isFirst) {
+          this.brew.startedAt = at;
+          // v13.19.0: 首段注水启动秤内计时器，让秤上显示屏与网页冲煮时间同步
+          if (this.adapter && this.adapter.connected) {
+            (async () => {
+              try { await this.adapter.resetTimer(); } catch(_) {}
+              try { await this.adapter.startTimer(); } catch(_) {}
+            })();
+          }
+        }
         this._currentSeg = {
           index: this.brew.segments.length + 1,
           startAt: at,
@@ -9419,6 +9443,8 @@ setupListFilterEvents();
       this._lift.disarm();
       if (this.adapter && this.adapter.connected) {
         try { await this.adapter.tare(); } catch(_) {}
+        // v13.19.0: 秤上显示屏同步 — 归零秤内计时器，等首段注水启动
+        try { await this.adapter.resetTimer(); } catch(_) {}
         if (typeof this.adapter.startBrewSimulation === 'function') this.adapter.startBrewSimulation();
       }
       this._setState('ARMED');
@@ -9459,6 +9485,10 @@ setupListFilterEvents();
       this.brew.liftedAt = Date.now();
       this._setState('POST_BREW');
       this._lift.disarm();
+      // v13.19.0: 冲煮结束停止秤内计时器（秤上显示屏保留冲煮总时长）
+      if (this.adapter && this.adapter.connected) {
+        this.adapter.stopTimer().catch(() => {});
+      }
       this._recalcSummary();
       this._emit('brewEnd', { brew: this.brew, manual: true });
     }
@@ -9495,6 +9525,10 @@ setupListFilterEvents();
         this._liftTimer = null;
         if (this.state === 'LIFT_PENDING') {
           this._setState('POST_BREW');
+          // v13.19.0: 自动结束（提壶超时）同步停止秤内计时器
+          if (this.adapter && this.adapter.connected) {
+            this.adapter.stopTimer().catch(() => {});
+          }
           this._recalcSummary();
           this._emit('brewEnd', { brew: this.brew, manual: false });
         }
@@ -9986,7 +10020,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.18.0 连秤模式已就绪');
+    log('Brew Lab v13.19.0 连秤模式已就绪');
   }
 
   // 暴露调试入口
