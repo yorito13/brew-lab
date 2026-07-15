@@ -2428,6 +2428,301 @@
     margin-top: 16px;
     opacity: 0.7;
   }
+
+  /* ===== V13.20：本地风味词典抽词面板 ===== */
+  .flavor-extract-panel {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--accent-soft, #f0f8ff);
+    border: 1px solid var(--accent-soft, #d0e8f5);
+    border-radius: var(--radius-md, 8px);
+    font-size: var(--fs-caption, 12px);
+  }
+  .fep-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .fep-title {
+    font-weight: 600;
+    color: var(--accent, #0a7ea4);
+    font-size: 13px;
+  }
+  .fep-count {
+    font-size: 11px;
+    color: var(--muted, #888);
+  }
+  .fep-section {
+    margin-top: 4px;
+    line-height: 1.9;
+  }
+  .fep-section-label {
+    font-size: 11px;
+    color: var(--muted, #888);
+    margin-right: 4px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .fep-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin: 2px;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .fep-chip-flavor {
+    background: #e6f7ea;
+    border: 1px solid #b8e0c5;
+    color: #2d7a3f;
+  }
+  .fep-chip-modifier {
+    background: #f5eefa;
+    border: 1px solid #d8c5e5;
+    color: #6b3f7a;
+  }
+  .fep-cat {
+    font-size: 10px;
+    color: var(--muted, #888);
+    margin-left: 2px;
+    opacity: 0.8;
+  }
+  .fep-color-badge {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 2px;
+    border: 1px solid rgba(0,0,0,0.15);
+  }
+  .fep-color-white { background: #fff; }
+  .fep-color-red { background: #d94848; }
+  .fep-color-purple { background: #8a4ac9; }
+  .fep-chip-anchor {
+    box-shadow: 0 0 0 1px rgba(45,122,63,0.3) inset;
+  }
+  .fep-empty {
+    color: var(--muted, #aaa);
+    font-style: italic;
+    font-size: 11px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .flavor-extract-panel {
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.1);
+    }
+    .fep-chip-flavor {
+      background: rgba(76, 175, 80, 0.15);
+      border-color: rgba(76, 175, 80, 0.4);
+      color: #7dcc90;
+    }
+    .fep-chip-modifier {
+      background: rgba(156, 39, 176, 0.15);
+      border-color: rgba(156, 39, 176, 0.4);
+      color: #c58ad4;
+    }
+  }
+  /* ===== V13.20 结束 ===== */
+
+/* ===== V13.21 未命中词 modal + 我的风味词典 tab CSS ===== */
+.uw-modal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.uw-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px);
+}
+.uw-panel {
+  position: relative;
+  background: var(--card-bg, #fff);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  max-width: 560px; width: 100%;
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.uw-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border, #eee);
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.uw-title { font-size: 15px; font-weight: 600; color: var(--text, #222); }
+.uw-hint  { font-size: 12px; color: var(--text-muted, #888); margin-top: 4px; line-height: 1.5; }
+.uw-close {
+  margin-left: auto; background: transparent; border: none;
+  font-size: 18px; cursor: pointer; color: var(--text-muted, #888);
+  padding: 0 6px; line-height: 1;
+}
+.uw-body { padding: 10px 14px; overflow-y: auto; flex: 1; }
+.uw-item {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-soft, #f0f0f0);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.uw-item:last-child { border-bottom: none; }
+.uw-word {
+  font-size: 15px; font-weight: 600; color: var(--accent, #2e7d32);
+  min-width: 60px;
+  padding: 3px 10px;
+  background: rgba(46, 125, 50, 0.08);
+  border-radius: 6px;
+}
+.uw-freq { font-size: 11px; color: var(--text-muted, #888); }
+.uw-actions { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.uw-actions select, .uw-actions button {
+  font-size: 12px;
+  padding: 5px 8px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  background: var(--card-bg, #fff);
+  cursor: pointer;
+  color: var(--text, #222);
+}
+.uw-actions .uw-btn-add    { background: rgba(46, 125, 50, 0.12); border-color: rgba(46, 125, 50, 0.3); color: #1b5e20; }
+.uw-actions .uw-btn-alias  { background: rgba(103, 58, 183, 0.10); border-color: rgba(103, 58, 183, 0.28); color: #4527a0; }
+.uw-actions .uw-btn-stop   { background: rgba(120, 120, 120, 0.10); border-color: rgba(120, 120, 120, 0.28); color: #555; }
+.uw-item.handled { opacity: 0.5; }
+.uw-item.handled .uw-actions { pointer-events: none; }
+.uw-item .uw-state {
+  font-size: 11px; color: var(--text-muted, #888);
+  padding: 3px 8px; background: rgba(0,0,0,0.04); border-radius: 4px;
+  margin-left: 8px;
+}
+.uw-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border, #eee);
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.uw-footer button {
+  padding: 8px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border, #ddd);
+  background: var(--card-bg, #fff); color: var(--text, #222);
+  font-size: 13px;
+}
+.uw-footer .uw-confirm {
+  background: var(--accent, #2e7d32); color: #fff; border-color: var(--accent, #2e7d32);
+  font-weight: 600;
+}
+.uw-footer .uw-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* 我的风味词典 tab */
+.dict-toolbar {
+  display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+}
+.dict-search {
+  flex: 1; min-width: 160px;
+  padding: 7px 10px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--card-bg, #fff); color: var(--text, #222);
+}
+.dict-select {
+  padding: 7px 10px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--card-bg, #fff); color: var(--text, #222);
+}
+.dict-summary {
+  font-size: 12px; color: var(--text-muted, #888);
+  margin-bottom: 10px; padding: 6px 10px;
+  background: rgba(0,0,0,0.03); border-radius: 6px;
+}
+.dict-group {
+  margin-bottom: 14px;
+}
+.dict-group-header {
+  font-size: 13px; font-weight: 600; color: var(--text, #333);
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.04); border-radius: 6px;
+  margin-bottom: 6px;
+}
+.dict-word-card {
+  padding: 8px 10px;
+  border: 1px solid var(--border-soft, #eee);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: var(--card-bg, #fff);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dict-word-card:hover { background: rgba(46, 125, 50, 0.04); }
+.dict-word-head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.dict-word-name { font-size: 14px; font-weight: 600; color: var(--text, #222); }
+.dict-word-cat  { font-size: 11px; color: var(--text-muted, #888); padding: 2px 6px; background: rgba(0,0,0,0.05); border-radius: 4px; }
+.dict-word-source-seed { font-size: 10px; padding: 2px 5px; border-radius: 4px; background: rgba(46, 125, 50, 0.14); color: #1b5e20; }
+.dict-word-source-user { font-size: 10px; padding: 2px 5px; border-radius: 4px; background: rgba(103, 58, 183, 0.14); color: #4527a0; }
+.dict-word-freq { font-size: 11px; color: var(--text-muted, #888); margin-left: auto; }
+.dict-word-detail {
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed var(--border-soft, #eee);
+  font-size: 12px; color: var(--text, #333);
+  display: none;
+}
+.dict-word-card.expanded .dict-word-detail { display: block; }
+.dict-word-card.expanded { background: rgba(46, 125, 50, 0.03); }
+.dict-detail-row { margin: 4px 0; line-height: 1.6; }
+.dict-detail-label { color: var(--text-muted, #888); margin-right: 6px; }
+.dict-detail-value { color: var(--text, #333); }
+.dict-record-link {
+  display: inline-block;
+  padding: 2px 6px; margin: 2px 3px 2px 0;
+  background: rgba(46, 125, 50, 0.08);
+  color: var(--accent, #2e7d32);
+  border-radius: 4px; font-size: 11px;
+  cursor: pointer; text-decoration: none;
+}
+.dict-record-link:hover { background: rgba(46, 125, 50, 0.16); }
+.dict-empty {
+  padding: 40px 20px; text-align: center;
+  color: var(--text-muted, #888); font-size: 13px;
+}
+.dict-word-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.dict-word-actions button {
+  font-size: 11px; padding: 3px 8px;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 5px;
+  background: var(--card-bg, #fff);
+  color: var(--text, #333);
+  cursor: pointer;
+}
+.dict-word-actions button:hover { background: rgba(0,0,0,0.04); }
+.dict-word-actions .dict-btn-delete { color: #c62828; border-color: rgba(198, 40, 40, 0.3); }
+
+/* dark 模式 */
+@media (prefers-color-scheme: dark) {
+  .uw-panel { background: #262626; }
+  .uw-word { background: rgba(129, 199, 132, 0.16); color: #a5d6a7; }
+  .uw-actions select, .uw-actions button, .uw-footer button,
+  .dict-search, .dict-select, .dict-word-card, .dict-word-actions button {
+    background: #2f2f2f; color: #ddd; border-color: #4a4a4a;
+  }
+  .uw-actions .uw-btn-add { background: rgba(129, 199, 132, 0.16); color: #a5d6a7; border-color: rgba(129, 199, 132, 0.35); }
+  .uw-actions .uw-btn-alias { background: rgba(179, 136, 235, 0.16); color: #b39ddb; border-color: rgba(179, 136, 235, 0.35); }
+  .uw-actions .uw-btn-stop { background: rgba(160, 160, 160, 0.14); color: #bbb; border-color: rgba(160, 160, 160, 0.35); }
+  .uw-item .uw-state, .dict-summary, .dict-group-header { background: rgba(255,255,255,0.06); }
+  .dict-word-source-seed { background: rgba(129, 199, 132, 0.2); color: #a5d6a7; }
+  .dict-word-source-user { background: rgba(179, 136, 235, 0.2); color: #b39ddb; }
+  .dict-word-card.expanded { background: rgba(129, 199, 132, 0.06); }
+  .dict-record-link { background: rgba(129, 199, 132, 0.14); color: #a5d6a7; }
+  .dict-record-link:hover { background: rgba(129, 199, 132, 0.24); }
+}
+/* ===== V13.21 CSS 结束 ===== */
+
 </style>
 <!-- ====== V13.0 vendor libs (LZ-String + qrcode-generator + jsQR) for QR sharing ====== -->
 <script>
@@ -2630,7 +2925,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.19.0</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.21.1</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -2647,6 +2942,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   <div class="tab-bar">
     <button id="tab-new" class="active" onclick="switchTab('new')">✏️ 新建记录</button>
     <button id="tab-list" onclick="switchTab('list')">📋 历史记录 <span id="count-badge"></span></button>
+    <button id="tab-dict" onclick="switchTab('dict')">📖 我的词典 <span id="dict-badge"></span></button>
   </div>
 
   <!-- 新建/编辑记录 -->
@@ -2864,6 +3160,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         <div class="field">
           <label>风味笔记</label>
           <textarea id="notes" placeholder="果酸、花香、平衡度、余韵……随手记几笔（如：偏涩、水感、尖酸等关键词会被智能分析识别）"></textarea>
+          <!-- V13.20：本地风味词典抽词面板 -->
+          <div class="flavor-extract-panel" id="flavor-extract-panel" style="display:none">
+            <div class="fep-header">
+              <span class="fep-title">🔖 本地词典识别</span>
+              <span class="fep-count"></span>
+            </div>
+            <div class="fep-section" id="fep-section-flavor">
+              <span class="fep-section-label">风味：</span>
+              <span class="fep-flavor-chips"></span>
+            </div>
+            <div class="fep-section" id="fep-section-modifier">
+              <span class="fep-section-label">修饰：</span>
+              <span class="fep-modifier-chips"></span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2938,6 +3249,25 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </div>
     <div id="log-container"></div>
   </div>
+
+  <!-- V13.21 我的风味词典 -->
+  <div id="page-dict" style="display:none">
+    <div class="dict-toolbar">
+      <input type="text" id="dict-search" class="dict-search" placeholder="🔍 搜词条 / 大类" autocomplete="off">
+      <select id="dict-source" class="dict-select">
+        <option value="all">全部来源</option>
+        <option value="seed">🌱 种子</option>
+        <option value="user">📝 学习</option>
+      </select>
+      <select id="dict-sort" class="dict-select">
+        <option value="freq">按频次</option>
+        <option value="firstSeen">按首现</option>
+        <option value="category">按分类</option>
+      </select>
+    </div>
+    <div class="dict-summary" id="dict-summary"></div>
+    <div id="dict-container"></div>
+  </div>
 </div>
 
 <div class="submit-bar" id="submit-bar">
@@ -2980,7 +3310,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.19.0</div>
+    <div class="about-version">Brew Lab · v13.21.1</div>
   </div>
 </div>
 
@@ -3326,10 +3656,15 @@ function toast(msg) {
 function switchTab(tab) {
   document.getElementById('tab-new').classList.toggle('active', tab === 'new');
   document.getElementById('tab-list').classList.toggle('active', tab === 'list');
+  const tabDict = document.getElementById('tab-dict');
+  if (tabDict) tabDict.classList.toggle('active', tab === 'dict');
   document.getElementById('page-new').style.display = tab === 'new' ? 'block' : 'none';
   document.getElementById('page-list').style.display = tab === 'list' ? 'block' : 'none';
+  const pageDict = document.getElementById('page-dict');
+  if (pageDict) pageDict.style.display = tab === 'dict' ? 'block' : 'none';
   document.getElementById('submit-bar').style.display = tab === 'new' ? 'flex' : 'none';
   if (tab === 'list') renderList();
+  if (tab === 'dict' && typeof renderMyDict === 'function') renderMyDict();
 }
 
 // ============= 粉水比计算 =============
@@ -3953,7 +4288,7 @@ function updateEditModeUI(record) {
   }
 }
 
-function saveRecord(e) {
+async function saveRecord(e) {
   if (e) e.preventDefault();
   const data = getFormData();
   // 至少要有一个核心字段
@@ -3961,6 +4296,22 @@ function saveRecord(e) {
     toast('至少填一点信息再保存吧');
     return;
   }
+  // V13.21 保存前扫描未命中词，弹窗让主人处理
+  if (typeof extractCandidates === 'function' && data.notes) {
+    const cands = extractCandidates(data.notes);
+    if (cands.length > 0) {
+      const editId = document.getElementById('edit-id').value;
+      const recordId = editId || ('r_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+      const ok = await showUnknownWordsModal(cands, { recordId, beanName: data.beanName });
+      if (!ok) return; // 主人取消保存
+      // 弹窗内可能改动了 user_dict，重新扫一次面板
+      if (typeof updateFlavorPanel === 'function') updateFlavorPanel();
+    }
+  }
+  _doSaveRecord(data);
+}
+
+function _doSaveRecord(data) {
   const all = loadAll();
   const editId = document.getElementById('edit-id').value;
   if (editId) {
@@ -10020,7 +10371,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.19.0 连秤模式已就绪');
+    log('Brew Lab v13.21.1 连秤模式已就绪');
   }
 
   // 暴露调试入口
@@ -10042,7 +10393,706 @@ setupListFilterEvents();
   }
 })();
 
+
+// ===== V13.20：本地风味词典抽词面板 =====
+// 数据源：seed_dict v0.8（2026-07-14 定型，路径 手冲咖啡记录/flavor_dict/seed_dict.json）
+// 原则：只匹配主人明确喝出过、有真实味觉参照物的词条；风味轮/SCA/WCR 不作为数据源
+// 与 KNOWLEDGE.aromaDelicate 关系：本字典独立，不影响智能分析逻辑；未来 v13.2x 稳定后再考虑合并
+const FLAVOR_DICT = {
+  version: '0.8',
+  categories: {
+    '柑橘':     ['柑橘', '柠檬', '甜橙', '西柚'],
+    '深色水果': ['莓果', '草莓', '蓝莓', '乌梅', '葡萄', '青提', '紫葡萄'],
+    '核果':     ['核果', '水蜜桃', '荔枝'],
+    '热带水果': ['芒果', '菠萝'],
+    '草本':     ['柠檬草'],
+    '花香':     ['茉莉', '玫瑰', '白色花香', '红色花香', '紫色花香'],
+    '糖甜':     ['蜂蜜', '黄糖', '枫糖', '烤红薯'],
+    '可可':     ['黑巧克力']
+  },
+  modifiers: ['明亮', '上扬', '活泼', '饱满', '扎实', '尖锐', '持久', '干净', '圆润'],
+  flowerColor: {
+    '茉莉': 'white', '白色花香': 'white',
+    '玫瑰': 'red',   '红色花香': 'red',
+    '紫色花香': 'purple'
+  },
+  anchors: {
+    // v0.8: 已清空（烤红薯撤销 anchor）；仅罕见/歧义/主人特别指定的词才入
+  }
+};
+
+// 抽词函数：返回 { flavorHits, modifierHits }
+// - 长词优先匹配（避免"柑橘"吃掉"柑橘皮"这类情况）
+// - 命中去重（同一词多次出现只算一次命中）
+function extractFlavorWords(text) {
+  if (!text || typeof text !== 'string') {
+    return { flavorHits: [], modifierHits: [] };
+  }
+  const allFlavors = [];
+  for (const [cat, words] of Object.entries(FLAVOR_DICT.categories)) {
+    for (const w of words) allFlavors.push({ word: w, category: cat });
+  }
+  allFlavors.sort((a, b) => b.word.length - a.word.length);
+  const modifiers = [...FLAVOR_DICT.modifiers].sort((a, b) => b.length - a.length);
+
+  const flavorHits = [];
+  const modifierHits = [];
+  const hitSet = new Set();
+  // 区间打洞：长词优先匹配后，把命中字符位置标记，避免子串（如"葡萄"被"紫葡萄"重复命中）
+  const chars = Array.from(text.trim());
+  const used = new Array(chars.length).fill(false);
+
+  const findAndMark = (word) => {
+    const wordChars = Array.from(word);
+    const wLen = wordChars.length;
+    for (let i = 0; i <= chars.length - wLen; i++) {
+      let match = true;
+      for (let j = 0; j < wLen; j++) {
+        if (used[i + j] || chars[i + j] !== wordChars[j]) { match = false; break; }
+      }
+      if (match) {
+        for (let j = 0; j < wLen; j++) used[i + j] = true;
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for (const item of allFlavors) {
+    if (!hitSet.has(item.word) && findAndMark(item.word)) {
+      flavorHits.push(item);
+      hitSet.add(item.word);
+    }
+  }
+  for (const mw of modifiers) {
+    if (!hitSet.has(mw) && findAndMark(mw)) {
+      modifierHits.push({ word: mw });
+      hitSet.add(mw);
+    }
+  }
+  return { flavorHits, modifierHits };
+}
+
+function updateFlavorPanel() {
+  const notesEl = document.getElementById('notes');
+  const panelEl = document.getElementById('flavor-extract-panel');
+  if (!notesEl || !panelEl) return;
+
+  const text = notesEl.value;
+  const { flavorHits, modifierHits } = extractFlavorWords(text);
+
+  if (flavorHits.length === 0 && modifierHits.length === 0) {
+    panelEl.style.display = 'none';
+    return;
+  }
+  panelEl.style.display = '';
+
+  const flavorEl = panelEl.querySelector('.fep-flavor-chips');
+  const modEl = panelEl.querySelector('.fep-modifier-chips');
+  const countEl = panelEl.querySelector('.fep-count');
+  const flavorSection = document.getElementById('fep-section-flavor');
+  const modSection = document.getElementById('fep-section-modifier');
+
+  // 风味 chips
+  if (flavorHits.length) {
+    flavorSection.style.display = '';
+    flavorEl.innerHTML = flavorHits.map(h => {
+      const color = FLAVOR_DICT.flowerColor[h.word];
+      const colorBadge = color ? `<span class="fep-color-badge fep-color-${color}" title="花香颜色：${color === 'white' ? '白' : color === 'red' ? '红' : '紫'}"></span>` : '';
+      const anchor = FLAVOR_DICT.anchors[h.word];
+      const anchorTitle = anchor ? ` · 记忆锚点：${anchor.sample}` : '';
+      const anchorCls = anchor ? ' fep-chip-anchor' : '';
+      return `<span class="fep-chip fep-chip-flavor${anchorCls}" title="分类：${h.category}${anchorTitle}">${h.word}${colorBadge}<span class="fep-cat">${h.category}</span></span>`;
+    }).join('');
+  } else {
+    flavorSection.style.display = 'none';
+  }
+
+  // 修饰 chips
+  if (modifierHits.length) {
+    modSection.style.display = '';
+    modEl.innerHTML = modifierHits.map(m => `<span class="fep-chip fep-chip-modifier">${m.word}</span>`).join('');
+  } else {
+    modSection.style.display = 'none';
+  }
+
+  countEl.textContent = `识别 ${flavorHits.length + modifierHits.length} 个（风味 ${flavorHits.length} · 修饰 ${modifierHits.length}）`;
+}
+
+// 事件绑定：#notes input 实时更新面板
+(function initFlavorPanel() {
+  function bind() {
+    const notesEl = document.getElementById('notes');
+    if (!notesEl) {
+      // DOM 未就绪时延后再试
+      setTimeout(bind, 100);
+      return;
+    }
+    notesEl.addEventListener('input', updateFlavorPanel);
+    // 首次载入（编辑已保存记录时）也扫一次
+    setTimeout(updateFlavorPanel, 150);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
+// ===== V13.20 结束 =====
+// ===== V13.21 用户词典 + 未命中弹窗 + 我的风味词典 tab =====
+const USER_DICT_KEY = 'brewlab_user_dict_v1';
+
+function loadUserDict() {
+  try {
+    const raw = localStorage.getItem(USER_DICT_KEY);
+    if (!raw) return { words: [], stopwords: [], aliases: {} };
+    const d = JSON.parse(raw);
+    return {
+      words: Array.isArray(d.words) ? d.words : [],
+      stopwords: Array.isArray(d.stopwords) ? d.stopwords : [],
+      aliases: (d.aliases && typeof d.aliases === 'object') ? d.aliases : {}
+    };
+  } catch(e) {
+    return { words: [], stopwords: [], aliases: {} };
+  }
+}
+function saveUserDict(dict) {
+  localStorage.setItem(USER_DICT_KEY, JSON.stringify(dict));
+}
+
+// 合并 seed + user 字典
+function getMergedFlavorDict() {
+  const u = loadUserDict();
+  const seedFlavor = [];
+  for (const [cat, words] of Object.entries(FLAVOR_DICT.categories)) {
+    for (const w of words) seedFlavor.push({ word: w, category: cat, source: 'seed' });
+  }
+  const seedModifier = FLAVOR_DICT.modifiers.map(w => ({ word: w, source: 'seed' }));
+  const userFlavor = [];
+  const userModifier = [];
+  for (const item of (u.words || [])) {
+    if (item.type === 'modifier') {
+      userModifier.push({ word: item.word, source: 'user', addedAt: item.addedAt, firstSeenRecordId: item.firstSeenRecordId });
+    } else {
+      userFlavor.push({ word: item.word, category: item.category || '未分类', source: 'user', addedAt: item.addedAt, firstSeenRecordId: item.firstSeenRecordId });
+    }
+  }
+  return {
+    allFlavorWords: [...seedFlavor, ...userFlavor],
+    allModifiers: [...seedModifier, ...userModifier],
+    flowerColor: FLAVOR_DICT.flowerColor,
+    anchors: FLAVOR_DICT.anchors,
+    userDict: u
+  };
+}
+
+// 分隔符 + 常见虚词（用于头尾剥离）
+// v13.21.1：去掉「感/味/带」（改由 tail particle 处理，避免把「整体风味/口感/连带」切碎）
+const _CAND_SEP = /[，。、；：,.;:!?！？（）()【】\[\]"'“”‘’\s\-_/\\|~@#$%^&*+=…—·`0-9a-zA-Z°℃℉的了是也有和与跟或都但且及还就要才被把让使给又并以太很蛮挺超更最极略稍]/;
+// v13.21.1：扩充头部虚词（结构词/评价副词/冲煮流程词）
+const _CAND_HEAD_PARTICLE = /^(?:的|了|是|也|有|和|都|但|如|在|于|等|就|要|才|被|把|让|使|给|又|并|以及|然后|之后|之前|感觉|有点|有些|稍微|略微|一点|一些|比较|非常|特别|太|很|蛮|挺|超|更|最|极其|入口|尾韵|后调|前段|中段|风味|味道|口感|余韵|后段|整体|总体|大致|基本|相对|依然|依旧|明显|几乎|近乎|极为|颇为|还有|还是|还算|多段|单段|注水|水温|闷蒸)+/;
+// v13.21.1：扩充尾部虚词（后缀化语气词/结构尾字）；"香"不加（避免切碎"甘香/小茴香/蜜香"）
+const _CAND_TAIL_PARTICLE = /(?:的|了|是|感|味|化|性|度|韵|风|调|色|样|点|层|气息|明显|依然|依旧|之感|之意)+$/;
+// v13.21.1：内置默认停用词（冲煮流程词/结构描述词/程度副词），避免每次弹窗都出现
+const _DEFAULT_STOPWORDS = new Set([
+  '衔接','整体','注水','闷蒸','扰流','萃取','多段','单段','后段','前段','中段',
+  '粉水比','豆量','水温','风味','味道','口感','余韵','香气','气息',
+  '明显','依然','依旧','大致','总体','基本','相对','之后','之前','之感','之意',
+  '一点','一些','有点','有些','稍微','略微','非常','特别','比较','极其',
+  '感觉','味道','层次','变化','状态','情况'
+]);
+
+function extractCandidates(text) {
+  if (!text) return [];
+  const merged = getMergedFlavorDict();
+  const known = new Set();
+  merged.allFlavorWords.forEach(w => known.add(w.word));
+  merged.allModifiers.forEach(w => known.add(w.word));
+  (merged.userDict.stopwords || []).forEach(w => known.add(w));
+  Object.keys(merged.userDict.aliases || {}).forEach(a => known.add(a));
+  // v13.21.1：内置默认停用词也算已知，直接过滤
+  _DEFAULT_STOPWORDS.forEach(w => known.add(w));
+  // v13.21.1：category 名（如 花香/深色水果/糖甜/可可/草本）也算已知，避免类别名作为独立候选弹出
+  Object.keys(FLAVOR_DICT.categories).forEach(cat => known.add(cat));
+
+  const chars = Array.from(text);
+  const used = new Array(chars.length).fill(false);
+  const allKnown = [...known].sort((a, b) => b.length - a.length);
+
+  for (const kw of allKnown) {
+    if (!kw) continue;
+    const kwChars = Array.from(kw);
+    const kLen = kwChars.length;
+    if (kLen === 0) continue;
+    for (let i = 0; i <= chars.length - kLen; i++) {
+      let match = true;
+      for (let j = 0; j < kLen; j++) {
+        if (used[i + j] || chars[i + j] !== kwChars[j]) { match = false; break; }
+      }
+      if (match) {
+        for (let j = 0; j < kLen; j++) used[i + j] = true;
+      }
+    }
+  }
+
+  // 剩余连续中文段
+  const segments = [];
+  let cur = '';
+  for (let i = 0; i < chars.length; i++) {
+    const c = chars[i];
+    if (used[i] || _CAND_SEP.test(c)) {
+      if (cur.length >= 2) segments.push(cur);
+      cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  if (cur.length >= 2) segments.push(cur);
+
+  const freqMap = new Map();
+  for (let seg of segments) {
+    seg = seg.replace(_CAND_HEAD_PARTICLE, '').replace(_CAND_TAIL_PARTICLE, '');
+    // v13.21.1：可能剥掉后又出现头部虚词（多层嵌套），再剥一遍兜底
+    seg = seg.replace(_CAND_HEAD_PARTICLE, '').replace(_CAND_TAIL_PARTICLE, '');
+    if (seg.length < 2 || seg.length > 6) continue;
+    if (!/[\u4e00-\u9fa5]/.test(seg)) continue;
+    if (/^[\d]+$/.test(seg)) continue;
+    if (known.has(seg)) continue;
+    freqMap.set(seg, (freqMap.get(seg) || 0) + 1);
+  }
+  return [...freqMap.entries()]
+    .map(([word, freq]) => ({ word, freq }))
+    .sort((a, b) => b.freq - a.freq || b.word.length - a.word.length);
+}
+
+// ─────────── 未命中词弹窗 ───────────
+let _uwResolver = null;
+let _uwState = { candidates: [], actions: {}, meta: null };
+
+function showUnknownWordsModal(candidates, meta) {
+  return new Promise(resolve => {
+    _uwResolver = resolve;
+    _uwState = { candidates, actions: {}, meta: meta || null };
+    _uwRender();
+    document.getElementById('uw-modal').style.display = '';
+    document.body.style.overflow = 'hidden';
+  });
+}
+
+function _uwRender() {
+  const modal = document.getElementById('uw-modal');
+  if (!modal) return;
+  const body = document.getElementById('uw-body');
+  const countEl = document.getElementById('uw-count');
+  const confirmBtn = document.getElementById('uw-confirm-btn');
+  countEl.textContent = _uwState.candidates.length;
+
+  const merged = getMergedFlavorDict();
+  const categories = Object.keys(FLAVOR_DICT.categories);
+  const allWords = [...merged.allFlavorWords, ...merged.allModifiers];
+
+  body.innerHTML = _uwState.candidates.map((c, idx) => {
+    const act = _uwState.actions[c.word];
+    const stateLabel = act ? (
+      act.type === 'add' ? `✅ 入库 → ${act.category === '__modifier__' ? '修饰词' : act.category}` :
+      act.type === 'alias' ? `🔗 合并到 → ${act.target}` :
+      act.type === 'stop' ? '❌ 停用词' : ''
+    ) : '';
+    const catOpts = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    const wordOpts = allWords.map(w => `<option value="${w.word}">${w.word}</option>`).join('');
+    return `
+    <div class="uw-item ${act ? 'handled' : ''}" data-word="${c.word}">
+      <div class="uw-word">${c.word}</div>
+      ${c.freq > 1 ? `<div class="uw-freq">×${c.freq}</div>` : ''}
+      <div class="uw-actions">
+        <select class="uw-btn-add" data-idx="${idx}" onchange="uwPick(${idx}, 'add', this.value)">
+          <option value="">＋ 入库到...</option>
+          ${catOpts}
+          <option value="__modifier__">▸ 修饰词层</option>
+        </select>
+        <select class="uw-btn-alias" data-idx="${idx}" onchange="uwPick(${idx}, 'alias', this.value)">
+          <option value="">🔗 合并到...</option>
+          ${wordOpts}
+        </select>
+        <button type="button" class="uw-btn-stop" onclick="uwPick(${idx}, 'stop', null)">❌ 不是</button>
+      </div>
+      ${stateLabel ? `<div class="uw-state">${stateLabel} <a href="javascript:void(0)" onclick="uwUndo(${idx})" style="margin-left:6px;color:#c62828;text-decoration:none">↺ 撤销</a></div>` : ''}
+    </div>`;
+  }).join('');
+
+  // 确认按钮：所有词都处理完才可点，或全部跳过
+  const doneCount = Object.keys(_uwState.actions).length;
+  confirmBtn.disabled = doneCount === 0;
+  confirmBtn.textContent = doneCount === _uwState.candidates.length
+    ? '✓ 完成，继续保存'
+    : `继续保存（${doneCount}/${_uwState.candidates.length}）`;
+}
+
+function uwPick(idx, type, value) {
+  const c = _uwState.candidates[idx];
+  if (!c) return;
+  if (type === 'add') {
+    if (!value) return;
+    _uwState.actions[c.word] = { type: 'add', category: value };
+  } else if (type === 'alias') {
+    if (!value) return;
+    _uwState.actions[c.word] = { type: 'alias', target: value };
+  } else if (type === 'stop') {
+    _uwState.actions[c.word] = { type: 'stop' };
+  }
+  _uwRender();
+}
+
+function uwUndo(idx) {
+  const c = _uwState.candidates[idx];
+  if (!c) return;
+  delete _uwState.actions[c.word];
+  _uwRender();
+}
+
+function uwCancel() {
+  document.getElementById('uw-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (_uwResolver) { _uwResolver(false); _uwResolver = null; }
+}
+
+function uwSkipAll() {
+  // 全部跳过：不落盘 user_dict，直接保存
+  document.getElementById('uw-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (_uwResolver) { _uwResolver(true); _uwResolver = null; }
+}
+
+function uwConfirm() {
+  const dict = loadUserDict();
+  const now = Date.now();
+  const recordId = (_uwState.meta && _uwState.meta.recordId) || null;
+  for (const [word, act] of Object.entries(_uwState.actions)) {
+    if (act.type === 'add') {
+      const isModifier = act.category === '__modifier__';
+      if (!dict.words.find(w => w.word === word)) {
+        dict.words.push({
+          word,
+          type: isModifier ? 'modifier' : 'flavor',
+          category: isModifier ? null : act.category,
+          addedAt: now,
+          firstSeenRecordId: recordId
+        });
+      }
+    } else if (act.type === 'alias') {
+      dict.aliases[word] = act.target;
+    } else if (act.type === 'stop') {
+      if (!dict.stopwords.includes(word)) dict.stopwords.push(word);
+    }
+  }
+  saveUserDict(dict);
+  toast(`✓ 词典已更新（${Object.keys(_uwState.actions).length} 词）`);
+  document.getElementById('uw-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (_uwResolver) { _uwResolver(true); _uwResolver = null; }
+}
+
+// ─────────── 我的风味词典 tab ───────────
+function _parseRatio(r) {
+  if (!r) return null;
+  const m = String(r).match(/1\s*[:：]\s*([\d.]+)/);
+  if (!m) return null;
+  const v = parseFloat(m[1]);
+  return isNaN(v) ? null : v;
+}
+function _num(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+function _rangeStr(arr, unit, digits) {
+  const vals = arr.filter(v => v !== null && v !== undefined);
+  if (!vals.length) return null;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+  const d = digits === undefined ? 1 : digits;
+  if (min === max) return `${min.toFixed(d)}${unit || ''}`;
+  return `${min.toFixed(d)} ~ ${max.toFixed(d)}${unit || ''}（均 ${avg.toFixed(d)}）`;
+}
+function _topK(arr, k) {
+  const m = new Map();
+  for (const v of arr) {
+    if (!v) continue;
+    m.set(v, (m.get(v) || 0) + 1);
+  }
+  return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, k);
+}
+
+function _computeWordStats() {
+  // 遍历所有记录，聚合每个词的 freq / records / params
+  const stats = {};
+  const records = loadAll();
+  for (const r of records) {
+    if (!r.notes) continue;
+    const { flavorHits, modifierHits } = extractFlavorWords(r.notes);
+    const hitWords = new Set([...flavorHits.map(h => h.word), ...modifierHits.map(m => m.word)]);
+    for (const w of hitWords) {
+      stats[w] = stats[w] || { freq: 0, records: [], temps: [], ratios: [], doses: [], drippers: [], beans: [] };
+      stats[w].freq++;
+      stats[w].records.push({ id: r.id, beanName: r.beanName || '(未命名)', createdAt: r.createdAt || 0 });
+      stats[w].temps.push(_num(r.temp));
+      stats[w].ratios.push(_parseRatio(r.ratio));
+      stats[w].doses.push(_num(r.dose));
+      stats[w].drippers.push(r.dripper || null);
+      stats[w].beans.push(r.beanName || null);
+    }
+  }
+  return stats;
+}
+
+function renderMyDict() {
+  const container = document.getElementById('dict-container');
+  const summary = document.getElementById('dict-summary');
+  if (!container) return;
+
+  const merged = getMergedFlavorDict();
+  const stats = _computeWordStats();
+
+  const search = (document.getElementById('dict-search')?.value || '').trim().toLowerCase();
+  const sourceFilter = document.getElementById('dict-source')?.value || 'all';
+  const sortBy = document.getElementById('dict-sort')?.value || 'freq';
+
+  // 聚合词条
+  const all = [];
+  for (const w of merged.allFlavorWords) {
+    all.push({ ...w, type: 'flavor', stats: stats[w.word] || null });
+  }
+  for (const w of merged.allModifiers) {
+    all.push({ ...w, type: 'modifier', category: '修饰词', stats: stats[w.word] || null });
+  }
+
+  // 过滤
+  let filtered = all.filter(w => {
+    if (sourceFilter !== 'all' && w.source !== sourceFilter) return false;
+    if (search) {
+      const s = search;
+      return w.word.toLowerCase().includes(s) || (w.category || '').toLowerCase().includes(s);
+    }
+    return true;
+  });
+
+  // 排序
+  if (sortBy === 'freq') {
+    filtered.sort((a, b) => (b.stats?.freq || 0) - (a.stats?.freq || 0) || a.word.localeCompare(b.word, 'zh'));
+  } else if (sortBy === 'firstSeen') {
+    filtered.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0) || (b.stats?.freq || 0) - (a.stats?.freq || 0));
+  } else if (sortBy === 'category') {
+    filtered.sort((a, b) => (a.category || '').localeCompare(b.category || '', 'zh') || a.word.localeCompare(b.word, 'zh'));
+  }
+
+  // 更新 badge
+  const badge = document.getElementById('dict-badge');
+  if (badge) badge.textContent = `(${merged.allFlavorWords.length + merged.allModifiers.length})`;
+
+  // 顶栏摘要
+  const usedCount = filtered.filter(w => w.stats && w.stats.freq > 0).length;
+  const unusedCount = filtered.length - usedCount;
+  summary.innerHTML = `共 <b>${filtered.length}</b> 词 · 已用 <b>${usedCount}</b> · 未用 <b>${unusedCount}</b> · 种子 <b>${filtered.filter(w=>w.source==='seed').length}</b> / 学习 <b>${filtered.filter(w=>w.source==='user').length}</b>`;
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="dict-empty">没有匹配的词条</div>';
+    return;
+  }
+
+  // 按分类分组
+  let html = '';
+  if (sortBy === 'category') {
+    const groups = {};
+    for (const w of filtered) {
+      const k = w.category || '未分类';
+      groups[k] = groups[k] || [];
+      groups[k].push(w);
+    }
+    for (const k of Object.keys(groups)) {
+      html += `<div class="dict-group"><div class="dict-group-header">${k}（${groups[k].length}）</div>`;
+      for (const w of groups[k]) html += _renderWordCard(w);
+      html += '</div>';
+    }
+  } else {
+    for (const w of filtered) html += _renderWordCard(w);
+  }
+  container.innerHTML = html;
+}
+
+function _renderWordCard(w) {
+  const s = w.stats;
+  const freq = s?.freq || 0;
+  const catBadge = w.category ? `<span class="dict-word-cat">${w.category}</span>` : '';
+  const srcClass = w.source === 'user' ? 'dict-word-source-user' : 'dict-word-source-seed';
+  const srcLabel = w.source === 'user' ? '📝 学习' : '🌱 种子';
+  const freqText = freq > 0 ? `${freq} 次` : '未用';
+
+  // 详情
+  let detail = '';
+  if (s && s.freq > 0) {
+    const tempRange = _rangeStr(s.temps, '°C', 1);
+    const ratioRange = _rangeStr(s.ratios, '', 1);
+    const doseRange = _rangeStr(s.doses, 'g', 1);
+    const topDrippers = _topK(s.drippers, 3);
+    const topBeans = _topK(s.beans, 3);
+    // 最近记录（最多 8 条）
+    const recentRecs = [...s.records].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8);
+    const recLinks = recentRecs.map(r => {
+      const d = r.createdAt ? new Date(r.createdAt) : null;
+      const ds = d ? `${d.getMonth()+1}/${d.getDate()}` : '';
+      return `<a class="dict-record-link" onclick="_dictJumpToRecord('${r.id}')" title="${r.beanName}">${r.beanName}${ds ? ' · ' + ds : ''}</a>`;
+    }).join('');
+    detail = `
+      <div class="dict-word-detail">
+        ${tempRange ? `<div class="dict-detail-row"><span class="dict-detail-label">水温</span><span class="dict-detail-value">${tempRange}</span></div>` : ''}
+        ${ratioRange ? `<div class="dict-detail-row"><span class="dict-detail-label">粉水比</span><span class="dict-detail-value">1:${ratioRange}</span></div>` : ''}
+        ${doseRange ? `<div class="dict-detail-row"><span class="dict-detail-label">粉量</span><span class="dict-detail-value">${doseRange}</span></div>` : ''}
+        ${topDrippers.length ? `<div class="dict-detail-row"><span class="dict-detail-label">滤杯 TOP</span><span class="dict-detail-value">${topDrippers.map(([k,v])=>`${k}×${v}`).join(' / ')}</span></div>` : ''}
+        ${topBeans.length ? `<div class="dict-detail-row"><span class="dict-detail-label">关联豆 TOP</span><span class="dict-detail-value">${topBeans.map(([k,v])=>`${k}×${v}`).join(' / ')}</span></div>` : ''}
+        <div class="dict-detail-row"><span class="dict-detail-label">出现记录</span><div>${recLinks}</div></div>
+        ${w.source === 'user' ? `<div class="dict-word-actions"><button onclick="_dictDeleteWord('${w.word.replace(/'/g, "\\'")}', event)" class="dict-btn-delete">🗑 删除词条</button></div>` : ''}
+      </div>
+    `;
+  } else {
+    detail = `<div class="dict-word-detail"><div class="dict-detail-row" style="color:#999">尚未在任何笔记中出现</div>
+      ${w.source === 'user' ? `<div class="dict-word-actions"><button onclick="_dictDeleteWord('${w.word.replace(/'/g, "\\'")}', event)" class="dict-btn-delete">🗑 删除词条</button></div>` : ''}
+    </div>`;
+  }
+
+  return `
+    <div class="dict-word-card" onclick="this.classList.toggle('expanded')">
+      <div class="dict-word-head">
+        <div class="dict-word-name">${w.word}</div>
+        ${catBadge}
+        <span class="${srcClass}">${srcLabel}</span>
+        <div class="dict-word-freq">${freqText}</div>
+      </div>
+      ${detail}
+    </div>
+  `;
+}
+
+function _dictJumpToRecord(recordId) {
+  // 阻止父卡片折叠
+  if (event && event.stopPropagation) event.stopPropagation();
+  // 切到 list tab 并尝试展开该记录
+  switchTab('list');
+  setTimeout(() => {
+    const el = document.querySelector(`[data-record-id="${recordId}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'background 0.3s';
+      el.style.background = 'rgba(46, 125, 50, 0.14)';
+      setTimeout(() => { el.style.background = ''; }, 1200);
+    }
+  }, 100);
+}
+
+function _dictDeleteWord(word, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
+  if (!confirm(`确定从"我的词典"删除词条「${word}」吗？\n（不会影响历史笔记内容，只是不再自动识别）`)) return;
+  const dict = loadUserDict();
+  dict.words = dict.words.filter(w => w.word !== word);
+  saveUserDict(dict);
+  toast(`已删除 ${word}`);
+  renderMyDict();
+  if (typeof updateFlavorPanel === 'function') updateFlavorPanel();
+}
+
+// 事件绑定
+(function initMyDict() {
+  function bind() {
+    const search = document.getElementById('dict-search');
+    const source = document.getElementById('dict-source');
+    const sort = document.getElementById('dict-sort');
+    if (!search || !source || !sort) {
+      setTimeout(bind, 100);
+      return;
+    }
+    search.addEventListener('input', renderMyDict);
+    source.addEventListener('change', renderMyDict);
+    sort.addEventListener('change', renderMyDict);
+    // badge 初始化
+    const merged = getMergedFlavorDict();
+    const badge = document.getElementById('dict-badge');
+    if (badge) badge.textContent = `(${merged.allFlavorWords.length + merged.allModifiers.length})`;
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind);
+  } else {
+    bind();
+  }
+})();
+
+// V13.21 让抽词面板 & 候选提取识别 user_dict 的词
+// 覆盖 extractFlavorWords：将 user_dict 中的词也纳入
+const _origExtractFlavorWords = extractFlavorWords;
+extractFlavorWords = function(text) {
+  if (!text || typeof text !== 'string') return { flavorHits: [], modifierHits: [] };
+  const merged = getMergedFlavorDict();
+  const allFlavors = merged.allFlavorWords.map(w => ({ word: w.word, category: w.category, source: w.source }));
+  allFlavors.sort((a, b) => b.word.length - a.word.length);
+  const modifiers = [...merged.allModifiers].sort((a, b) => b.word.length - a.word.length);
+
+  const flavorHits = [];
+  const modifierHits = [];
+  const hitSet = new Set();
+  const chars = Array.from(text.trim());
+  const used = new Array(chars.length).fill(false);
+
+  const findAndMark = (word) => {
+    const wordChars = Array.from(word);
+    const wLen = wordChars.length;
+    for (let i = 0; i <= chars.length - wLen; i++) {
+      let match = true;
+      for (let j = 0; j < wLen; j++) {
+        if (used[i + j] || chars[i + j] !== wordChars[j]) { match = false; break; }
+      }
+      if (match) {
+        for (let j = 0; j < wLen; j++) used[i + j] = true;
+        return true;
+      }
+    }
+    return false;
+  };
+
+  for (const item of allFlavors) {
+    if (!hitSet.has(item.word) && findAndMark(item.word)) {
+      flavorHits.push({ word: item.word, category: item.category, source: item.source });
+      hitSet.add(item.word);
+    }
+  }
+  for (const mw of modifiers) {
+    if (!hitSet.has(mw.word) && findAndMark(mw.word)) {
+      modifierHits.push({ word: mw.word, source: mw.source });
+      hitSet.add(mw.word);
+    }
+  }
+  return { flavorHits, modifierHits };
+};
+// ===== V13.21 结束 =====
+
 </script>
+</script>
+
+<!-- V13.21 未命中词卡片弹窗 -->
+<div class="uw-modal" id="uw-modal" style="display:none">
+  <div class="uw-backdrop" onclick="uwCancel()"></div>
+  <div class="uw-panel">
+    <div class="uw-header">
+      <div>
+        <div class="uw-title">📝 发现 <span id="uw-count">0</span> 个疑似风味词未识别</div>
+        <div class="uw-hint">给每个词选一个处理方式；"❌ 不是风味词"会加入停用词，下次不再弹。</div>
+      </div>
+      <button type="button" class="uw-close" onclick="uwCancel()" aria-label="取消">✕</button>
+    </div>
+    <div class="uw-body" id="uw-body"></div>
+    <div class="uw-footer">
+      <button type="button" class="uw-skip" onclick="uwSkipAll()">全部跳过 · 直接保存</button>
+      <button type="button" class="uw-confirm" id="uw-confirm-btn" onclick="uwConfirm()">继续保存 →</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
