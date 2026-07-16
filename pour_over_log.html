@@ -274,6 +274,12 @@
     cursor: pointer;
   }
   header .actions button:active { background: rgba(255,255,255,0.3); }
+  /* v13.22 F: 词典 icon 在词典页时高亮 */
+  header .actions button.active {
+    background: rgba(255,255,255,0.32);
+    border-color: rgba(255,255,255,0.55);
+    font-weight: var(--fw-medium);
+  }
 
   .container { max-width: 720px; margin: 0 auto; padding: 16px; }
 
@@ -2613,6 +2619,14 @@
   font-weight: 600;
 }
 .uw-footer .uw-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+/* v13.22 H：全部入观察池按钮 —— 浅黄（区分「跳过」灰 & 「继续保存」绿） */
+.uw-footer .uw-observe-all {
+  background: rgba(255, 193, 7, 0.14);
+  border-color: rgba(255, 193, 7, 0.42);
+  color: #795548;
+  margin-right: auto;
+}
+.uw-footer .uw-observe-all:hover { background: rgba(255, 193, 7, 0.22); }
 
 /* 我的风味词典 tab */
 .dict-toolbar {
@@ -2702,6 +2716,28 @@
 }
 .dict-word-actions button:hover { background: rgba(0,0,0,0.04); }
 .dict-word-actions .dict-btn-delete { color: #c62828; border-color: rgba(198, 40, 40, 0.3); }
+/* v13.22 H：观察池视觉标记 + 迁移按钮 */
+.dict-word-cat-observation {
+  background: rgba(255, 193, 7, 0.14);
+  color: #795548;
+  font-weight: 600;
+}
+.dict-group-header-observation {
+  background: rgba(255, 193, 7, 0.14);
+  color: #6d4c41;
+}
+.dict-group-header-observation .dict-group-hint {
+  font-size: 11px;
+  color: #8d6e63;
+  font-weight: normal;
+  margin-left: 6px;
+}
+.dict-word-actions .dict-btn-migrate {
+  color: #795548;
+  border-color: rgba(255, 193, 7, 0.42);
+  background: rgba(255, 193, 7, 0.08);
+}
+.dict-word-actions .dict-btn-migrate:hover { background: rgba(255, 193, 7, 0.18); }
 
 /* dark 模式 */
 @media (prefers-color-scheme: dark) {
@@ -2720,8 +2756,96 @@
   .dict-word-card.expanded { background: rgba(129, 199, 132, 0.06); }
   .dict-record-link { background: rgba(129, 199, 132, 0.14); color: #a5d6a7; }
   .dict-record-link:hover { background: rgba(129, 199, 132, 0.24); }
+  /* v13.22 H：观察池暗色模式 */
+  .uw-footer .uw-observe-all { background: rgba(255, 193, 7, 0.18); color: #ffe082; border-color: rgba(255, 193, 7, 0.4); }
+  .uw-footer .uw-observe-all:hover { background: rgba(255, 193, 7, 0.28); }
+  .dict-word-cat-observation { background: rgba(255, 193, 7, 0.22); color: #ffe082; }
+  .dict-group-header-observation { background: rgba(255, 193, 7, 0.16); color: #ffe082; }
+  .dict-group-header-observation .dict-group-hint { color: #ffcc80; }
+  .dict-word-actions .dict-btn-migrate { background: rgba(255, 193, 7, 0.14); color: #ffe082; border-color: rgba(255, 193, 7, 0.35); }
+  .dict-word-actions .dict-btn-migrate:hover { background: rgba(255, 193, 7, 0.24); }
 }
 /* ===== V13.21 CSS 结束 ===== */
+
+/* ===== V13.22 PSD 粒径分析 tab CSS ===== */
+.psd-section { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(15, 110, 126, 0.06); }
+.psd-section h3 { margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #0F172A; display: flex; align-items: center; gap: 6px; }
+.psd-section h3 .psd-tag { font-size: 11px; font-weight: 500; color: #94A3B8; font-family: ui-monospace, monospace; }
+.psd-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.psd-btn { background: #0F6E7E; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 180ms; }
+.psd-btn:hover { background: #0A5B6A; }
+.psd-btn:disabled { background: #94A3B8; cursor: not-allowed; }
+.psd-btn-secondary { background: #fff; color: #0F6E7E; border: 1px solid #0F6E7E; }
+.psd-btn-secondary:hover { background: #ECF6F7; }
+.psd-btn-amber { background: #D97706; color: #fff; }
+.psd-btn-amber:hover { background: #B45309; }
+.psd-file-input { display: none; }
+.psd-num-input { padding: 8px 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-family: inherit; width: 110px; }
+.psd-num-input:focus { outline: none; border-color: #0F6E7E; box-shadow: 0 0 0 3px rgba(15, 110, 126, 0.15); }
+.psd-hint { color: #475569; font-size: 12px; }
+/* v13.22 F: 打印卡内置下载入口 */
+.psd-print-hint { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; padding: 10px 12px; margin-bottom: 12px; background: rgba(217, 119, 6, 0.08); border-left: 3px solid #D97706; border-radius: 6px; font-size: 12px; line-height: 1.55; }
+.psd-print-hint-title { font-weight: 500; color: #0F172A; }
+.psd-print-btn { padding: 5px 12px !important; font-size: 12px !important; text-decoration: none !important; }
+.psd-print-meta { flex-basis: 100%; color: #475569; font-size: 11px; margin-top: 2px; }
+.psd-status { padding: 10px 12px; border-radius: 8px; font-size: 12px; margin: 8px 0; display: none; }
+.psd-status.psd-info { background: #E0F2FE; color: #075985; display: block; }
+.psd-status.psd-ok { background: #DCFCE7; color: #14532D; display: block; }
+.psd-status.psd-warn { background: #FEF3C7; color: #713F12; display: block; }
+.psd-status.psd-err { background: #FEE2E2; color: #7F1D1D; display: block; }
+.psd-canvas-wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.psd-canvas-item { display: flex; flex-direction: column; gap: 6px; }
+.psd-canvas-item label { font-size: 11px; color: #475569; font-family: ui-monospace, monospace; }
+canvas.psd-preview { width: 100%; max-height: 320px; object-fit: contain; background: #f8f8f5; border: 1px solid #e5e7eb; border-radius: 4px; }
+.psd-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.psd-diag-banner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; border-left: 4px solid #0F6E7E; background: #ECF6F7; margin-bottom: 12px; font-size: 13px; }
+.psd-diag-banner .psd-diag-emoji { font-size: 22px; line-height: 1; }
+.psd-diag-banner .psd-diag-main { flex: 1; min-width: 0; }
+.psd-diag-banner .psd-diag-headline { font-weight: 700; font-size: 14px; color: #0F172A; margin-bottom: 2px; }
+.psd-diag-banner .psd-diag-advice { font-size: 12px; color: #475569; }
+.psd-diag-banner .psd-diag-metrics { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: #475569; white-space: nowrap; }
+.psd-diag-banner .psd-diag-metrics b { color: #0F172A; font-weight: 700; }
+@media (max-width: 520px) {
+  .psd-diag-banner { flex-wrap: wrap; }
+  .psd-diag-banner .psd-diag-metrics { width: 100%; padding-top: 4px; border-top: 1px dashed #e5e7eb; }
+}
+.psd-stat-card { background: #ECF6F7; border: 1px solid #D8EEF0; border-radius: 8px; padding: 12px; text-align: center; }
+.psd-stat-card .psd-label { font-size: 11px; color: #475569; font-family: ui-monospace, monospace; margin-bottom: 4px; }
+.psd-stat-card .psd-value { font-size: 22px; font-weight: 700; color: #0F6E7E; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.2; }
+.psd-stat-card .psd-unit { font-size: 11px; color: #94A3B8; margin-left: 2px; }
+.psd-stat-card.psd-small .psd-value { font-size: 16px; }
+.psd-method-note { font-size: 11px; color: #94A3B8; margin-top: 8px; font-style: italic; line-height: 1.6; }
+canvas.psd-chart { width: 100%; max-height: 320px; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; display: block; }
+.psd-kv { font-family: ui-monospace, monospace; font-size: 12px; color: #475569; }
+.psd-kv b { color: #0F172A; font-weight: 600; }
+.psd-details summary { cursor: pointer; color: #475569; font-size: 12px; padding: 4px 0; user-select: none; }
+.psd-details[open] summary { margin-bottom: 8px; }
+.psd-empty-hint { padding: 40px 20px; text-align: center; color: #94A3B8; font-size: 13px; line-height: 1.8; }
+.psd-empty-hint .psd-empty-flow { font-size: 11px; color: #cbd5e1; margin-top: 8px; display: block; }
+.psd-test-output { background: #0F172A; color: #E2E8F0; padding: 12px; border-radius: 8px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; overflow-x: auto; margin: 8px 0 0 0; max-height: 320px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+.psd-test-output .psd-pass { color: #4ADE80; }
+.psd-test-output .psd-fail { color: #F87171; }
+.psd-test-output .psd-info-log { color: #38BDF8; }
+.psd-test-output .psd-warn-log { color: #FBBF24; }
+@media (prefers-color-scheme: dark) {
+  .psd-section { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+  .psd-section h3 { color: #e2e8f0; }
+  .psd-stat-card { background: rgba(15, 110, 126, 0.14); border-color: rgba(15, 110, 126, 0.28); }
+  .psd-stat-card .psd-label { color: #94a3b8; }
+  .psd-stat-card .psd-value { color: #7dd3d8; }
+  .psd-num-input { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); color: #e2e8f0; }
+  canvas.psd-preview { background: #1e293b; border-color: rgba(255,255,255,0.08); }
+  canvas.psd-chart { background: #0f172a; border-color: rgba(255,255,255,0.08); }
+  .psd-diag-banner { background: rgba(15, 110, 126, 0.14); }
+  .psd-diag-banner .psd-diag-headline { color: #e2e8f0; }
+  .psd-diag-banner .psd-diag-metrics b { color: #e2e8f0; }
+  /* v13.22 F: 打印卡下载 hint 深色主题 */
+  .psd-print-hint { background: rgba(217, 119, 6, 0.14); }
+  .psd-print-hint-title { color: #e2e8f0; }
+  .psd-print-meta { color: #cbd5e1; }
+}
+/* ===== V13.22 PSD CSS 结束 ===== */
+
 
 </style>
 <!-- ====== V13.0 vendor libs (LZ-String + qrcode-generator + jsQR) for QR sharing ====== -->
@@ -2925,11 +3049,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.21.1</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.22</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
     <button onclick="openNotesModal()">📔 我的笔记 <span id="notes-badge"></span></button>
+    <button id="dict-icon-btn" onclick="switchTab('dict')" title="我的词典 · 管理视图">📖 词典 <span id="dict-badge"></span></button>
     <button onclick="resetProfile()">♻️ 重置口味画像</button>
     <button id="theme-toggle-btn" onclick="toggleTheme()" title="主题：跟随系统">🌓</button>
     <button id="llm-config-btn" onclick="openLLMConfigModal()" title="LLM 风味/方案评估配置">⚙️ LLM</button>
@@ -2942,7 +3067,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   <div class="tab-bar">
     <button id="tab-new" class="active" onclick="switchTab('new')">✏️ 新建记录</button>
     <button id="tab-list" onclick="switchTab('list')">📋 历史记录 <span id="count-badge"></span></button>
-    <button id="tab-dict" onclick="switchTab('dict')">📖 我的词典 <span id="dict-badge"></span></button>
+    <button id="tab-psd" onclick="switchTab('psd')">🔬 粒径分析</button>
   </div>
 
   <!-- 新建/编辑记录 -->
@@ -3268,6 +3393,97 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="dict-summary" id="dict-summary"></div>
     <div id="dict-container"></div>
   </div>
+
+  <!-- V13.22 PSD 粒径分析 tab -->
+  <div id="page-psd" style="display:none">
+    <!-- 校准 & 上传 -->
+    <div class="psd-section">
+      <h3>① 校准 &amp; 输入 <span class="psd-tag">calibration &amp; input</span></h3>
+      <!-- v13.22 F: 打印卡内置下载入口 -->
+      <div class="psd-print-hint">
+        <span class="psd-print-hint-title">📄 首次使用需先打印卡片</span>
+        <a href="psd_card/PSD_Card_v1_A4x2.pdf" download="Brew_Lab_PSD_Card_v1_A4x2.pdf" class="psd-btn psd-btn-secondary psd-print-btn" title="A4×2 页 PDF，25mm QR 定位">下载打印卡 PDF</a>
+        <div class="psd-print-meta">A4×2 页 · QR 边长 25mm · 打印后铺粉区置于深色底避免透光</div>
+      </div>
+      <details class="psd-details" id="psd-calib-details">
+        <summary>校准 QR 边长（首次使用或需精确对齐时展开）</summary>
+        <div class="psd-row" style="margin-top: 8px;">
+          <label class="psd-hint">QR 实测边长(mm):</label>
+          <input type="number" id="psd-calib-qr-mm" class="psd-num-input" value="25.0" step="0.01" min="10" max="50">
+          <button class="psd-btn psd-btn-secondary" type="button" id="psd-btn-save-calib">保存</button>
+          <span class="psd-hint" id="psd-calib-hint">默认 25.00mm · 建议用游标卡尺量印出实际值</span>
+        </div>
+      </details>
+      <div class="psd-row" style="margin-top: 8px;">
+        <label for="psd-file-input" class="psd-btn">📁 选择照片</label>
+        <input type="file" id="psd-file-input" class="psd-file-input" accept="image/*">
+        <label for="psd-cam-input" class="psd-btn psd-btn-amber">📷 使用相机</label>
+        <input type="file" id="psd-cam-input" class="psd-file-input" accept="image/*" capture="environment">
+        <button class="psd-btn psd-btn-secondary" type="button" id="psd-btn-clear">清空</button>
+      </div>
+      <div id="psd-status" class="psd-status"></div>
+    </div>
+
+    <!-- 图像预览（默认收起） -->
+    <details class="psd-details" id="psd-preview-details" style="display:none;">
+      <summary>② 图像处理流水线预览 · pipeline preview（点击展开查看中间产物）</summary>
+      <div class="psd-canvas-wrap" style="margin-top: 8px;">
+        <div class="psd-canvas-item"><label>原图 + QR 定位</label><canvas id="psd-cv-src" class="psd-preview"></canvas></div>
+        <div class="psd-canvas-item"><label>透视校正后 (A5 正视图)</label><canvas id="psd-cv-warped" class="psd-preview"></canvas></div>
+        <div class="psd-canvas-item"><label>二值化 (Otsu 阈值)</label><canvas id="psd-cv-binary" class="psd-preview"></canvas></div>
+        <div class="psd-canvas-item"><label>颗粒识别叠加图</label><canvas id="psd-cv-overlay" class="psd-preview"></canvas></div>
+      </div>
+      <div class="psd-method-note" id="psd-pipeline-meta"></div>
+    </details>
+
+    <!-- 结果 -->
+    <div class="psd-section" id="psd-sec-results" style="display:none;">
+      <h3>③ 粒径分布结果 <span class="psd-tag">D10 / D50 / D90 · number-based</span></h3>
+      <div id="psd-diag-banner" class="psd-diag-banner" style="display:none;">
+        <span class="psd-diag-emoji" id="psd-diag-emoji">⚪</span>
+        <div class="psd-diag-main">
+          <div class="psd-diag-headline" id="psd-diag-headline">—</div>
+          <div class="psd-diag-advice" id="psd-diag-advice">—</div>
+        </div>
+        <div class="psd-diag-metrics" id="psd-diag-metrics">—</div>
+      </div>
+      <div class="psd-stats-grid">
+        <div class="psd-stat-card"><div class="psd-label">D10</div><div class="psd-value" id="psd-stat-d10">--</div><div class="psd-unit">μm</div></div>
+        <div class="psd-stat-card"><div class="psd-label">D50</div><div class="psd-value" id="psd-stat-d50">--</div><div class="psd-unit">μm</div></div>
+        <div class="psd-stat-card"><div class="psd-label">D90</div><div class="psd-value" id="psd-stat-d90">--</div><div class="psd-unit">μm</div></div>
+        <div class="psd-stat-card psd-small"><div class="psd-label">Span</div><div class="psd-value" id="psd-stat-span">--</div></div>
+        <div class="psd-stat-card psd-small"><div class="psd-label">细粉率 &lt;200μm</div><div class="psd-value" id="psd-stat-fines">--</div><div class="psd-unit">%</div></div>
+        <div class="psd-stat-card psd-small"><div class="psd-label">识别粒数</div><div class="psd-value" id="psd-stat-count">--</div></div>
+        <div class="psd-stat-card psd-small"><div class="psd-label">粉铺区覆盖率</div><div class="psd-value" id="psd-stat-coverage">--</div><div class="psd-unit">%</div></div>
+      </div>
+      <div class="psd-method-note">分布口径：按颗粒<b>数量分布</b>（number-based）。工业标准激光粒度仪多为<b>体积分布</b>（volume-based），二者不可直接对比 —— 数量分布对细粉更敏感。<br>Span 值仅可用于跨磨豆机 / 跨档位<b>相对比较</b>，不可与商业设备（Malvern / Kruve 等）口径直接对齐。</div>
+    </div>
+
+    <!-- KDE 密度曲线 -->
+    <div class="psd-section" id="psd-sec-chart" style="display:none;">
+      <h3>④ 分布密度曲线 <span class="psd-tag">Gaussian KDE · Silverman bandwidth</span></h3>
+      <canvas id="psd-cv-kde" class="psd-chart"></canvas>
+      <div class="psd-method-note">曲线为核密度估计（KDE，Gaussian 核 + Silverman 带宽）。虚线分别标注 <span style="color:#3b82f6;">D10（蓝）</span> / <span style="color:#10b981;">D50（绿）</span> / <span style="color:#f97316;">D90（橙）</span> 的位置。</div>
+    </div>
+
+    <!-- 空状态提示 -->
+    <div class="psd-section" id="psd-empty" style="display:block;">
+      <div class="psd-empty-hint">
+        📸 上传一张 PSD 卡片照片，即可分析咖啡粉粒径分布
+        <span class="psd-empty-flow">流程：拍照 → 4 角 QR 定位 → 透视校正 → Otsu 二值化 → 连通域识别 → D10/D50/D90 + KDE 密度曲线</span>
+      </div>
+    </div>
+
+    <!-- 单元测试（可选，隐藏于 details） -->
+    <details class="psd-details" style="margin-top: 8px; padding: 0 4px;">
+      <summary style="color:#94A3B8; font-size:11px;">⚙️ 开发者：运行内建单元测试（验证 D10/D50/D90/Span/细粉率/诊断映射计算逻辑）</summary>
+      <div class="psd-row" style="margin-top: 8px;">
+        <button class="psd-btn psd-btn-secondary" type="button" id="psd-btn-run-tests">▶ Run Unit Tests</button>
+      </div>
+      <pre id="psd-test-output" class="psd-test-output" style="display:none;"></pre>
+    </details>
+  </div>
+
 </div>
 
 <div class="submit-bar" id="submit-bar">
@@ -3310,7 +3526,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.21.1</div>
+    <div class="about-version">Brew Lab · v13.22</div>
   </div>
 </div>
 
@@ -3665,6 +3881,15 @@ function switchTab(tab) {
   document.getElementById('submit-bar').style.display = tab === 'new' ? 'flex' : 'none';
   if (tab === 'list') renderList();
   if (tab === 'dict' && typeof renderMyDict === 'function') renderMyDict();
+  // V13.22 PSD 粒径分析 tab
+  const tabPsd = document.getElementById('tab-psd');
+  if (tabPsd) tabPsd.classList.toggle('active', tab === 'psd');
+  const pagePsd = document.getElementById('page-psd');
+  if (pagePsd) pagePsd.style.display = tab === 'psd' ? 'block' : 'none';
+  if (tab === 'psd' && typeof PSD_init === 'function') PSD_init();
+  // v13.22 F: 词典降 header icon，切到词典页时高亮该 icon
+  const dictIconBtn = document.getElementById('dict-icon-btn');
+  if (dictIconBtn) dictIconBtn.classList.toggle('active', tab === 'dict');
 }
 
 // ============= 粉水比计算 =============
@@ -10371,7 +10596,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.21.1 连秤模式已就绪');
+    log('Brew Lab v13.22 连秤模式已就绪');
   }
 
   // 暴露调试入口
@@ -10395,11 +10620,11 @@ setupListFilterEvents();
 
 
 // ===== V13.20：本地风味词典抽词面板 =====
-// 数据源：seed_dict v0.8（2026-07-14 定型，路径 手冲咖啡记录/flavor_dict/seed_dict.json）
+// 数据源：seed_dict v0.9（2026-07-15 分类扩容，路径 手冲咖啡记录/flavor_dict/seed_dict.json）
 // 原则：只匹配主人明确喝出过、有真实味觉参照物的词条；风味轮/SCA/WCR 不作为数据源
 // 与 KNOWLEDGE.aromaDelicate 关系：本字典独立，不影响智能分析逻辑；未来 v13.2x 稳定后再考虑合并
 const FLAVOR_DICT = {
-  version: '0.8',
+  version: '0.9',
   categories: {
     '柑橘':     ['柑橘', '柠檬', '甜橙', '西柚'],
     '深色水果': ['莓果', '草莓', '蓝莓', '乌梅', '葡萄', '青提', '紫葡萄'],
@@ -10408,7 +10633,10 @@ const FLAVOR_DICT = {
     '草本':     ['柠檬草'],
     '花香':     ['茉莉', '玫瑰', '白色花香', '红色花香', '紫色花香'],
     '糖甜':     ['蜂蜜', '黄糖', '枫糖', '烤红薯'],
-    '可可':     ['黑巧克力']
+    '可可':     ['黑巧克力'],
+    '质感/口感': ['果汁感'],
+    '凉感':     ['薄荷'],
+    '香料':     []
   },
   modifiers: ['明亮', '上扬', '活泼', '饱满', '扎实', '尖锐', '持久', '干净', '圆润'],
   flowerColor: {
@@ -10571,6 +10799,8 @@ function getMergedFlavorDict() {
   const userFlavor = [];
   const userModifier = [];
   for (const item of (u.words || [])) {
+    // v13.22 H：观察池词不参与命中扫描，仅在词典 tab 展示
+    if (item.isObservation) continue;
     if (item.type === 'modifier') {
       userModifier.push({ word: item.word, source: 'user', addedAt: item.addedAt, firstSeenRecordId: item.firstSeenRecordId });
     } else {
@@ -10696,7 +10926,8 @@ function _uwRender() {
     const stateLabel = act ? (
       act.type === 'add' ? `✅ 入库 → ${act.category === '__modifier__' ? '修饰词' : act.category}` :
       act.type === 'alias' ? `🔗 合并到 → ${act.target}` :
-      act.type === 'stop' ? '❌ 停用词' : ''
+      act.type === 'stop' ? '❌ 停用词' :
+      act.type === 'observe' ? '⏸ 观察池' : ''
     ) : '';
     const catOpts = categories.map(c => `<option value="${c}">${c}</option>`).join('');
     const wordOpts = allWords.map(w => `<option value="${w.word}">${w.word}</option>`).join('');
@@ -10763,6 +10994,17 @@ function uwSkipAll() {
   if (_uwResolver) { _uwResolver(true); _uwResolver = null; }
 }
 
+// v13.22 H：全部入观察池 —— 一键把所有未处理候选标记为 observe（保存时暂存到用户词典观察池）
+function uwObserveAll() {
+  if (!_uwState || !_uwState.candidates) return;
+  for (const c of _uwState.candidates) {
+    if (!_uwState.actions[c.word]) {
+      _uwState.actions[c.word] = { type: 'observe' };
+    }
+  }
+  _uwRender();
+}
+
 function uwConfirm() {
   const dict = loadUserDict();
   const now = Date.now();
@@ -10783,6 +11025,18 @@ function uwConfirm() {
       dict.aliases[word] = act.target;
     } else if (act.type === 'stop') {
       if (!dict.stopwords.includes(word)) dict.stopwords.push(word);
+    } else if (act.type === 'observe') {
+      // v13.22 H：观察池 —— 只落 user_dict.words，标 isObservation=true，不进 seed_dict、不进 FLAVOR_DICT
+      if (!dict.words.find(w => w.word === word)) {
+        dict.words.push({
+          word,
+          category: '观察池',
+          source: 'user',
+          addedAt: new Date().toISOString(),
+          firstSeenRecordId: recordId,
+          isObservation: true
+        });
+      }
     }
   }
   saveUserDict(dict);
@@ -10865,6 +11119,20 @@ function renderMyDict() {
   for (const w of merged.allModifiers) {
     all.push({ ...w, type: 'modifier', category: '修饰词', stats: stats[w.word] || null });
   }
+  // v13.22 H：观察池词条（isObservation=true）直接从 user_dict 读取，展示在词典 tab（不参与命中扫描，故未被 getMergedFlavorDict 收录）
+  const _observationWords = (merged.userDict.words || []).filter(w => w.isObservation);
+  for (const w of _observationWords) {
+    all.push({
+      word: w.word,
+      category: '观察池',
+      source: 'user',
+      addedAt: w.addedAt,
+      firstSeenRecordId: w.firstSeenRecordId,
+      type: 'observation',
+      isObservation: true,
+      stats: stats[w.word] || null
+    });
+  }
 
   // 过滤
   let filtered = all.filter(w => {
@@ -10887,7 +11155,7 @@ function renderMyDict() {
 
   // 更新 badge
   const badge = document.getElementById('dict-badge');
-  if (badge) badge.textContent = `(${merged.allFlavorWords.length + merged.allModifiers.length})`;
+  if (badge) badge.textContent = `(${merged.allFlavorWords.length + merged.allModifiers.length + _observationWords.length})`;
 
   // 顶栏摘要
   const usedCount = filtered.filter(w => w.stats && w.stats.freq > 0).length;
@@ -10909,7 +11177,12 @@ function renderMyDict() {
       groups[k].push(w);
     }
     for (const k of Object.keys(groups)) {
-      html += `<div class="dict-group"><div class="dict-group-header">${k}（${groups[k].length}）</div>`;
+      if (k === '观察池') {
+        // v13.22 H：观察池 group 特殊 header —— 提示"待味觉参照后迁到正式分类"
+        html += `<div class="dict-group"><div class="dict-group-header dict-group-header-observation">⏸ 观察池（${groups[k].length}）<span class="dict-group-hint">· 待你味觉参照后迁到正式分类</span></div>`;
+      } else {
+        html += `<div class="dict-group"><div class="dict-group-header">${k}（${groups[k].length}）</div>`;
+      }
       for (const w of groups[k]) html += _renderWordCard(w);
       html += '</div>';
     }
@@ -10922,10 +11195,25 @@ function renderMyDict() {
 function _renderWordCard(w) {
   const s = w.stats;
   const freq = s?.freq || 0;
-  const catBadge = w.category ? `<span class="dict-word-cat">${w.category}</span>` : '';
+  // v13.22 H：观察池词条 category 使用特殊样式
+  const catBadge = w.category
+    ? `<span class="dict-word-cat${w.isObservation ? ' dict-word-cat-observation' : ''}">${w.isObservation ? '⏸ ' : ''}${w.category}</span>`
+    : '';
   const srcClass = w.source === 'user' ? 'dict-word-source-user' : 'dict-word-source-seed';
   const srcLabel = w.source === 'user' ? '📝 学习' : '🌱 种子';
   const freqText = freq > 0 ? `${freq} 次` : '未用';
+
+  // v13.22 H：观察池迁移按钮（只对观察池词条显示）
+  const migrateBtn = w.isObservation ? (() => {
+    const cats = Object.keys(FLAVOR_DICT.categories);
+    const opts = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    const escapedWord = w.word.replace(/'/g, "\\'");
+    return `<select class="dict-btn-migrate" onclick="event.stopPropagation()" onchange="migrateObservationWord('${escapedWord}', this.value); this.value='';">
+      <option value="">→ 迁到...</option>
+      ${opts}
+      <option value="__modifier__">▸ 修饰词层</option>
+    </select>`;
+  })() : '';
 
   // 详情
   let detail = '';
@@ -10950,12 +11238,12 @@ function _renderWordCard(w) {
         ${topDrippers.length ? `<div class="dict-detail-row"><span class="dict-detail-label">滤杯 TOP</span><span class="dict-detail-value">${topDrippers.map(([k,v])=>`${k}×${v}`).join(' / ')}</span></div>` : ''}
         ${topBeans.length ? `<div class="dict-detail-row"><span class="dict-detail-label">关联豆 TOP</span><span class="dict-detail-value">${topBeans.map(([k,v])=>`${k}×${v}`).join(' / ')}</span></div>` : ''}
         <div class="dict-detail-row"><span class="dict-detail-label">出现记录</span><div>${recLinks}</div></div>
-        ${w.source === 'user' ? `<div class="dict-word-actions"><button onclick="_dictDeleteWord('${w.word.replace(/'/g, "\\'")}', event)" class="dict-btn-delete">🗑 删除词条</button></div>` : ''}
+        ${w.source === 'user' ? `<div class="dict-word-actions">${migrateBtn}<button onclick="_dictDeleteWord('${w.word.replace(/'/g, "\\'")}', event)" class="dict-btn-delete">🗑 删除词条</button></div>` : ''}
       </div>
     `;
   } else {
     detail = `<div class="dict-word-detail"><div class="dict-detail-row" style="color:#999">尚未在任何笔记中出现</div>
-      ${w.source === 'user' ? `<div class="dict-word-actions"><button onclick="_dictDeleteWord('${w.word.replace(/'/g, "\\'")}', event)" class="dict-btn-delete">🗑 删除词条</button></div>` : ''}
+      ${w.source === 'user' ? `<div class="dict-word-actions">${migrateBtn}<button onclick="_dictDeleteWord('${w.word.replace(/'/g, "\\'")}', event)" class="dict-btn-delete">🗑 删除词条</button></div>` : ''}
     </div>`;
   }
 
@@ -10999,6 +11287,27 @@ function _dictDeleteWord(word, ev) {
   if (typeof updateFlavorPanel === 'function') updateFlavorPanel();
 }
 
+// v13.22 H：把观察池词条迁到正式分类或修饰词层（去掉 isObservation 标记，进入命中扫描 & FLAVOR_DICT 正式流转）
+function migrateObservationWord(word, targetCategory) {
+  if (!word || !targetCategory) return;
+  const dict = loadUserDict();
+  const w = dict.words.find(x => x.word === word);
+  if (!w) { toast(`⚠ 未找到观察池词条 ${word}`); return; }
+  if (targetCategory === '__modifier__') {
+    w.type = 'modifier';
+    w.category = null;
+  } else {
+    w.type = 'flavor';
+    w.category = targetCategory;
+  }
+  delete w.isObservation;
+  w.migratedAt = new Date().toISOString();
+  saveUserDict(dict);
+  toast(`✓ ${word} 已迁到 ${targetCategory === '__modifier__' ? '修饰词' : targetCategory}`);
+  renderMyDict();
+  if (typeof updateFlavorPanel === 'function') updateFlavorPanel();
+}
+
 // 事件绑定
 (function initMyDict() {
   function bind() {
@@ -11015,7 +11324,9 @@ function _dictDeleteWord(word, ev) {
     // badge 初始化
     const merged = getMergedFlavorDict();
     const badge = document.getElementById('dict-badge');
-    if (badge) badge.textContent = `(${merged.allFlavorWords.length + merged.allModifiers.length})`;
+    // v13.22 H：badge 计数包含观察池词条
+    const _obsCount = (merged.userDict.words || []).filter(w => w.isObservation).length;
+    if (badge) badge.textContent = `(${merged.allFlavorWords.length + merged.allModifiers.length + _obsCount})`;
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bind);
@@ -11075,6 +11386,1018 @@ extractFlavorWords = function(text) {
 </script>
 </script>
 
+<!-- ===== V13.22 PSD 粒径分析模块 ===== -->
+<script>
+/* =========================================================================
+ * Brew Lab · PSD 粒径分析 · v13.22
+ * 从 psd_poc_v1.html 完整移植 · KDE 密度曲线替代直方图
+ * 命名空间隔离：全部包在 IIFE 里，只暴露 PSD_init / PSD_runTests / PSD_diagnoseCoverage / PSD_computeStats
+ * localStorage key: brewlab_psd_calib_v1
+ * ------------------------------------------------------------------------- */
+(function(){
+'use strict';
+
+/* ------- 常量 & 卡片规格 ------- */
+var CARD = {
+  W: 210.0, H: 148.5, QR_MM: 25.0,
+  QR_MARGIN: 8.0, DUST_EXTRA: 5.0,
+  WARP_PX_PER_MM: 4
+};
+
+function qrCentersMM() {
+  var c = CARD.QR_MARGIN + CARD.QR_MM / 2;
+  return {
+    TL: { x: c, y: c },
+    TR: { x: CARD.W - c, y: c },
+    BL: { x: c, y: CARD.H - c },
+    BR: { x: CARD.W - c, y: CARD.H - c }
+  };
+}
+function dustZoneMM() {
+  var inset = CARD.QR_MARGIN + CARD.QR_MM + CARD.DUST_EXTRA;
+  return { x: inset, y: inset, w: CARD.W - 2 * inset, h: CARD.H - 2 * inset };
+}
+
+/* ------- 状态 ------- */
+var STATE = {
+  qrMM: 25.0, srcImg: null, warpedCanvas: null,
+  mmPerPx: null, particles: [], initialized: false
+};
+
+/* ------- localStorage 校准 ------- */
+var CALIB_KEY = 'brewlab_psd_calib_v1';
+function loadCalib() {
+  try {
+    var raw = localStorage.getItem(CALIB_KEY);
+    if (!raw) return;
+    var obj = JSON.parse(raw);
+    if (typeof obj.qrMM === 'number' && obj.qrMM > 10 && obj.qrMM < 50) {
+      STATE.qrMM = obj.qrMM;
+      var inp = document.getElementById('psd-calib-qr-mm');
+      var hint = document.getElementById('psd-calib-hint');
+      if (inp) inp.value = obj.qrMM.toFixed(2);
+      if (hint) hint.textContent = '已加载本地校准值 · 当前使用 ' + obj.qrMM.toFixed(2) + 'mm';
+    }
+  } catch (e) { /* silent */ }
+}
+function saveCalib() {
+  var v = parseFloat(document.getElementById('psd-calib-qr-mm').value);
+  if (!isFinite(v) || v < 10 || v > 50) {
+    showStatus('QR 边长应在 10–50 mm 之间', 'err');
+    return;
+  }
+  STATE.qrMM = v;
+  try { localStorage.setItem(CALIB_KEY, JSON.stringify({ qrMM: v, ts: Date.now() })); } catch (e) {}
+  document.getElementById('psd-calib-hint').textContent = '已保存 · 长期使用 ' + v.toFixed(2) + 'mm';
+  showStatus('QR 校准值已更新为 ' + v.toFixed(2) + ' mm（覆盖默认 25mm）', 'ok');
+}
+
+/* ------- 状态提示 ------- */
+function showStatus(msg, level) {
+  var el = document.getElementById('psd-status');
+  if (!el) return;
+  el.className = 'psd-status psd-' + (level || 'info');
+  el.textContent = msg;
+}
+
+/* =========================================================================
+ * A. 数学：8x8 高斯消元 + 单应性矩阵
+ * ------------------------------------------------------------------------- */
+function solveLinear(A, b) {
+  var n = A.length;
+  var M = A.map(function(row){ return row.slice(); });
+  var y = b.slice();
+  for (var i = 0; i < n; i++) {
+    var maxRow = i, maxVal = Math.abs(M[i][i]);
+    for (var k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > maxVal) { maxRow = k; maxVal = Math.abs(M[k][i]); }
+    }
+    if (maxVal < 1e-12) return null;
+    if (maxRow !== i) { var tr = M[i]; M[i] = M[maxRow]; M[maxRow] = tr; var ty = y[i]; y[i] = y[maxRow]; y[maxRow] = ty; }
+    for (var k2 = i + 1; k2 < n; k2++) {
+      var f = M[k2][i] / M[i][i];
+      for (var j = i; j < n; j++) M[k2][j] -= f * M[i][j];
+      y[k2] -= f * y[i];
+    }
+  }
+  var x = new Array(n); for (var q = 0; q < n; q++) x[q] = 0;
+  for (var i2 = n - 1; i2 >= 0; i2--) {
+    var s = y[i2];
+    for (var j2 = i2 + 1; j2 < n; j2++) s -= M[i2][j2] * x[j2];
+    x[i2] = s / M[i2][i2];
+  }
+  return x;
+}
+function computeHomography(src, dst) {
+  var A = [], b = [];
+  for (var i = 0; i < 4; i++) {
+    var sx = src[i].x, sy = src[i].y, dx = dst[i].x, dy = dst[i].y;
+    A.push([sx, sy, 1, 0, 0, 0, -dx * sx, -dx * sy]); b.push(dx);
+    A.push([0, 0, 0, sx, sy, 1, -dy * sx, -dy * sy]); b.push(dy);
+  }
+  var h = solveLinear(A, b);
+  if (!h) return null;
+  return [[h[0], h[1], h[2]], [h[3], h[4], h[5]], [h[6], h[7], 1]];
+}
+function applyH(H, x, y) {
+  var w = H[2][0] * x + H[2][1] * y + 1;
+  return {
+    x: (H[0][0] * x + H[0][1] * y + H[0][2]) / w,
+    y: (H[1][0] * x + H[1][1] * y + H[1][2]) / w
+  };
+}
+
+/* =========================================================================
+ * B. 图像加载 & QR 检测
+ * ------------------------------------------------------------------------- */
+function loadImageFromFile(file) {
+  return new Promise(function(resolve, reject) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function(){ URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = function(e){ URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+function drawToCanvas(img, maxSide) {
+  maxSide = maxSide || 1600;
+  var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  var scale = Math.min(1, maxSide / Math.max(w, h));
+  w = Math.round(w * scale); h = Math.round(h * scale);
+  var cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  cv.getContext('2d').drawImage(img, 0, 0, w, h);
+  return cv;
+}
+function registerQR(found, code, offsetX, offsetY) {
+  var m = /^BREWLAB-PSD:v\d+:(TL|TR|BL|BR):(\d+(?:\.\d+)?)/.exec(code.data.trim());
+  if (!m) return;
+  var corner = m[1];
+  if (found[corner]) return;
+  var loc = code.location;
+  var cornersAbs = {
+    tl: { x: loc.topLeftCorner.x + offsetX, y: loc.topLeftCorner.y + offsetY },
+    tr: { x: loc.topRightCorner.x + offsetX, y: loc.topRightCorner.y + offsetY },
+    br: { x: loc.bottomRightCorner.x + offsetX, y: loc.bottomRightCorner.y + offsetY },
+    bl: { x: loc.bottomLeftCorner.x + offsetX, y: loc.bottomLeftCorner.y + offsetY }
+  };
+  var cx = (cornersAbs.tl.x + cornersAbs.tr.x + cornersAbs.br.x + cornersAbs.bl.x) / 4;
+  var cy = (cornersAbs.tl.y + cornersAbs.tr.y + cornersAbs.br.y + cornersAbs.bl.y) / 4;
+  var d = function(a, b){ return Math.hypot(a.x - b.x, a.y - b.y); };
+  var sidePx = (d(cornersAbs.tl, cornersAbs.tr) + d(cornersAbs.tr, cornersAbs.br)
+             + d(cornersAbs.br, cornersAbs.bl) + d(cornersAbs.bl, cornersAbs.tl)) / 4;
+  found[corner] = { corner: corner, payload: code.data, center: { x: cx, y: cy }, corners: cornersAbs, sidePx: sidePx };
+}
+function detectQRs(srcCanvas) {
+  var ctx = srcCanvas.getContext('2d');
+  var found = {};
+  // 单次全图
+  try {
+    var full = ctx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+    var code = jsQR(full.data, full.width, full.height, { inversionAttempts: 'attemptBoth' });
+    if (code && code.data) registerQR(found, code, 0, 0);
+  } catch (e) {}
+  // 四象限补扫
+  var midX = Math.round(srcCanvas.width / 2);
+  var midY = Math.round(srcCanvas.height / 2);
+  var pad = 20;
+  var quads = [
+    { x: 0, y: 0, w: Math.min(midX + pad, srcCanvas.width), h: Math.min(midY + pad, srcCanvas.height) },
+    { x: Math.max(midX - pad, 0), y: 0, w: srcCanvas.width - Math.max(midX - pad, 0), h: Math.min(midY + pad, srcCanvas.height) },
+    { x: 0, y: Math.max(midY - pad, 0), w: Math.min(midX + pad, srcCanvas.width), h: srcCanvas.height - Math.max(midY - pad, 0) },
+    { x: Math.max(midX - pad, 0), y: Math.max(midY - pad, 0), w: srcCanvas.width - Math.max(midX - pad, 0), h: srcCanvas.height - Math.max(midY - pad, 0) }
+  ];
+  for (var qi = 0; qi < quads.length; qi++) {
+    if (Object.keys(found).length >= 4) break;
+    var region = quads[qi];
+    try {
+      var sub = ctx.getImageData(region.x, region.y, region.w, region.h);
+      var code2 = jsQR(sub.data, sub.width, sub.height, { inversionAttempts: 'attemptBoth' });
+      if (code2 && code2.data) registerQR(found, code2, region.x, region.y);
+    } catch (e) {}
+  }
+  return found;
+}
+
+/* =========================================================================
+ * C. 透视校正
+ * ------------------------------------------------------------------------- */
+function warpToA5(srcCanvas, qrs) {
+  var outW = Math.round(CARD.W * CARD.WARP_PX_PER_MM);
+  var outH = Math.round(CARD.H * CARD.WARP_PX_PER_MM);
+  var centersMM = qrCentersMM();
+  var order = ['TL', 'TR', 'BR', 'BL'];
+  var dstPts = order.map(function(k){ return { x: centersMM[k].x * CARD.WARP_PX_PER_MM, y: centersMM[k].y * CARD.WARP_PX_PER_MM }; });
+  var srcPts = order.map(function(k){ return { x: qrs[k].center.x, y: qrs[k].center.y }; });
+  var H = computeHomography(dstPts, srcPts);
+  if (!H) return null;
+  var out = document.createElement('canvas');
+  out.width = outW; out.height = outH;
+  var outCtx = out.getContext('2d');
+  var outImg = outCtx.createImageData(outW, outH);
+  var srcCtx = srcCanvas.getContext('2d');
+  var srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+  var sw = srcData.width, sh = srcData.height, src = srcData.data;
+  for (var y = 0; y < outH; y++) {
+    for (var x = 0; x < outW; x++) {
+      var p = applyH(H, x, y);
+      var sx2 = p.x, sy2 = p.y;
+      var oi = (y * outW + x) * 4;
+      if (sx2 >= 0 && sx2 < sw - 1 && sy2 >= 0 && sy2 < sh - 1) {
+        var x0 = Math.floor(sx2), y0 = Math.floor(sy2);
+        var fx = sx2 - x0, fy = sy2 - y0;
+        var i00 = (y0 * sw + x0) * 4;
+        var i10 = i00 + 4;
+        var i01 = i00 + sw * 4;
+        var i11 = i01 + 4;
+        for (var c = 0; c < 3; c++) {
+          var v = (1 - fx) * (1 - fy) * src[i00 + c]
+                + fx       * (1 - fy) * src[i10 + c]
+                + (1 - fx) * fy       * src[i01 + c]
+                + fx       * fy       * src[i11 + c];
+          outImg.data[oi + c] = v | 0;
+        }
+        outImg.data[oi + 3] = 255;
+      } else {
+        outImg.data[oi] = outImg.data[oi + 1] = outImg.data[oi + 2] = 240;
+        outImg.data[oi + 3] = 255;
+      }
+    }
+  }
+  outCtx.putImageData(outImg, 0, 0);
+  return out;
+}
+
+/* =========================================================================
+ * D. 灰度化 → 高斯模糊 → Otsu → 二值化
+ * ------------------------------------------------------------------------- */
+function toGray(canvas) {
+  var w = canvas.width, h = canvas.height;
+  var data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+  var g = new Uint8Array(w * h);
+  for (var i = 0, j = 0; i < data.length; i += 4, j++) {
+    g[j] = (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) | 0;
+  }
+  return { data: g, w: w, h: h };
+}
+function gaussianBlur3(img) {
+  var w = img.w, h = img.h, s = img.data;
+  var out = new Uint8Array(w * h);
+  for (var y = 0; y < h; y++) {
+    for (var x = 0; x < w; x++) {
+      if (x === 0 || y === 0 || x === w - 1 || y === h - 1) { out[y * w + x] = s[y * w + x]; continue; }
+      var i = y * w + x;
+      var v = (s[i - w - 1] + 2 * s[i - w] + s[i - w + 1]
+             + 2 * s[i - 1] + 4 * s[i]     + 2 * s[i + 1]
+             + s[i + w - 1] + 2 * s[i + w] + s[i + w + 1]) / 16;
+      out[i] = v | 0;
+    }
+  }
+  return { data: out, w: w, h: h };
+}
+function otsuThreshold(gray, roi) {
+  var hist = new Uint32Array(256);
+  var x0 = roi.x0, y0 = roi.y0, x1 = roi.x1, y1 = roi.y1;
+  var total = 0;
+  for (var y = y0; y < y1; y++) {
+    for (var x = x0; x < x1; x++) {
+      hist[gray.data[y * gray.w + x]]++;
+      total++;
+    }
+  }
+  var sum = 0;
+  for (var t = 0; t < 256; t++) sum += t * hist[t];
+  var sumB = 0, wB = 0, maxVar = -1, thresh = 127;
+  for (var t2 = 0; t2 < 256; t2++) {
+    wB += hist[t2]; if (wB === 0) continue;
+    var wF = total - wB; if (wF === 0) break;
+    sumB += t2 * hist[t2];
+    var mB = sumB / wB, mF = (sum - sumB) / wF;
+    var varBetween = wB * wF * (mB - mF) * (mB - mF);
+    if (varBetween > maxVar) { maxVar = varBetween; thresh = t2; }
+  }
+  return thresh;
+}
+function binarize(gray, thresh, roi) {
+  var w = gray.w, h = gray.h;
+  var bin = new Uint8Array(w * h);
+  for (var y = roi.y0; y < roi.y1; y++) {
+    for (var x = roi.x0; x < roi.x1; x++) {
+      bin[y * w + x] = gray.data[y * w + x] < thresh ? 1 : 0;
+    }
+  }
+  return { data: bin, w: w, h: h };
+}
+
+/* =========================================================================
+ * E. 连通域标记（Union-Find, 8-邻域）
+ * ------------------------------------------------------------------------- */
+function labelComponents(bin, roi) {
+  var w = bin.w, s = bin.data;
+  var labels = new Int32Array(w * bin.h);
+  var parent = [0];
+  function find(x){ while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+  function union(a, b){ var ra = find(a), rb = find(b); if (ra !== rb) parent[Math.max(ra, rb)] = Math.min(ra, rb); }
+  var x0 = roi.x0, y0 = roi.y0, x1 = roi.x1, y1 = roi.y1;
+  var nextLabel = 1;
+  for (var y = y0; y < y1; y++) {
+    for (var x = x0; x < x1; x++) {
+      var i = y * w + x;
+      if (!s[i]) continue;
+      var neigh = [];
+      if (y > y0 && x > x0 && labels[i - w - 1]) neigh.push(labels[i - w - 1]);
+      if (y > y0             && labels[i - w    ]) neigh.push(labels[i - w    ]);
+      if (y > y0 && x < x1 - 1 && labels[i - w + 1]) neigh.push(labels[i - w + 1]);
+      if (x > x0             && labels[i - 1    ]) neigh.push(labels[i - 1    ]);
+      if (neigh.length === 0) {
+        parent.push(nextLabel); labels[i] = nextLabel; nextLabel++;
+      } else {
+        var m = Math.min.apply(null, neigh);
+        labels[i] = m;
+        for (var ni = 0; ni < neigh.length; ni++) if (neigh[ni] !== m) union(m, neigh[ni]);
+      }
+    }
+  }
+  var remap = new Int32Array(nextLabel);
+  var compactCount = 0;
+  for (var i2 = 1; i2 < nextLabel; i2++) {
+    if (find(i2) === i2) { compactCount++; remap[i2] = compactCount; }
+  }
+  for (var i3 = 1; i3 < nextLabel; i3++) remap[i3] = remap[find(i3)];
+  for (var y2 = y0; y2 < y1; y2++) {
+    for (var x2 = x0; x2 < x1; x2++) {
+      var idx = y2 * w + x2;
+      if (labels[idx]) labels[idx] = remap[labels[idx]];
+    }
+  }
+  return { labels: labels, w: w, h: bin.h, count: compactCount };
+}
+function summarizeComponents(labeled, roi) {
+  var labels = labeled.labels, w = labeled.w, count = labeled.count;
+  var x0 = roi.x0, y0 = roi.y0, x1 = roi.x1, y1 = roi.y1;
+  var stats = new Array(count + 1);
+  for (var i = 1; i <= count; i++) {
+    stats[i] = { area: 0, minX: w, maxX: 0, minY: labels.length, maxY: 0, touches: false };
+  }
+  for (var y = y0; y < y1; y++) {
+    for (var x = x0; x < x1; x++) {
+      var L = labels[y * w + x];
+      if (!L) continue;
+      var st = stats[L];
+      st.area++;
+      if (x < st.minX) st.minX = x;
+      if (x > st.maxX) st.maxX = x;
+      if (y < st.minY) st.minY = y;
+      if (y > st.maxY) st.maxY = y;
+      if (x === x0 || x === x1 - 1 || y === y0 || y === y1 - 1) st.touches = true;
+    }
+  }
+  return stats;
+}
+
+/* =========================================================================
+ * F. 主流水线
+ * ------------------------------------------------------------------------- */
+function processWarped(warpedCanvas, mmPerPx) {
+  var gray0 = toGray(warpedCanvas);
+  var gray = gaussianBlur3(gray0);
+  var zoneMM = dustZoneMM();
+  var roi = {
+    x0: Math.round(zoneMM.x * CARD.WARP_PX_PER_MM),
+    y0: Math.round(zoneMM.y * CARD.WARP_PX_PER_MM),
+    x1: Math.round((zoneMM.x + zoneMM.w) * CARD.WARP_PX_PER_MM),
+    y1: Math.round((zoneMM.y + zoneMM.h) * CARD.WARP_PX_PER_MM)
+  };
+  var thresh = otsuThreshold(gray, roi);
+  var bin = binarize(gray, thresh, roi);
+  var fgCount = 0;
+  var roiTotal = (roi.x1 - roi.x0) * (roi.y1 - roi.y0);
+  for (var y = roi.y0; y < roi.y1; y++) {
+    for (var x = roi.x0; x < roi.x1; x++) {
+      if (bin.data[y * bin.w + x]) fgCount++;
+    }
+  }
+  var coveragePct = roiTotal > 0 ? (100 * fgCount / roiTotal) : 0;
+  var labeled = labelComponents(bin, roi);
+  var stats = summarizeComponents(labeled, roi);
+  var mm2PerPx2 = mmPerPx * mmPerPx;
+  var particles = [];
+  var rejects = { boundary: 0, tooSmall: 0, tooLarge: 0 };
+  for (var i = 1; i < stats.length; i++) {
+    var s = stats[i];
+    if (!s || s.area === 0) continue;
+    if (s.touches) { rejects.boundary++; continue; }
+    var area_mm2 = s.area * mm2PerPx2;
+    var ecd_mm = 2 * Math.sqrt(area_mm2 / Math.PI);
+    var ecd_um = ecd_mm * 1000;
+    if (ecd_um < 50)  { rejects.tooSmall++; continue; }
+    if (ecd_um > 5000) { rejects.tooLarge++; continue; }
+    particles.push({
+      ecd_um: ecd_um, area_mm2: area_mm2, area_px: s.area,
+      cx: (s.minX + s.maxX) / 2, cy: (s.minY + s.maxY) / 2,
+      bbox: { x: s.minX, y: s.minY, w: s.maxX - s.minX + 1, h: s.maxY - s.minY + 1 }
+    });
+  }
+  return { particles: particles, thresh: thresh, rejects: rejects, roi: roi, bin: bin, gray: gray, coveragePct: coveragePct, fgCount: fgCount, roiTotal: roiTotal };
+}
+
+/* =========================================================================
+ * G. 统计 & 诊断
+ * ------------------------------------------------------------------------- */
+function quantile(sortedArr, q) {
+  if (sortedArr.length === 0) return NaN;
+  var pos = q * (sortedArr.length - 1);
+  var lo = Math.floor(pos), hi = Math.ceil(pos);
+  if (lo === hi) return sortedArr[lo];
+  return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (pos - lo);
+}
+function computeStats(ecdArr_um) {
+  var arr = ecdArr_um.slice().sort(function(a, b){ return a - b; });
+  var n = arr.length;
+  if (n === 0) return { n: 0, d10: NaN, d50: NaN, d90: NaN, span: NaN, finesPct: NaN };
+  var d10 = quantile(arr, 0.10);
+  var d50 = quantile(arr, 0.50);
+  var d90 = quantile(arr, 0.90);
+  var span = (d50 > 0) ? (d90 - d10) / d50 : NaN;
+  var fines = 0;
+  for (var i = 0; i < arr.length; i++) if (arr[i] < 200) fines++;
+  return { n: n, d10: d10, d50: d50, d90: d90, span: span, finesPct: 100 * fines / n, sorted: arr };
+}
+
+/**
+ * 粉量诊断：由覆盖率 → 6 档建议（纯函数）
+ * @param {number} pct 覆盖率百分比 (0-100)
+ * @returns {{level, emoji, color, headline, advice}}
+ */
+function diagnoseCoverage(pct) {
+  if (!isFinite(pct) || pct < 0) return { level: 'unknown', emoji: '⚪', color: '#94A3B8', headline: '无数据', advice: '未识别到有效前景' };
+  if (pct < 10)  return { level: 'too_low',   emoji: '🔴', color: '#DC2626', headline: '样本不足',   advice: 'D50 误差 >10%，建议下次粉量加倍' };
+  if (pct < 15)  return { level: 'low',       emoji: '🟡', color: '#EAB308', headline: '略少',       advice: 'D50 误差 5-10%，建议下次 +50%' };
+  if (pct < 30)  return { level: 'sweet',     emoji: '🟢', color: '#16A34A', headline: '舒适区',     advice: 'D50 误差 <5%，尾部可靠 · 记住本次粉量作为该磨豆机+研磨度组合的甜蜜点' };
+  if (pct < 40)  return { level: 'high',      emoji: '🟡', color: '#EAB308', headline: '粘连开始',   advice: 'D90 右偏 ~5%，建议下次 -30%' };
+  if (pct < 50)  return { level: 'very_high', emoji: '🟠', color: '#D97706', headline: '粘连显著',   advice: 'D90 右偏 10-20%，D50 也不稳，建议下次减半' };
+                 return { level: 'fail',      emoji: '🔴', color: '#DC2626', headline: '识别失败',   advice: '多粒被合并，建议下次减到 1/3' };
+}
+
+/* =========================================================================
+ * H. KDE 密度曲线（Gaussian 核 + Silverman 带宽）
+ * ------------------------------------------------------------------------- */
+function silvermanBandwidth(arr, n) {
+  // arr 已排序
+  var mean = 0;
+  for (var i = 0; i < n; i++) mean += arr[i];
+  mean /= n;
+  var varSum = 0;
+  for (var j = 0; j < n; j++) varSum += (arr[j] - mean) * (arr[j] - mean);
+  var sd = Math.sqrt(varSum / Math.max(1, n - 1));
+  var q1 = quantile(arr, 0.25);
+  var q3 = quantile(arr, 0.75);
+  var iqr = q3 - q1;
+  var sigma = iqr > 0 ? Math.min(sd, iqr / 1.34) : sd;
+  if (!isFinite(sigma) || sigma <= 0) sigma = Math.max(1, sd);
+  var h = 0.9 * sigma * Math.pow(n, -1/5);
+  if (!isFinite(h) || h <= 0) h = 1;
+  return h;
+}
+
+function kdeSamples(sortedArr, nSamples) {
+  var n = sortedArr.length;
+  if (n === 0) return { xs: [], ys: [], h: 0 };
+  var maxV = sortedArr[n - 1];
+  var xMax = maxV * 1.1;
+  var h = silvermanBandwidth(sortedArr, n);
+  var xs = new Array(nSamples), ys = new Array(nSamples);
+  var invSqrt2Pi = 1 / Math.sqrt(2 * Math.PI);
+  for (var i = 0; i < nSamples; i++) {
+    var x = (i / (nSamples - 1)) * xMax;
+    xs[i] = x;
+    var sum = 0;
+    for (var k = 0; k < n; k++) {
+      var u = (x - sortedArr[k]) / h;
+      sum += invSqrt2Pi * Math.exp(-0.5 * u * u);
+    }
+    ys[i] = sum / (n * h);
+  }
+  return { xs: xs, ys: ys, h: h };
+}
+
+function drawKDE(canvas, sortedArr, d10, d50, d90) {
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var cssW = canvas.clientWidth || 600;
+  var cssH = 280;
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+
+  var pad = { l: 52, r: 16, t: 40, b: 44 };
+  var W = cssW - pad.l - pad.r, H = cssH - pad.t - pad.b;
+
+  // 空/不足容错
+  if (!sortedArr || sortedArr.length < 3) {
+    ctx.fillStyle = '#94A3B8'; ctx.font = '13px ui-monospace, monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('识别粒数不足，无法生成分布曲线', cssW / 2, cssH / 2);
+    return;
+  }
+
+  var N = 200;
+  var kde = kdeSamples(sortedArr, N);
+  var xs = kde.xs, ys = kde.ys;
+  var xMax = xs[N - 1];
+  var yMax = 0;
+  for (var i = 0; i < N; i++) if (ys[i] > yMax) yMax = ys[i];
+  if (yMax <= 0) yMax = 1;
+
+  // 网格 + Y 轴
+  ctx.strokeStyle = '#F1F5F9'; ctx.lineWidth = 1;
+  for (var gi = 1; gi <= 4; gi++) {
+    var gy = pad.t + H - (gi / 4) * H;
+    ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(pad.l + W, gy); ctx.stroke();
+  }
+  // X 轴主/副刻度：主 500μm 副 100μm
+  var mainStep = 500, subStep = 100;
+  ctx.strokeStyle = '#E5E7EB';
+  for (var xv = 0; xv <= xMax + subStep; xv += subStep) {
+    var px = pad.l + (xv / xMax) * W;
+    if (px > pad.l + W + 0.5) break;
+    var isMain = (Math.abs(xv % mainStep) < 1e-6);
+    ctx.strokeStyle = isMain ? '#CBD5E1' : '#F1F5F9';
+    ctx.beginPath();
+    ctx.moveTo(px, pad.t + H);
+    ctx.lineTo(px, pad.t + H + (isMain ? 6 : 3));
+    ctx.stroke();
+  }
+
+  // 主坐标轴
+  ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t);
+  ctx.lineTo(pad.l, pad.t + H);
+  ctx.lineTo(pad.l + W, pad.t + H);
+  ctx.stroke();
+
+  // 曲线下方阴影填充
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t + H);
+  for (var s = 0; s < N; s++) {
+    var px2 = pad.l + (xs[s] / xMax) * W;
+    var py2 = pad.t + H - (ys[s] / yMax) * H;
+    ctx.lineTo(px2, py2);
+  }
+  ctx.lineTo(pad.l + (xs[N - 1] / xMax) * W, pad.t + H);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(75, 192, 192, 0.25)';
+  ctx.fill();
+
+  // 曲线
+  ctx.beginPath();
+  for (var s2 = 0; s2 < N; s2++) {
+    var px3 = pad.l + (xs[s2] / xMax) * W;
+    var py3 = pad.t + H - (ys[s2] / yMax) * H;
+    if (s2 === 0) ctx.moveTo(px3, py3); else ctx.lineTo(px3, py3);
+  }
+  ctx.strokeStyle = '#4bc0c0'; ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // D10 / D50 / D90 竖直虚线
+  var marks = [
+    { v: d10, color: '#3b82f6', label: 'D10' },
+    { v: d50, color: '#10b981', label: 'D50' },
+    { v: d90, color: '#f97316', label: 'D90' }
+  ];
+  // 计算标签 X 位置以避免重叠：sortedByX，label 交替上/下
+  var markPx = marks.map(function(m){ return { m: m, x: pad.l + (m.v / xMax) * W }; });
+  ctx.setLineDash([4, 3]);
+  for (var mi = 0; mi < markPx.length; mi++) {
+    var mm = markPx[mi];
+    ctx.strokeStyle = mm.m.color; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(mm.x, pad.t);
+    ctx.lineTo(mm.x, pad.t + H);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // 标签在顶部，用不同 y 偏移避免重叠
+  var labelYs = [pad.t - 26, pad.t - 14, pad.t - 26]; // D10 高、D50 低、D90 高
+  ctx.font = 'bold 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+  ctx.textBaseline = 'top';
+  for (var li = 0; li < markPx.length; li++) {
+    var mm2 = markPx[li];
+    var txt = mm2.m.label + ': ' + Math.round(mm2.m.v) + 'μm';
+    ctx.textAlign = 'center';
+    // 背板
+    var tw = ctx.measureText(txt).width;
+    var lx = mm2.x, ly = labelYs[li];
+    // 边缘防溢出
+    var minX = pad.l + tw / 2 + 2;
+    var maxX = pad.l + W - tw / 2 - 2;
+    if (lx < minX) lx = minX;
+    if (lx > maxX) lx = maxX;
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillRect(lx - tw / 2 - 3, ly - 2, tw + 6, 14);
+    ctx.fillStyle = mm2.m.color;
+    ctx.fillText(txt, lx, ly);
+    // 从标签到 X 轴顶部的短连接线
+    ctx.strokeStyle = mm2.m.color; ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(mm2.x, ly + 12);
+    ctx.lineTo(mm2.x, pad.t);
+    ctx.stroke();
+  }
+
+  // X 轴数字刻度
+  ctx.fillStyle = '#475569'; ctx.font = '10px ui-monospace, monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (var lx2 = 0; lx2 <= xMax + 1; lx2 += mainStep) {
+    var px4 = pad.l + (lx2 / xMax) * W;
+    if (px4 > pad.l + W + 0.5) break;
+    ctx.fillText(Math.round(lx2).toString(), px4, pad.t + H + 8);
+  }
+  // 轴标题
+  ctx.fillStyle = '#94A3B8'; ctx.textAlign = 'right';
+  ctx.fillText('粒径 ECD (μm)', pad.l + W, pad.t + H + 24);
+  ctx.textAlign = 'left';
+  ctx.fillText('密度', pad.l - 46, pad.t - 2);
+}
+
+/* =========================================================================
+ * I. 可视化：QR/warped/binary/overlay
+ * ------------------------------------------------------------------------- */
+function drawSrcPreview(canvas, srcCanvas, qrs) {
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var cssW = canvas.clientWidth || 400;
+  var aspect = srcCanvas.height / srcCanvas.width;
+  var cssH = Math.min(320, Math.round(cssW * aspect));
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.drawImage(srcCanvas, 0, 0, cssW, cssH);
+  var sx = cssW / srcCanvas.width, sy = cssH / srcCanvas.height;
+  var colors = { TL: '#DC2626', TR: '#16A34A', BR: '#0EA5E9', BL: '#D97706' };
+  var keys = Object.keys(qrs);
+  for (var ki = 0; ki < keys.length; ki++) {
+    var key = keys[ki], q = qrs[key], c = q.corners;
+    ctx.strokeStyle = colors[key] || '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(c.tl.x * sx, c.tl.y * sy);
+    ctx.lineTo(c.tr.x * sx, c.tr.y * sy);
+    ctx.lineTo(c.br.x * sx, c.br.y * sy);
+    ctx.lineTo(c.bl.x * sx, c.bl.y * sy);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle = colors[key] || '#000';
+    ctx.font = 'bold 12px ui-monospace';
+    ctx.fillText(key, q.center.x * sx + 4, q.center.y * sy - 4);
+  }
+}
+function drawWarpedPreview(canvas, warpedCanvas) {
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var cssW = canvas.clientWidth || 400;
+  var aspect = warpedCanvas.height / warpedCanvas.width;
+  var cssH = Math.min(320, Math.round(cssW * aspect));
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.drawImage(warpedCanvas, 0, 0, cssW, cssH);
+  var z = dustZoneMM();
+  var ppx = CARD.WARP_PX_PER_MM;
+  var scale = cssW / warpedCanvas.width;
+  ctx.strokeStyle = '#D97706'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+  ctx.strokeRect(z.x * ppx * scale, z.y * ppx * scale, z.w * ppx * scale, z.h * ppx * scale);
+  ctx.setLineDash([]);
+}
+function drawBinaryPreview(canvas, bin, roi) {
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var cssW = canvas.clientWidth || 400;
+  var aspect = bin.h / bin.w;
+  var cssH = Math.min(320, Math.round(cssW * aspect));
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  var off = document.createElement('canvas');
+  off.width = bin.w; off.height = bin.h;
+  var offCtx = off.getContext('2d');
+  var img = offCtx.createImageData(bin.w, bin.h);
+  for (var i = 0, j = 0; i < bin.data.length; i++, j += 4) {
+    var v = bin.data[i] ? 30 : 245;
+    img.data[j] = v; img.data[j + 1] = v; img.data[j + 2] = v; img.data[j + 3] = 255;
+  }
+  offCtx.putImageData(img, 0, 0);
+  ctx.drawImage(off, 0, 0, cssW, cssH);
+  var sx = cssW / bin.w, sy = cssH / bin.h;
+  ctx.strokeStyle = '#D97706'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+  ctx.strokeRect(roi.x0 * sx, roi.y0 * sy, (roi.x1 - roi.x0) * sx, (roi.y1 - roi.y0) * sy);
+  ctx.setLineDash([]);
+}
+function drawOverlayPreview(canvas, warpedCanvas, particles) {
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var cssW = canvas.clientWidth || 400;
+  var aspect = warpedCanvas.height / warpedCanvas.width;
+  var cssH = Math.min(320, Math.round(cssW * aspect));
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.drawImage(warpedCanvas, 0, 0, cssW, cssH);
+  var sx = cssW / warpedCanvas.width, sy = cssH / warpedCanvas.height;
+  var palette = ['#DC2626', '#16A34A', '#0EA5E9', '#D97706', '#7C3AED', '#DB2777'];
+  for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+    var color = palette[i % palette.length];
+    ctx.strokeStyle = color; ctx.lineWidth = 1;
+    var r_px_warped = Math.max(2, Math.sqrt(p.area_px / Math.PI));
+    ctx.beginPath();
+    ctx.arc(p.cx * sx, p.cy * sy, r_px_warped * sx, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillRect(4, 4, 100, 20);
+  ctx.fillStyle = '#0F172A'; ctx.font = 'bold 12px ui-monospace';
+  ctx.fillText('n = ' + particles.length, 8, 18);
+}
+
+/* =========================================================================
+ * J. 主流程
+ * ------------------------------------------------------------------------- */
+function runPipeline(file) {
+  showStatus('图像加载中...', 'info');
+  loadImageFromFile(file).then(function(img) {
+    var srcCanvas = drawToCanvas(img, 1600);
+    STATE.srcImg = srcCanvas;
+    showStatus('扫描 QR 码...', 'info');
+    if (typeof jsQR !== 'function') {
+      showStatus('jsQR 库未加载，无法识别 QR 码', 'err');
+      return;
+    }
+    var qrs = detectQRs(srcCanvas);
+    var foundKeys = Object.keys(qrs);
+
+    // 展开 preview details（说明识别过程）
+    var pd = document.getElementById('psd-preview-details');
+    if (pd) pd.style.display = '';
+    drawSrcPreview(document.getElementById('psd-cv-src'), srcCanvas, qrs);
+
+    if (foundKeys.length < 4) {
+      showStatus('未检测到足够的 QR 码（找到 ' + foundKeys.length + '/4: ' + (foundKeys.join(', ') || '无') + '）· 需要 4 角全部识别才能透视校正。建议：拍摄时保证 4 角 QR 都在画面内，光线均匀，避免反光。', 'warn');
+      document.getElementById('psd-sec-results').style.display = 'none';
+      document.getElementById('psd-sec-chart').style.display = 'none';
+      return;
+    }
+
+    showStatus('已识别 4 角 QR · 透视校正中...', 'info');
+    setTimeout(function() {
+      var avgSidePx = (qrs.TL.sidePx + qrs.TR.sidePx + qrs.BL.sidePx + qrs.BR.sidePx) / 4;
+      var mmPerPx_true = STATE.qrMM / (CARD.QR_MM * CARD.WARP_PX_PER_MM);
+      var warpedCanvas = warpToA5(srcCanvas, qrs);
+      if (!warpedCanvas) { showStatus('透视变换失败（4 点共线？）', 'err'); return; }
+      STATE.warpedCanvas = warpedCanvas;
+      STATE.mmPerPx = mmPerPx_true;
+      drawWarpedPreview(document.getElementById('psd-cv-warped'), warpedCanvas);
+
+      showStatus('灰度化 · 高斯模糊 · Otsu 阈值 · 二值化 · 连通域标记...', 'info');
+      setTimeout(function() {
+        var t0 = performance.now();
+        var result = processWarped(warpedCanvas, mmPerPx_true);
+        var dt = (performance.now() - t0).toFixed(0);
+
+        drawBinaryPreview(document.getElementById('psd-cv-binary'), result.bin, result.roi);
+        drawOverlayPreview(document.getElementById('psd-cv-overlay'), warpedCanvas, result.particles);
+        STATE.particles = result.particles;
+
+        var meta = document.getElementById('psd-pipeline-meta');
+        if (meta) {
+          meta.innerHTML =
+            '<span class="psd-kv">QR 平均像素边长: <b>' + avgSidePx.toFixed(1) + ' px</b></span> · ' +
+            '<span class="psd-kv">校准 QR 边长: <b>' + STATE.qrMM.toFixed(2) + ' mm</b></span> · ' +
+            '<span class="psd-kv">mm/px: <b>' + mmPerPx_true.toFixed(4) + '</b></span> · ' +
+            '<span class="psd-kv">Otsu 阈值: <b>' + result.thresh + '</b></span> · ' +
+            '<span class="psd-kv">覆盖率: <b>' + result.coveragePct.toFixed(1) + '%</b></span> · ' +
+            '<span class="psd-kv">剔除: 边界 <b>' + result.rejects.boundary + '</b> · &lt;50μm <b>' + result.rejects.tooSmall + '</b> · &gt;5mm <b>' + result.rejects.tooLarge + '</b></span> · ' +
+            '<span class="psd-kv">耗时: <b>' + dt + ' ms</b></span>';
+        }
+        // 隐藏空态提示
+        var empty = document.getElementById('psd-empty');
+        if (empty) empty.style.display = 'none';
+
+        var stats = computeStats(result.particles.map(function(p){ return p.ecd_um; }));
+        renderStats(stats, result.coveragePct);
+        renderChart(stats);
+
+        var diag = diagnoseCoverage(result.coveragePct);
+        var statusLevel = 'ok';
+        if (diag.level === 'too_low' || diag.level === 'fail') statusLevel = 'err';
+        else if (diag.level === 'low' || diag.level === 'high' || diag.level === 'very_high') statusLevel = 'warn';
+        showStatus(diag.emoji + ' 覆盖率 ' + result.coveragePct.toFixed(1) + '% · 识别 ' + result.particles.length + ' 粒 · ' + diag.headline + '：' + diag.advice, statusLevel);
+      }, 10);
+    }, 10);
+  }).catch(function() {
+    showStatus('图像加载失败', 'err');
+  });
+}
+
+function renderStats(s, coveragePct) {
+  document.getElementById('psd-sec-results').style.display = '';
+  var fmt = function(v, d){ d = d || 0; return isFinite(v) ? v.toFixed(d) : '--'; };
+  document.getElementById('psd-stat-d10').textContent = fmt(s.d10, 0);
+  document.getElementById('psd-stat-d50').textContent = fmt(s.d50, 0);
+  document.getElementById('psd-stat-d90').textContent = fmt(s.d90, 0);
+  document.getElementById('psd-stat-span').textContent = fmt(s.span, 2);
+  document.getElementById('psd-stat-fines').textContent = fmt(s.finesPct, 1);
+  document.getElementById('psd-stat-count').textContent = s.n;
+  document.getElementById('psd-stat-coverage').textContent = fmt(coveragePct, 1);
+  var banner = document.getElementById('psd-diag-banner');
+  if (isFinite(coveragePct)) {
+    var d = diagnoseCoverage(coveragePct);
+    banner.style.display = '';
+    banner.style.borderLeftColor = d.color;
+    banner.style.background = d.color + '14';
+    document.getElementById('psd-diag-emoji').textContent = d.emoji;
+    document.getElementById('psd-diag-headline').textContent = d.headline;
+    document.getElementById('psd-diag-advice').textContent = d.advice;
+    document.getElementById('psd-diag-metrics').innerHTML = '覆盖率 <b>' + coveragePct.toFixed(1) + '%</b> · 识别 <b>' + s.n.toLocaleString() + '</b> 粒';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function renderChart(stats) {
+  document.getElementById('psd-sec-chart').style.display = '';
+  var arr = stats.sorted || [];
+  drawKDE(document.getElementById('psd-cv-kde'), arr, stats.d10, stats.d50, stats.d90);
+}
+
+/* =========================================================================
+ * K. 单元测试（从 POC 移植 · 保留全部 assertions）
+ * ------------------------------------------------------------------------- */
+function randomNormal(mean, sd) {
+  var u1 = Math.random(), u2 = Math.random();
+  return mean + sd * Math.sqrt(-2 * Math.log(u1 + 1e-12)) * Math.cos(2 * Math.PI * u2);
+}
+function runUnitTests() {
+  var out = document.getElementById('psd-test-output');
+  if (out) out.style.display = '';
+  var lines = [];
+  var pass = 0, fail = 0;
+  function log(color, msg) { lines.push('<span class="psd-' + color + '">' + msg + '</span>'); }
+  function assert(cond, name, detail) {
+    if (cond) { pass++; log('pass', '  ✓ ' + name); }
+    else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
+  }
+  log('info-log', '════════════════════════════════════════════════');
+  log('info-log', 'Brew Lab · PSD v13.22 · Unit Tests');
+  log('info-log', '════════════════════════════════════════════════');
+
+  // Test 1: 单峰
+  log('info-log', '\n[Test 1] 单峰正态 · μ=600μm σ=100 · n=1000');
+  var t1 = [];
+  for (var a = 0; a < 1000; a++) t1.push(Math.max(50, Math.min(5000, randomNormal(600, 100))));
+  var s1 = computeStats(t1);
+  log('info-log', '  D10=' + s1.d10.toFixed(0) + ' D50=' + s1.d50.toFixed(0) + ' D90=' + s1.d90.toFixed(0) + ' Span=' + s1.span.toFixed(3) + ' fines=' + s1.finesPct.toFixed(2) + '%');
+  assert(s1.n === 1000, 'n === 1000');
+  assert(Math.abs(s1.d50 - 600) / 600 < 0.05, 'D50 在 600 ± 5% 内', 'D50=' + s1.d50.toFixed(1));
+  assert(s1.span < 0.6, 'Span < 0.6 (窄单峰)', 'Span=' + s1.span.toFixed(3));
+  assert(s1.d10 < s1.d50 && s1.d50 < s1.d90, 'D10 < D50 < D90');
+
+  // Test 2: 双峰
+  log('info-log', '\n[Test 2] 双峰 · μ1=300 μ2=800 · n=1000');
+  var t2 = [];
+  for (var b = 0; b < 500; b++) t2.push(Math.max(50, randomNormal(300, 40)));
+  for (var b2 = 0; b2 < 500; b2++) t2.push(Math.max(50, randomNormal(800, 60)));
+  var s2 = computeStats(t2);
+  log('info-log', '  D10=' + s2.d10.toFixed(0) + ' D50=' + s2.d50.toFixed(0) + ' D90=' + s2.d90.toFixed(0) + ' Span=' + s2.span.toFixed(3));
+  assert(s2.n === 1000, 'n === 1000');
+  assert(s2.span > s1.span, '双峰 Span > 单峰 Span');
+  assert(s2.d10 < 400, 'D10 < 400μm (捕获低峰)', 'D10=' + s2.d10.toFixed(1));
+  assert(s2.d90 > 700, 'D90 > 700μm (捕获高峰)', 'D90=' + s2.d90.toFixed(1));
+
+  // Test 3: 全大颗粒
+  log('info-log', '\n[Test 3] 全 >1mm 大颗粒 · n=200');
+  var t3 = [];
+  for (var c = 0; c < 200; c++) t3.push(Math.max(1000, randomNormal(2000, 300)));
+  var s3 = computeStats(t3);
+  log('info-log', '  D10=' + s3.d10.toFixed(0) + ' D50=' + s3.d50.toFixed(0) + ' D90=' + s3.d90.toFixed(0) + ' fines=' + s3.finesPct.toFixed(2) + '%');
+  assert(s3.finesPct === 0, '细粉率 === 0');
+  assert(s3.d10 >= 1000, 'D10 >= 1000μm');
+
+  // Test 4: 空数组
+  log('info-log', '\n[Test 4] 空数组保护');
+  var s4 = computeStats([]);
+  assert(s4.n === 0, 'n === 0');
+  assert(isNaN(s4.d50), 'D50 为 NaN');
+
+  // Test 5: quantile 边界
+  log('info-log', '\n[Test 5] quantile 边界');
+  assert(quantile([500], 0.5) === 500, 'quantile 单元素');
+  assert(quantile([100, 200, 300, 400, 500], 0.5) === 300, 'quantile 中位数精确');
+  assert(quantile([100, 200, 300, 400, 500], 0) === 100, 'quantile q=0');
+  assert(quantile([100, 200, 300, 400, 500], 1) === 500, 'quantile q=1');
+
+  // Test 6: 诊断映射
+  log('info-log', '\n[Test 6] diagnoseCoverage 6 档映射');
+  var cases = [
+    { pct: 5,    expect: 'too_low',   emoji: '🔴' },
+    { pct: 9.99, expect: 'too_low',   emoji: '🔴' },
+    { pct: 10,   expect: 'low',       emoji: '🟡' },
+    { pct: 12,   expect: 'low',       emoji: '🟡' },
+    { pct: 15,   expect: 'sweet',     emoji: '🟢' },
+    { pct: 22.3, expect: 'sweet',     emoji: '🟢' },
+    { pct: 29.9, expect: 'sweet',     emoji: '🟢' },
+    { pct: 30,   expect: 'high',      emoji: '🟡' },
+    { pct: 39.9, expect: 'high',      emoji: '🟡' },
+    { pct: 40,   expect: 'very_high', emoji: '🟠' },
+    { pct: 49.9, expect: 'very_high', emoji: '🟠' },
+    { pct: 50,   expect: 'fail',      emoji: '🔴' },
+    { pct: 75,   expect: 'fail',      emoji: '🔴' }
+  ];
+  for (var ci = 0; ci < cases.length; ci++) {
+    var cc = cases[ci];
+    var r = diagnoseCoverage(cc.pct);
+    assert(r.level === cc.expect && r.emoji === cc.emoji, 'pct=' + cc.pct + '% → ' + cc.expect + ' ' + cc.emoji, 'got level=' + r.level + ' emoji=' + r.emoji);
+  }
+  var nanR = diagnoseCoverage(NaN);
+  assert(nanR.level === 'unknown', 'diagnoseCoverage(NaN) → unknown');
+  var negR = diagnoseCoverage(-1);
+  assert(negR.level === 'unknown', 'diagnoseCoverage(-1) → unknown');
+
+  // Test 7 (V13.22 新增)：KDE 空/不足容错
+  log('info-log', '\n[Test 7] KDE 边界（空/不足样本）');
+  var k0 = kdeSamples([], 200);
+  assert(k0.xs.length === 0 && k0.ys.length === 0, 'kdeSamples([]) 返回空');
+  var k1 = kdeSamples([300, 400, 500, 600, 700].sort(function(a,b){return a-b;}), 200);
+  assert(k1.xs.length === 200 && k1.ys.length === 200, 'kdeSamples n=5 · 200 采样点');
+  assert(k1.h > 0 && isFinite(k1.h), 'Silverman 带宽 h > 0');
+  var integ = 0;
+  var dx = k1.xs[1] - k1.xs[0];
+  for (var ii = 0; ii < k1.ys.length; ii++) integ += k1.ys[ii] * dx;
+  assert(integ > 0.8 && integ < 1.05, 'KDE 曲线积分 ≈ 1 (梯形近似 ' + integ.toFixed(3) + ')', 'integ=' + integ.toFixed(3));
+
+  log('info-log', '\n════════════════════════════════════════════════');
+  if (fail === 0) log('pass', '✓ ALL PASS · ' + pass + ' assertions');
+  else            log('fail', '✗ ' + fail + ' FAILED · ' + pass + ' passed');
+  log('info-log', '════════════════════════════════════════════════');
+  if (out) out.innerHTML = lines.join('\n');
+  return { pass: pass, fail: fail };
+}
+
+/* =========================================================================
+ * L. 事件绑定 & 初始化
+ * ------------------------------------------------------------------------- */
+function initEvents() {
+  if (STATE.initialized) return;
+  var bindOnce = function(id, event, fn) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener(event, fn);
+  };
+  bindOnce('psd-btn-save-calib', 'click', saveCalib);
+  bindOnce('psd-file-input', 'change', function(e){
+    var f = e.target.files && e.target.files[0]; if (f) runPipeline(f);
+  });
+  bindOnce('psd-cam-input', 'change', function(e){
+    var f = e.target.files && e.target.files[0]; if (f) runPipeline(f);
+  });
+  bindOnce('psd-btn-clear', 'click', function(){
+    STATE.srcImg = null; STATE.warpedCanvas = null; STATE.particles = [];
+    var pd = document.getElementById('psd-preview-details'); if (pd) pd.style.display = 'none';
+    var sr = document.getElementById('psd-sec-results'); if (sr) sr.style.display = 'none';
+    var sc = document.getElementById('psd-sec-chart');   if (sc) sc.style.display = 'none';
+    var em = document.getElementById('psd-empty');       if (em) em.style.display = 'block';
+    var f1 = document.getElementById('psd-file-input');  if (f1) f1.value = '';
+    var f2 = document.getElementById('psd-cam-input');   if (f2) f2.value = '';
+    showStatus('已清空', 'info');
+  });
+  bindOnce('psd-btn-run-tests', 'click', runUnitTests);
+  STATE.initialized = true;
+}
+
+function initModule() {
+  // 首次切到 psd tab 时才加载校准 & 绑定事件
+  loadCalib();
+  initEvents();
+}
+
+/* ------- 暴露到 window ------- */
+window.PSD_init = initModule;
+window.PSD_runTests = runUnitTests;
+window.PSD_diagnoseCoverage = diagnoseCoverage;
+window.PSD_computeStats = computeStats;
+window.PSD_kdeSamples = kdeSamples;
+
+})();
+</script>
+<!-- ===== V13.22 PSD 模块结束 ===== -->
+
+
 <!-- V13.21 未命中词卡片弹窗 -->
 <div class="uw-modal" id="uw-modal" style="display:none">
   <div class="uw-backdrop" onclick="uwCancel()"></div>
@@ -11088,6 +12411,7 @@ extractFlavorWords = function(text) {
     </div>
     <div class="uw-body" id="uw-body"></div>
     <div class="uw-footer">
+      <button type="button" class="uw-observe-all" onclick="uwObserveAll()" title="把所有未处理的候选词暂存到观察池（不进正式词典）">⏸ 全部入观察池</button>
       <button type="button" class="uw-skip" onclick="uwSkipAll()">全部跳过 · 直接保存</button>
       <button type="button" class="uw-confirm" id="uw-confirm-btn" onclick="uwConfirm()">继续保存 →</button>
     </div>
