@@ -1531,6 +1531,51 @@
     overflow-y: auto;
   }
   .modal-mask.show { display: flex; }
+
+  /* v13.23 "更多"下拉菜单（分组式，可扩展） */
+  .more-menu {
+    display: none;
+    position: fixed;
+    z-index: 250;
+    min-width: 220px;
+    max-width: 280px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 6px 0;
+    color: var(--ink);
+    overflow: hidden;
+  }
+  .more-menu.show { display: block; }
+  .more-menu-section + .more-menu-section {
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin-top: 4px;
+    padding-top: 4px;
+  }
+  .more-menu-title {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+    padding: 6px 16px 4px;
+    letter-spacing: 0.4px;
+  }
+  .more-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--ink);
+    padding: 10px 16px;
+    font-size: var(--fs-body);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .more-menu-item:hover,
+  .more-menu-item:active {
+    background: rgba(0,0,0,0.05);
+  }
+  .more-menu-item.danger { color: #c0392b; }
+
   .modal-box {
     background: #fff;
     border-radius: var(--radius-lg);
@@ -3049,19 +3094,30 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.22</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.23</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
     <button onclick="openNotesModal()">📔 我的笔记 <span id="notes-badge"></span></button>
     <button id="dict-icon-btn" onclick="switchTab('dict')" title="我的词典 · 管理视图">📖 词典 <span id="dict-badge"></span></button>
-    <button onclick="resetProfile()">♻️ 重置口味画像</button>
     <button id="theme-toggle-btn" onclick="toggleTheme()" title="主题：跟随系统">🌓</button>
     <button id="llm-config-btn" onclick="openLLMConfigModal()" title="LLM 风味/方案评估配置">⚙️ LLM</button>
-    <button onclick="clearAll()">🗑 清空全部</button>
-    <button onclick="openAboutModal()" title="关于 Brew Lab">🦈 关于</button>
+    <button id="more-menu-btn" onclick="toggleMoreMenu(event)" title="更多操作">⋯ 更多</button>
   </div>
 </header>
+
+<!-- v13.23 "更多"下拉菜单（分组式，可扩展） -->
+<div class="more-menu" id="more-menu" onclick="event.stopPropagation()">
+  <div class="more-menu-section">
+    <div class="more-menu-title">操作</div>
+    <button class="more-menu-item" onclick="closeMoreMenu(); resetProfile()">♻️ 重置口味画像</button>
+    <button class="more-menu-item danger" onclick="closeMoreMenu(); clearAll()">🗑 清空全部记录</button>
+  </div>
+  <div class="more-menu-section">
+    <div class="more-menu-title">关于</div>
+    <button class="more-menu-item" onclick="closeMoreMenu(); openAboutModal()">🦈 关于 Brew Lab</button>
+  </div>
+</div>
 
 <div class="container">
   <div class="tab-bar">
@@ -5324,6 +5380,47 @@ function closeAboutModal() {
 }
 function closeAboutModalIfMask(e) {
   if (e.target === e.currentTarget) closeAboutModal();
+}
+
+// v13.23 "更多"下拉菜单
+function toggleMoreMenu(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('more-menu');
+  if (!menu) return;
+  if (menu.classList.contains('show')) {
+    closeMoreMenu();
+    return;
+  }
+  const btn = document.getElementById('more-menu-btn');
+  const rect = btn.getBoundingClientRect();
+  const menuW = 240;
+  let left = rect.right - menuW;
+  if (left < 8) left = 8;
+  if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+  menu.style.left = left + 'px';
+  menu.style.top = (rect.bottom + 8) + 'px';
+  menu.classList.add('show');
+  setTimeout(() => {
+    document.addEventListener('click', closeMoreMenuOnOutsideClick);
+    document.addEventListener('keydown', closeMoreMenuOnEsc);
+  }, 0);
+}
+function closeMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  if (menu) menu.classList.remove('show');
+  document.removeEventListener('click', closeMoreMenuOnOutsideClick);
+  document.removeEventListener('keydown', closeMoreMenuOnEsc);
+}
+function closeMoreMenuOnOutsideClick(e) {
+  const menu = document.getElementById('more-menu');
+  const btn = document.getElementById('more-menu-btn');
+  if (!menu) return;
+  if (menu.contains(e.target)) return;
+  if (btn && btn.contains(e.target)) return;
+  closeMoreMenu();
+}
+function closeMoreMenuOnEsc(e) {
+  if (e.key === 'Escape') closeMoreMenu();
 }
 function renderScanInitial(statusHtml) {
   const html = `
