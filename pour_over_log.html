@@ -3094,7 +3094,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.23</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.24</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3582,7 +3582,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.22</div>
+    <div class="about-version">Brew Lab · v13.24</div>
   </div>
 </div>
 
@@ -11726,7 +11726,7 @@ function warpToA5(srcCanvas, qrs) {
 }
 
 /* =========================================================================
- * D. 灰度化 → 高斯模糊 → Otsu → 二值化
+ * D. 灰度化 → 高斯模糊 → 背景扁平化 → Otsu → 二值化
  * ------------------------------------------------------------------------- */
 function toGray(canvas) {
   var w = canvas.width, h = canvas.height;
@@ -11748,6 +11748,58 @@ function gaussianBlur3(img) {
              + 2 * s[i - 1] + 4 * s[i]     + 2 * s[i + 1]
              + s[i + w - 1] + 2 * s[i + w] + s[i + w + 1]) / 16;
       out[i] = v | 0;
+    }
+  }
+  return { data: out, w: w, h: h };
+}
+function flattenBackground(gray, roi, blockPx, percentile) {
+  var w = gray.w, h = gray.h, s = gray.data;
+  var x0 = roi.x0, y0 = roi.y0, x1 = roi.x1, y1 = roi.y1;
+  var roiW = x1 - x0, roiH = y1 - y0;
+  if (roiW < 4 || roiH < 4) return gray;
+  var nbx = Math.max(2, Math.ceil(roiW / blockPx));
+  var nby = Math.max(2, Math.ceil(roiH / blockPx));
+  var bgCoarse = new Float32Array(nbx * nby);
+  var bgMean = 0;
+  for (var by = 0; by < nby; by++) {
+    for (var bx = 0; bx < nbx; bx++) {
+      var xa = x0 + Math.floor(bx * roiW / nbx);
+      var xb = x0 + Math.floor((bx + 1) * roiW / nbx);
+      var ya = y0 + Math.floor(by * roiH / nby);
+      var yb = y0 + Math.floor((by + 1) * roiH / nby);
+      var vals = [];
+      for (var y = ya; y < yb; y++) {
+        for (var x = xa; x < xb; x++) {
+          vals.push(s[y * w + x]);
+        }
+      }
+      vals.sort(function(a, b){ return a - b; });
+      var pIdx = Math.min(vals.length - 1, Math.max(0, Math.floor(vals.length * percentile)));
+      var p = vals[pIdx];
+      if (!p) p = 1;
+      bgCoarse[by * nbx + bx] = p;
+      bgMean += p;
+    }
+  }
+  bgMean /= (nbx * nby);
+  var out = new Uint8Array(w * h);
+  for (var ci = 0; ci < s.length; ci++) out[ci] = s[ci];
+  for (var yy = y0; yy < y1; yy++) {
+    for (var xx = x0; xx < x1; xx++) {
+      var gx = (xx - x0) / roiW * nbx - 0.5;
+      var gy = (yy - y0) / roiH * nby - 0.5;
+      var bx0 = Math.max(0, Math.min(nbx - 2, Math.floor(gx)));
+      var by0 = Math.max(0, Math.min(nby - 2, Math.floor(gy)));
+      var fx = Math.max(0, Math.min(1, gx - bx0));
+      var fy = Math.max(0, Math.min(1, gy - by0));
+      var b00 = bgCoarse[by0 * nbx + bx0];
+      var b10 = bgCoarse[by0 * nbx + bx0 + 1];
+      var b01 = bgCoarse[(by0 + 1) * nbx + bx0];
+      var b11 = bgCoarse[(by0 + 1) * nbx + bx0 + 1];
+      var bg = (1 - fx) * (1 - fy) * b00 + fx * (1 - fy) * b10
+             + (1 - fx) * fy * b01 + fx * fy * b11;
+      var v = s[yy * w + xx] * bgMean / (bg || 1);
+      out[yy * w + xx] = v < 0 ? 0 : (v > 255 ? 255 : (v | 0));
     }
   }
   return { data: out, w: w, h: h };
@@ -11865,6 +11917,8 @@ function processWarped(warpedCanvas, mmPerPx) {
     x1: Math.round((zoneMM.x + zoneMM.w) * CARD.WARP_PX_PER_MM),
     y1: Math.round((zoneMM.y + zoneMM.h) * CARD.WARP_PX_PER_MM)
   };
+  // v13.24: 背景扁平化，消除拍照光照梯度对 Otsu 的干扰（分块 32px, 95% 分位锚定局部背景亮度）
+  gray = flattenBackground(gray, roi, 32, 0.95);
   var thresh = otsuThreshold(gray, roi);
   var bin = binarize(gray, thresh, roi);
   var fgCount = 0;
