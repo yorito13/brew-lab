@@ -2891,27 +2891,56 @@ canvas.psd-chart { width: 100%; max-height: 320px; background: #fff; border: 1px
 }
 /* ===== V13.22 PSD CSS 结束 ===== */
 
-/* ===== v13.25 折叠区域 ===== */
+/* ===== v13.26 折叠区域 ===== */
 .collapsible-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
   user-select: none;
-  padding: 6px 0 2px;
-  margin-top: 4px;
-  border-top: 1px solid var(--line);
-  font-size: 0.85em;
-  color: var(--muted);
-  transition: color 0.2s;
+  padding: 10px 14px 10px 18px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, var(--brand-primary-mist) 0%, var(--brand-primary-soft) 40%, #f8f9fa 100%);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  font-size: 0.88em;
+  font-weight: 500;
+  color: #495057;
+  transition: all 0.25s ease;
 }
-.collapsible-header:hover { color: var(--accent); }
+.collapsible-header:hover { 
+  background: linear-gradient(90deg, var(--brand-primary-soft) 0%, var(--brand-primary-mist) 60%, #f1f3f5 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
 .collapsible-header .collapse-icon {
   font-size: 0.75em;
   transition: transform 0.25s ease;
   margin-left: 6px;
+  flex-shrink: 0;
 }
 .collapsible-header .collapse-icon.collapsed { transform: rotate(-90deg); }
+.collapse-remember {
+  display: flex;
+  align-items: center;
+  font-size: 0.78em;
+  color: var(--muted);
+  margin-left: auto;
+  margin-right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+.collapsible-header:hover .collapse-remember { opacity: 1; }
+.collapse-remember input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  margin: 0 4px 0 0;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+.collapse-remember label { cursor: pointer; white-space: nowrap; }
 .collapsible-content {
   overflow: hidden;
   transition: max-height 0.3s ease, opacity 0.25s ease;
@@ -3125,7 +3154,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.25</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.26</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3201,9 +3230,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           <label>杯测风味 <span style="color:var(--muted);font-weight:normal;font-size:var(--fs-caption)">· 推荐冲煮方案的依据</span></label>
           <input type="text" id="cupping-flavor" placeholder="如：白桃 / 茉莉 / 蜂蜜 / 焦糖（来自烘焙商或 SCA 杯测描述）">
         </div>
-        <!-- v13.25: 可折叠的豆子详细信息 -->
+        <!-- v13.26: 可折叠的豆子详细信息 -->
         <div class="collapsible-header" onclick="toggleCollapsible('bean-details', event)">
-          <span>▸ 更多豆子信息（产地 / 庄园 / 豆种 / 地块 / 批次 / 烘焙商）</span>
+          <span>▸ 更多豆子信息</span>
+          <span class="collapse-remember" onclick="event.stopPropagation()"><input type="checkbox" id="bean-details-remember" onchange="setCollapsePreference('bean-details', this.checked)"><label for="bean-details-remember">记住折叠</label></span>
           <span class="collapse-icon collapsed" id="bean-details-icon">▼</span>
         </div>
         <div id="bean-details" class="collapsible-content collapsed" style="max-height:0">
@@ -3258,9 +3288,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <!-- 器具 -->
       <div class="card">
         <h2 style="margin-bottom:0">器具</h2>
-        <!-- v13.25: 可折叠的器具详情 -->
+        <!-- v13.26: 可折叠的器具详情 -->
         <div class="collapsible-header" onclick="toggleCollapsible('equipment', event)">
-          <span>▸ 展开器具详情（磨豆机 / 滤杯 / 滤纸 / Lily Drip / 聪明杯底座）</span>
+          <span>▸ 器具详情</span>
+          <span class="collapse-remember" onclick="event.stopPropagation()"><input type="checkbox" id="equipment-remember" onchange="setCollapsePreference('equipment', this.checked)"><label for="equipment-remember">记住折叠</label></span>
           <span class="collapse-icon collapsed" id="equipment-icon">▼</span>
         </div>
         <div id="equipment" class="collapsible-content collapsed" style="max-height:0">
@@ -3627,7 +3658,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.25</div>
+    <div class="about-version">Brew Lab · v13.26</div>
   </div>
 </div>
 
@@ -10738,7 +10769,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.25 连秤模式已就绪');
+    log('Brew Lab v13.26 连秤模式已就绪');
   }
 
   // 暴露调试入口
@@ -11531,7 +11562,7 @@ extractFlavorWords = function(text) {
 <!-- ===== V13.22 PSD 粒径分析模块 ===== -->
 <script>
 /* =========================================================================
- * Brew Lab · PSD 粒径分析 · v13.25
+ * Brew Lab · PSD 粒径分析 · v13.26
  * 从 psd_poc_v1.html 完整移植 · KDE 密度曲线替代直方图
  * 命名空间隔离：全部包在 IIFE 里，只暴露 PSD_init / PSD_runTests / PSD_diagnoseCoverage / PSD_computeStats
  * localStorage key: brewlab_psd_calib_v1
@@ -12458,7 +12489,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.25 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.26 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
@@ -12623,7 +12654,7 @@ window.PSD_kdeSamples = kdeSamples;
 
 
 <script>
-// v13.25: 折叠功能
+// v13.26: 折叠功能
 function toggleCollapsible(sectionId, event) {
   if (event) event.stopPropagation();
   var el = document.getElementById(sectionId);
@@ -12662,9 +12693,13 @@ function initCollapsibleSections() {
     ['bean-details', 'equipment'].forEach(function(id) {
       var el = document.getElementById(id);
       var icon = document.getElementById(id + '-icon');
+      var checkbox = document.getElementById(id + '-remember');
       if (!el) return;
+      // Priority: explicit user checkbox preference > history-based auto-collapse
       var userPref = prefs[id];
       var shouldCollapse = (userPref !== undefined) ? userPref : autoCollapse;
+      // Sync checkbox visual state
+      if (checkbox) checkbox.checked = (userPref === true);
       if (shouldCollapse) {
         el.classList.add('collapsed');
         el.style.maxHeight = '0';
