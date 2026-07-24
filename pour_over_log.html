@@ -1531,6 +1531,51 @@
     overflow-y: auto;
   }
   .modal-mask.show { display: flex; }
+
+  /* v13.23 "更多"下拉菜单（分组式，可扩展） */
+  .more-menu {
+    display: none;
+    position: fixed;
+    z-index: 250;
+    min-width: 220px;
+    max-width: 280px;
+    background: #fff;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 6px 0;
+    color: var(--ink);
+    overflow: hidden;
+  }
+  .more-menu.show { display: block; }
+  .more-menu-section + .more-menu-section {
+    border-top: 1px solid rgba(0,0,0,0.08);
+    margin-top: 4px;
+    padding-top: 4px;
+  }
+  .more-menu-title {
+    font-size: var(--fs-caption);
+    color: var(--muted);
+    padding: 6px 16px 4px;
+    letter-spacing: 0.4px;
+  }
+  .more-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--ink);
+    padding: 10px 16px;
+    font-size: var(--fs-body);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .more-menu-item:hover,
+  .more-menu-item:active {
+    background: rgba(0,0,0,0.05);
+  }
+  .more-menu-item.danger { color: #c0392b; }
+
   .modal-box {
     background: #fff;
     border-radius: var(--radius-lg);
@@ -2846,6 +2891,37 @@ canvas.psd-chart { width: 100%; max-height: 320px; background: #fff; border: 1px
 }
 /* ===== V13.22 PSD CSS 结束 ===== */
 
+/* ===== v13.25 折叠区域 ===== */
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  padding: 6px 0 2px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  font-size: 0.85em;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.collapsible-header:hover { color: var(--accent); }
+.collapsible-header .collapse-icon {
+  font-size: 0.75em;
+  transition: transform 0.25s ease;
+  margin-left: 6px;
+}
+.collapsible-header .collapse-icon.collapsed { transform: rotate(-90deg); }
+.collapsible-content {
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.25s ease;
+  opacity: 1;
+}
+.collapsible-content.collapsed {
+  max-height: 0 !important;
+  opacity: 0;
+  padding: 0;
+}
 
 </style>
 <!-- ====== V13.0 vendor libs (LZ-String + qrcode-generator + jsQR) for QR sharing ====== -->
@@ -2993,57 +3069,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     #brew-splash .bs-cut-rect { y: 38; height: 0; }
   }
-  /* 可折叠字段样式 */
-  .collapsible-section {
-    margin-top: 12px;
-    border-top: 1px solid var(--border);
-    padding-top: 8px;
-  }
-  .collapsible-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    user-select: none;
-    padding: 6px 0;
-    font-size: 13px;
-    color: var(--muted);
-    transition: color 0.2s;
-  }
-  .collapsible-header:hover {
-    color: var(--text);
-  }
-  .collapsible-header .toggle-icon {
-    transition: transform 0.2s;
-  }
-  .collapsible-header.collapsed .toggle-icon {
-    transform: rotate(-90deg);
-  }
-  .collapsible-content {
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.2s ease;
-    max-height: 500px;
-    opacity: 1;
-  }
-  .collapsible-content.collapsed {
-    max-height: 0;
-    opacity: 0;
-  }
-  .collapse-preference-btn {
-    font-size: 11px;
-    color: var(--muted);
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2px 8px;
-    margin-left: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .collapse-preference-btn:hover {
-    background: var(--bg-soft);
-    color: var(--text);
-  }
 </style>
 <div id="brew-splash" role="status" aria-label="Brew Lab 启动中">
   <svg class="bs-logo" viewBox="0 0 64 64" aria-hidden="true">
@@ -3100,19 +3125,30 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.22</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.25</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
     <button onclick="openNotesModal()">📔 我的笔记 <span id="notes-badge"></span></button>
     <button id="dict-icon-btn" onclick="switchTab('dict')" title="我的词典 · 管理视图">📖 词典 <span id="dict-badge"></span></button>
-    <button onclick="resetProfile()">♻️ 重置口味画像</button>
     <button id="theme-toggle-btn" onclick="toggleTheme()" title="主题：跟随系统">🌓</button>
     <button id="llm-config-btn" onclick="openLLMConfigModal()" title="LLM 风味/方案评估配置">⚙️ LLM</button>
-    <button onclick="clearAll()">🗑 清空全部</button>
-    <button onclick="openAboutModal()" title="关于 Brew Lab">🦈 关于</button>
+    <button id="more-menu-btn" onclick="toggleMoreMenu(event)" title="更多操作">⋯ 更多</button>
   </div>
 </header>
+
+<!-- v13.23 "更多"下拉菜单（分组式，可扩展） -->
+<div class="more-menu" id="more-menu" onclick="event.stopPropagation()">
+  <div class="more-menu-section">
+    <div class="more-menu-title">操作</div>
+    <button class="more-menu-item" onclick="closeMoreMenu(); resetProfile()">♻️ 重置口味画像</button>
+    <button class="more-menu-item danger" onclick="closeMoreMenu(); clearAll()">🗑 清空全部记录</button>
+  </div>
+  <div class="more-menu-section">
+    <div class="more-menu-title">关于</div>
+    <button class="more-menu-item" onclick="closeMoreMenu(); openAboutModal()">🦈 关于 Brew Lab</button>
+  </div>
+</div>
 
 <div class="container">
   <div class="tab-bar">
@@ -3160,54 +3196,52 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
             <datalist id="agtron-list"></datalist>
           </div>
         </div>
-        <div class="collapsible-section" id="bean-details-section">
-          <div class="collapsible-header" id="bean-details-header" onclick="toggleCollapsible('bean-details')">
-            <span>更多豆子信息</span>
-            <span class="toggle-icon">▼</span>
-          </div>
-          <div class="collapsible-content" id="bean-details-content">
-            <div class="row">
-              <div class="field">
-                <label>产地</label>
-                <input type="text" id="origin" placeholder="如：埃塞俄比亚" list="origin-list">
-                <datalist id="origin-list"></datalist>
-              </div>
-              <div class="field">
-                <label>庄园 / 产区</label>
-                <input type="text" id="farm" placeholder="如：科契尔" list="farm-list">
-                <datalist id="farm-list"></datalist>
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label>豆种</label>
-                <input type="text" id="variety" placeholder="如：原生种 / 瑰夏" list="variety-list">
-                <datalist id="variety-list"></datalist>
-              </div>
-              <div class="field">
-                <label>地块</label>
-                <input type="text" id="plot" placeholder="如：西坡 / 北坡 / Block 7" list="plot-list">
-                <datalist id="plot-list"></datalist>
-              </div>
-            </div>
-            <div class="row">
-              <div class="field">
-                <label>批次 / Lot</label>
-                <input type="text" id="batch" placeholder="如：Lot 23 / 20260601-A">
-              </div>
-              <div class="field">
-                <label>烘焙商</label>
-                <input type="text" id="roaster" placeholder="如：Manner / 自家烘" list="roaster-list">
-                <datalist id="roaster-list"></datalist>
-              </div>
-            </div>
-            <button class="collapse-preference-btn" onclick="setCollapsePreference('bean-details', true, event)">下次默认收起</button>
-          </div>
-        </div>
         <!-- V13.15.6: 杯测风味（独占一行，用于推荐冲煮方案） -->
         <div class="field" style="margin-top:6px">
           <label>杯测风味 <span style="color:var(--muted);font-weight:normal;font-size:var(--fs-caption)">· 推荐冲煮方案的依据</span></label>
           <input type="text" id="cupping-flavor" placeholder="如：白桃 / 茉莉 / 蜂蜜 / 焦糖（来自烘焙商或 SCA 杯测描述）">
+        </div>
+        <!-- v13.25: 可折叠的豆子详细信息 -->
+        <div class="collapsible-header" onclick="toggleCollapsible('bean-details', event)">
+          <span>▸ 更多豆子信息（产地 / 庄园 / 豆种 / 地块 / 批次 / 烘焙商）</span>
+          <span class="collapse-icon collapsed" id="bean-details-icon">▼</span>
+        </div>
+        <div id="bean-details" class="collapsible-content collapsed" style="max-height:0">
+          <div class="row">
+            <div class="field">
+              <label>产地</label>
+              <input type="text" id="origin" placeholder="如：埃塞俄比亚" list="origin-list">
+              <datalist id="origin-list"></datalist>
+            </div>
+            <div class="field">
+              <label>庄园 / 产区</label>
+              <input type="text" id="farm" placeholder="如：科契尔" list="farm-list">
+              <datalist id="farm-list"></datalist>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>豆种</label>
+              <input type="text" id="variety" placeholder="如：原生种 / 瑰夏" list="variety-list">
+              <datalist id="variety-list"></datalist>
+            </div>
+            <div class="field">
+              <label>地块</label>
+              <input type="text" id="plot" placeholder="如：西坡 / 北坡 / Block 7" list="plot-list">
+              <datalist id="plot-list"></datalist>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>批次 / Lot</label>
+              <input type="text" id="batch" placeholder="如：Lot 23 / 20260601-A">
+            </div>
+            <div class="field">
+              <label>烘焙商</label>
+              <input type="text" id="roaster" placeholder="如：Manner / 自家烘" list="roaster-list">
+              <datalist id="roaster-list"></datalist>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3223,55 +3257,54 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
       <!-- 器具 -->
       <div class="card">
-        <div class="collapsible-section" id="equipment-section" style="margin-top:0;border-top:none;padding-top:0">
-          <div class="collapsible-header" id="equipment-header" onclick="toggleCollapsible('equipment')">
-            <span style="font-size:16px;font-weight:600;color:var(--text)">器具</span>
-            <span class="toggle-icon">▼</span>
+        <h2 style="margin-bottom:0">器具</h2>
+        <!-- v13.25: 可折叠的器具详情 -->
+        <div class="collapsible-header" onclick="toggleCollapsible('equipment', event)">
+          <span>▸ 展开器具详情（磨豆机 / 滤杯 / 滤纸 / Lily Drip / 聪明杯底座）</span>
+          <span class="collapse-icon collapsed" id="equipment-icon">▼</span>
+        </div>
+        <div id="equipment" class="collapsible-content collapsed" style="max-height:0">
+          <div class="row">
+            <div class="field">
+              <label>磨豆机型号</label>
+              <input type="text" id="grinder" placeholder="如：1Zpresso K-Ultra" list="grinder-list">
+              <datalist id="grinder-list"></datalist>
+            </div>
+            <div class="field">
+              <label>研磨刻度</label>
+              <input type="text" id="grind-size" placeholder="如：2.2.0">
+            </div>
           </div>
-          <div class="collapsible-content" id="equipment-content">
-            <div class="row">
-              <div class="field">
-                <label>磨豆机型号</label>
-                <input type="text" id="grinder" placeholder="如：1Zpresso K-Ultra" list="grinder-list">
-                <datalist id="grinder-list"></datalist>
-              </div>
-              <div class="field">
-                <label>研磨刻度</label>
-                <input type="text" id="grind-size" placeholder="如：2.2.0">
-              </div>
+          <div class="row">
+            <div class="field">
+              <label>滤杯型号</label>
+              <input type="text" id="dripper" placeholder="如：Hario V60 02" list="dripper-list">
+              <datalist id="dripper-list"></datalist>
             </div>
-            <div class="row">
-              <div class="field">
-                <label>滤杯型号</label>
-                <input type="text" id="dripper" placeholder="如：Hario V60 02" list="dripper-list">
-                <datalist id="dripper-list"></datalist>
-              </div>
-              <div class="field">
-                <label>滤纸类型</label>
-                <input type="text" id="filter" placeholder="如：V60 漂白" list="filter-list">
-                <datalist id="filter-list"></datalist>
-              </div>
+            <div class="field">
+              <label>滤纸类型</label>
+              <input type="text" id="filter" placeholder="如：V60 漂白" list="filter-list">
+              <datalist id="filter-list"></datalist>
             </div>
-            <div class="row">
-              <div class="field">
-                <label>Lily Drip</label>
-                <select id="lily-drip">
-                  <option value="">-- 不使用 --</option>
-                  <option>基础</option>
-                  <option>GIO</option>
-                  <option>樱花</option>
-                  <option>忘忧草</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>聪明杯底座</label>
-                <select id="clever-base" onchange="onCleverBaseChange()">
-                  <option value="">-- 不使用 --</option>
-                  <option>使用</option>
-                </select>
-              </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label>Lily Drip</label>
+              <select id="lily-drip">
+                <option value="">-- 不使用 --</option>
+                <option>基础</option>
+                <option>GIO</option>
+                <option>樱花</option>
+                <option>忘忧草</option>
+              </select>
             </div>
-            <button class="collapse-preference-btn" onclick="setCollapsePreference('equipment', true, event)">下次默认收起</button>
+            <div class="field">
+              <label>聪明杯底座</label>
+              <select id="clever-base" onchange="onCleverBaseChange()">
+                <option value="">-- 不使用 --</option>
+                <option>使用</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -3594,7 +3627,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.22</div>
+    <div class="about-version">Brew Lab · v13.25</div>
   </div>
 </div>
 
@@ -5392,6 +5425,47 @@ function closeAboutModal() {
 }
 function closeAboutModalIfMask(e) {
   if (e.target === e.currentTarget) closeAboutModal();
+}
+
+// v13.23 "更多"下拉菜单
+function toggleMoreMenu(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById('more-menu');
+  if (!menu) return;
+  if (menu.classList.contains('show')) {
+    closeMoreMenu();
+    return;
+  }
+  const btn = document.getElementById('more-menu-btn');
+  const rect = btn.getBoundingClientRect();
+  const menuW = 240;
+  let left = rect.right - menuW;
+  if (left < 8) left = 8;
+  if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+  menu.style.left = left + 'px';
+  menu.style.top = (rect.bottom + 8) + 'px';
+  menu.classList.add('show');
+  setTimeout(() => {
+    document.addEventListener('click', closeMoreMenuOnOutsideClick);
+    document.addEventListener('keydown', closeMoreMenuOnEsc);
+  }, 0);
+}
+function closeMoreMenu() {
+  const menu = document.getElementById('more-menu');
+  if (menu) menu.classList.remove('show');
+  document.removeEventListener('click', closeMoreMenuOnOutsideClick);
+  document.removeEventListener('keydown', closeMoreMenuOnEsc);
+}
+function closeMoreMenuOnOutsideClick(e) {
+  const menu = document.getElementById('more-menu');
+  const btn = document.getElementById('more-menu-btn');
+  if (!menu) return;
+  if (menu.contains(e.target)) return;
+  if (btn && btn.contains(e.target)) return;
+  closeMoreMenu();
+}
+function closeMoreMenuOnEsc(e) {
+  if (e.key === 'Escape') closeMoreMenu();
 }
 function renderScanInitial(statusHtml) {
   const html = `
@@ -10664,7 +10738,7 @@ setupListFilterEvents();
     });
 
     renderBrewView();
-    log('Brew Lab v13.22 连秤模式已就绪');
+    log('Brew Lab v13.25 连秤模式已就绪');
   }
 
   // 暴露调试入口
@@ -11457,7 +11531,7 @@ extractFlavorWords = function(text) {
 <!-- ===== V13.22 PSD 粒径分析模块 ===== -->
 <script>
 /* =========================================================================
- * Brew Lab · PSD 粒径分析 · v13.22
+ * Brew Lab · PSD 粒径分析 · v13.25
  * 从 psd_poc_v1.html 完整移植 · KDE 密度曲线替代直方图
  * 命名空间隔离：全部包在 IIFE 里，只暴露 PSD_init / PSD_runTests / PSD_diagnoseCoverage / PSD_computeStats
  * localStorage key: brewlab_psd_calib_v1
@@ -11723,6 +11797,65 @@ function gaussianBlur3(img) {
   }
   return { data: out, w: w, h: h };
 }
+// v13.24: 背景扁平化预处理 - 分块计算高百分位亮度，双线性插值生成平滑背景，减去背景消除光照梯度
+function flattenBackground(gray, roi, blockPx, percentile) {
+  var w = gray.w, h = gray.h;
+  var x0 = roi.x0, y0 = roi.y0, x1 = roi.x1, y1 = roi.y1;
+  var bw = Math.ceil((x1 - x0) / blockPx);
+  var bh = Math.ceil((y1 - y0) / blockPx);
+  // 计算每个块的百分位亮度
+  var bgVals = new Float32Array(bw * bh);
+  for (var by = 0; by < bh; by++) {
+    for (var bx = 0; bx < bw; bx++) {
+      var sx = x0 + bx * blockPx;
+      var sy = y0 + by * blockPx;
+      var ex = Math.min(sx + blockPx, x1);
+      var ey = Math.min(sy + blockPx, y1);
+      var vals = [];
+      for (var yy = sy; yy < ey; yy++) {
+        for (var xx = sx; xx < ex; xx++) {
+          vals.push(gray.data[yy * w + xx]);
+        }
+      }
+      vals.sort(function(a, b) { return a - b; });
+      var idx = Math.floor(vals.length * percentile);
+      if (idx >= vals.length) idx = vals.length - 1;
+      bgVals[by * bw + bx] = vals[idx];
+    }
+  }
+  // 双线性插值生成每个像素的背景值，并减去
+  var out = new Uint8Array(gray.data.length);
+  for (var y = y0; y < y1; y++) {
+    for (var x = x0; x < x1; x++) {
+      var fx = (x - x0) / blockPx - 0.5;
+      var fy = (y - y0) / blockPx - 0.5;
+      var bx0 = Math.max(0, Math.floor(fx));
+      var by0 = Math.max(0, Math.floor(fy));
+      var bx1 = Math.min(bw - 1, bx0 + 1);
+      var by1 = Math.min(bh - 1, by0 + 1);
+      var dx = fx - bx0;
+      var dy = fy - by0;
+      if (dx < 0) dx = 0;
+      if (dy < 0) dy = 0;
+      var v00 = bgVals[by0 * bw + bx0];
+      var v01 = bgVals[by0 * bw + bx1];
+      var v10 = bgVals[by1 * bw + bx0];
+      var v11 = bgVals[by1 * bw + bx1];
+      var bg = v00 * (1 - dx) * (1 - dy) + v01 * dx * (1 - dy) + v10 * (1 - dx) * dy + v11 * dx * dy;
+      var v = gray.data[y * w + x] - bg + 255;
+      out[y * w + x] = v < 0 ? 0 : v > 255 ? 255 : v;
+    }
+  }
+  // 非 ROI 区域保持原值
+  for (var y2 = 0; y2 < h; y2++) {
+    for (var x2 = 0; x2 < w; x2++) {
+      if (x2 < x0 || x2 >= x1 || y2 < y0 || y2 >= y1) {
+        out[y2 * w + x2] = gray.data[y2 * w + x2];
+      }
+    }
+  }
+  return { data: out, w: w, h: h };
+}
 function otsuThreshold(gray, roi) {
   var hist = new Uint32Array(256);
   var x0 = roi.x0, y0 = roi.y0, x1 = roi.x1, y1 = roi.y1;
@@ -11836,6 +11969,8 @@ function processWarped(warpedCanvas, mmPerPx) {
     x1: Math.round((zoneMM.x + zoneMM.w) * CARD.WARP_PX_PER_MM),
     y1: Math.round((zoneMM.y + zoneMM.h) * CARD.WARP_PX_PER_MM)
   };
+  // v13.24: Otsu 前插背景扁平化，消除光照梯度干扰
+  gray = flattenBackground(gray, roi, 32, 0.95);
   var thresh = otsuThreshold(gray, roi);
   var bin = binarize(gray, thresh, roi);
   var fgCount = 0;
@@ -12323,7 +12458,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.22 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.25 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
@@ -12461,98 +12596,6 @@ window.PSD_diagnoseCoverage = diagnoseCoverage;
 window.PSD_computeStats = computeStats;
 window.PSD_kdeSamples = kdeSamples;
 
-// 可折叠字段逻辑
-function toggleCollapsible(sectionId) {
-  const content = document.getElementById(sectionId + '-content');
-  const header = document.getElementById(sectionId + '-header');
-  
-  if (content.classList.contains('collapsed')) {
-    content.classList.remove('collapsed');
-    header.classList.remove('collapsed');
-    // 用户手动展开，记录偏好为展开
-    setCollapsePreference(sectionId, false);
-  } else {
-    content.classList.add('collapsed');
-    header.classList.add('collapsed');
-  }
-}
-
-function setCollapsePreference(sectionId, collapsed, event) {
-  if (event) event.stopPropagation();
-  
-  const preferences = JSON.parse(localStorage.getItem('brewlab-collapse-preferences') || '{}');
-  preferences[sectionId] = collapsed;
-  localStorage.setItem('brewlab-collapse-preferences', JSON.stringify(preferences));
-  
-  // 立即应用
-  const content = document.getElementById(sectionId + '-content');
-  const header = document.getElementById(sectionId + '-header');
-  
-  if (collapsed) {
-    content.classList.add('collapsed');
-    header.classList.add('collapsed');
-  } else {
-    content.classList.remove('collapsed');
-    header.classList.remove('collapsed');
-  }
-}
-
-function initCollapsibleSections() {
-  const preferences = JSON.parse(localStorage.getItem('brewlab-collapse-preferences') || '{}');
-  const records = JSON.parse(localStorage.getItem('brewlab_records') || '[]');
-  
-  // 检查历史记录中是否填过可折叠字段
-  const beanDetailsFields = ['origin', 'farm', 'variety', 'plot', 'batch', 'roaster'];
-  const equipmentFields = ['grinder', 'grind-size', 'dripper', 'filter'];
-  
-  function hasFilledHistory(fields) {
-    return records.some(record => fields.some(field => record[field] && record[field].trim() !== ''));
-  }
-  
-  // 豆子详细信息
-  const beanDetailsPreference = preferences['bean-details'];
-  if (beanDetailsPreference === true) {
-    // 用户明确设置过默认收起
-    document.getElementById('bean-details-content').classList.add('collapsed');
-    document.getElementById('bean-details-header').classList.add('collapsed');
-  } else if (beanDetailsPreference === false) {
-    // 用户明确设置过默认展开
-    document.getElementById('bean-details-content').classList.remove('collapsed');
-    document.getElementById('bean-details-header').classList.remove('collapsed');
-  } else if (hasFilledHistory(beanDetailsFields)) {
-    // 历史填过，默认展开
-    document.getElementById('bean-details-content').classList.remove('collapsed');
-    document.getElementById('bean-details-header').classList.remove('collapsed');
-  } else {
-    // 新用户或没填过，默认收起
-    document.getElementById('bean-details-content').classList.add('collapsed');
-    document.getElementById('bean-details-header').classList.add('collapsed');
-  }
-  
-  // 器具
-  const equipmentPreference = preferences['equipment'];
-  if (equipmentPreference === true) {
-    document.getElementById('equipment-content').classList.add('collapsed');
-    document.getElementById('equipment-header').classList.add('collapsed');
-  } else if (equipmentPreference === false) {
-    document.getElementById('equipment-content').classList.remove('collapsed');
-    document.getElementById('equipment-header').classList.remove('collapsed');
-  } else if (hasFilledHistory(equipmentFields)) {
-    document.getElementById('equipment-content').classList.remove('collapsed');
-    document.getElementById('equipment-header').classList.remove('collapsed');
-  } else {
-    document.getElementById('equipment-content').classList.add('collapsed');
-    document.getElementById('equipment-header').classList.add('collapsed');
-  }
-}
-
-// 页面加载时初始化折叠状态
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initCollapsibleSections);
-} else {
-  initCollapsibleSections();
-}
-
 })();
 </script>
 <!-- ===== V13.22 PSD 模块结束 ===== -->
@@ -12577,6 +12620,71 @@ if (document.readyState === 'loading') {
     </div>
   </div>
 </div>
+
+
+<script>
+// v13.25: 折叠功能
+function toggleCollapsible(sectionId, event) {
+  if (event) event.stopPropagation();
+  var el = document.getElementById(sectionId);
+  var icon = document.getElementById(sectionId + '-icon');
+  if (!el) return;
+  var isCollapsed = el.classList.contains('collapsed');
+  if (isCollapsed) {
+    el.classList.remove('collapsed');
+    el.style.maxHeight = el.scrollHeight + 'px';
+    if (icon) icon.classList.remove('collapsed');
+    setCollapsePreference(sectionId, false);
+  } else {
+    el.classList.add('collapsed');
+    el.style.maxHeight = '0';
+    if (icon) icon.classList.add('collapsed');
+    setCollapsePreference(sectionId, true);
+  }
+}
+
+function setCollapsePreference(sectionId, collapsed) {
+  try {
+    var prefs = JSON.parse(localStorage.getItem('brewlab-collapse-preferences') || '{}');
+    prefs[sectionId] = collapsed;
+    localStorage.setItem('brewlab-collapse-preferences', JSON.stringify(prefs));
+  } catch(e) {}
+}
+
+function initCollapsibleSections() {
+  try {
+    var prefs = JSON.parse(localStorage.getItem('brewlab-collapse-preferences') || '{}');
+    // Auto-collapse for users with >= 3 records (experienced users)
+    var records = [];
+    try { records = JSON.parse(localStorage.getItem('brewlab_records') || '[]'); } catch(e2) {}
+    var autoCollapse = records.length >= 3;
+
+    ['bean-details', 'equipment'].forEach(function(id) {
+      var el = document.getElementById(id);
+      var icon = document.getElementById(id + '-icon');
+      if (!el) return;
+      var userPref = prefs[id];
+      var shouldCollapse = (userPref !== undefined) ? userPref : autoCollapse;
+      if (shouldCollapse) {
+        el.classList.add('collapsed');
+        el.style.maxHeight = '0';
+        if (icon) icon.classList.add('collapsed');
+      } else {
+        el.classList.remove('collapsed');
+        el.style.maxHeight = el.scrollHeight + 'px';
+        if (icon) icon.classList.remove('collapsed');
+      }
+    });
+  } catch(e) {}
+}
+
+// Initialize on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCollapsibleSections);
+} else {
+  initCollapsibleSections();
+}
+</script>
 
 </body>
 </html>
