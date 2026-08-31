@@ -3154,7 +3154,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.26</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.27</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3658,7 +3658,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.26</div>
+    <div class="about-version">Brew Lab · v13.27</div>
   </div>
 </div>
 
@@ -6293,6 +6293,9 @@ function analyzeBrew(d, opts) {
   // 烘焙度分析（独立维度，与处理法互补；支持 Agtron 数字 / 文字焙度；已结合滤杯萃取率修正区间）
   let agtronRule = null;
   let agtronInfo = null;
+  // 水温仲裁暂存：烘焙度判定（硬约束）与处理法判定（风味策略）最终合并为一条结论
+  let tempRoast = null;
+  let ratioRoast = null;  // 粉水比仲裁暂存（烘焙度=硬约束）
   if (d.agtron) {
     agtronInfo = resolveAgtron(d.agtron);
     if (agtronInfo && agtronInfo.rule) {
@@ -6312,44 +6315,30 @@ function analyzeBrew(d, opts) {
       const adjNote = ext.factor !== 1
         ? `（萃取率系数 ${ext.factor.toFixed(2)} → 已${ext.tempAdjust >= 0 ? '上调' : '下调'} ${Math.abs(ext.tempAdjust).toFixed(1)}℃）`
         : '';
-      // 水温 vs 修正后的推荐区间
+      // 水温 vs 修正后区间：暂存判定，交由下方仲裁层统一输出（烘焙度=硬约束，处理法=风味指引）
       if (d.temp) {
-        max += 15;
         const t = parseFloat(d.temp);
         if (t >= tMinAdj && t <= tMaxAdj) {
-          pts += 15;
-          findings.push({ level: 'good', text: `水温 ${t}℃ 适配 ${agtronRule.label}（${tMinAdj}-${tMaxAdj}℃${adjNote}）` });
+          tempRoast = { t, tMin: tMinAdj, tMax: tMaxAdj, adjNote, label: agtronRule.label, ref, in: true };
         } else if (t < tMinAdj) {
-          if (notesScan.hasDelicate) {
-            // 笔记捕捉到细腻香气 → 低温是有意保护，不报警告也不建议升温
-            pts += 13;
-            findings.push({ level: 'good', text: `水温 ${t}℃ 低于 ${agtronRule.label}常规区间（${tMinAdj}-${tMaxAdj}℃${adjNote}），但笔记捕捉到「${notesScan.hits.slice(0, 3).join('/')}」等细腻香气，属于有意保护型萃取，方向正确` });
-          } else {
-            pts += 7;
-            findings.push({ level: 'warn', text: `${agtronRule.label}水温偏低（建议 ${tMinAdj}-${tMaxAdj}℃${adjNote}），可能萃取不足` });
-            suggestions.push(`针对 ${ref}${ext.factor !== 1 ? '+滤杯萃取特性' : ''}，水温升至 ${tMinAdj}-${tMaxAdj}℃ 接近常规萃取强度区间`);
-          }
+          tempRoast = { t, tMin: tMinAdj, tMax: tMaxAdj, adjNote, label: agtronRule.label, ref,
+            in: false, low: true, delicate: !!notesScan.hasDelicate,
+            hits: notesScan.hits ? notesScan.hits.slice(0, 3) : [] };
         } else {
-          pts += 7;
-          findings.push({ level: 'warn', text: `${agtronRule.label}水温偏高（建议 ${tMinAdj}-${tMaxAdj}℃${adjNote}），易过萃发苦` });
-          suggestions.push(`针对 ${ref}${ext.factor !== 1 ? '+滤杯萃取特性' : ''}，水温下调到 ${tMinAdj}-${tMaxAdj}℃ 更安全`);
+          tempRoast = { t, tMin: tMinAdj, tMax: tMaxAdj, adjNote, label: agtronRule.label, ref,
+            in: false, low: false };
         }
       }
-      // 粉水比 vs 修正后的推荐区间（有 bypass 时按有效萃取水算）
+      // 粉水比 vs 修正后的推荐区间（有 bypass 时按有效萃取水算）：暂存判定，交由下方仲裁层统一输出
       if (d.dose && effectiveWater > 0) {
-        max += 10;
         const r = effectiveWater / parseFloat(d.dose);
-        const noteBp = hasBypass ? '（已扣 bypass）' : '';
-        if (r >= rMinAdj && r <= rMaxAdj) {
-          pts += 10;
-          findings.push({ level: 'good', text: `粉水比 1:${r.toFixed(1)}${noteBp} 匹配 ${agtronRule.label}（1:${rMinAdj}-1:${rMaxAdj}）` });
-        } else if (r < rMinAdj) {
-          pts += 5;
-          suggestions.push(`${agtronRule.label}建议萃取粉水比 1:${rMinAdj}-1:${rMaxAdj}${noteBp ? '（bypass 不算入）' : ''}，当前偏浓`);
-        } else {
-          pts += 5;
-          suggestions.push(`${agtronRule.label}建议萃取粉水比 1:${rMinAdj}-1:${rMaxAdj}${noteBp ? '（bypass 不算入）' : ''}，当前偏稀`);
-        }
+        ratioRoast = { r, rMin: rMinAdj, rMax: rMaxAdj,
+          rAdjNote: ext.factor !== 1
+            ? `（萃取率系数 ${ext.factor.toFixed(2)} → 比例${ext.ratioAdjust >= 0 ? '上调' : '下调'} ${Math.abs(ext.ratioAdjust).toFixed(1)}）`
+            : '',
+          label: agtronRule.label,
+          in: r >= rMinAdj && r <= rMaxAdj,
+          high: r > rMaxAdj };
       }
     } else if (agtronInfo === null) {
       // 输入了但无法识别
@@ -6357,50 +6346,174 @@ function analyzeBrew(d, opts) {
     }
   }
 
-  // 水温 vs 处理法（应用口味偏好偏移）
+  // 水温 vs 处理法（应用口味偏好偏移）：暂存判定，交由仲裁层统一输出
+  let tempProc = null;
   if (proc && d.temp) {
-    max += 25;
     const t = parseFloat(d.temp);
     const tMin = +(proc.tempRange[0] + tempBias).toFixed(1);
     const tMax = +(proc.tempRange[1] + tempBias).toFixed(1);
-    if (t >= tMin && t <= tMax) {
+    tempProc = { t, tMin, tMax, proc: d.process,
+      in: t >= tMin && t <= tMax, low: t < tMin,
+      delicate: !!notesScan.hasDelicate,
+      hits: notesScan.hits ? notesScan.hits.slice(0, 3) : [] };
+  }
+
+  // ===== 水温仲裁层：烘焙度=硬物理约束（定安全萃取窗），处理法=窗内风味指引；冲突时硬约束优先，只输出一条结论 =====
+  if (tempRoast && tempProc) {
+    max += 30;
+    const { t } = tempRoast;
+    const biasSuffix = Math.abs(tempBias) >= 0.1 ? `（含口味偏好 ${tempBias > 0 ? '+' : ''}${tempBias.toFixed(1)}℃）` : '';
+    if (tempRoast.in) {
+      pts += 30;
+      findings.push({ level: 'good', text: `水温 ${t}℃ 在${tempRoast.label}安全萃取窗内（${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}）` });
+      if (t > tempProc.tMax) {
+        if (tempRoast.tMin > tempProc.tMax) {
+          findings.push({ level: 'info', text: `「${tempProc.proc}」风味温度区间（${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}）整体低于${tempRoast.label}安全窗（${tempRoast.tMin}-${tempRoast.tMax}℃）：当前在硬约束安全窗内，无过萃风险；若想向该处理法典型温度靠拢需换更深烘的豆` });
+        } else {
+          findings.push({ level: 'info', text: `比「${tempProc.proc}」风味区间（${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}）略高，但${tempRoast.label}萃取安全窗内无过萃风险` });
+        }
+      } else if (t < tempProc.tMin) {
+        if (tempRoast.tMax < tempProc.tMin) {
+          findings.push({ level: 'info', text: `「${tempProc.proc}」风味温度区间（${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}）整体高于${tempRoast.label}安全窗（${tempRoast.tMin}-${tempRoast.tMax}℃）：当前在硬约束安全窗内，不构成萃取不足；若想向该处理法典型温度靠拢需换更浅烘的豆` });
+        } else {
+          findings.push({ level: 'info', text: `比「${tempProc.proc}」风味区间（${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}）略低，保守取向，不构成萃取不足` });
+        }
+      }
+    } else if (tempRoast.low) {
+      // 低于硬约束下限：萃不足风险，硬约束优先
+      pts += tempRoast.delicate ? 24 : 15;
+      if (tempRoast.delicate) {
+        findings.push({ level: 'good', text: `水温 ${t}℃ 低于${tempRoast.label}常规区间（${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}），但笔记捕捉到「${tempRoast.hits.join('/')}」等细腻香气，属于有意保护型萃取，方向正确` });
+        if (t >= tempProc.tMax) {
+          findings.push({ level: 'info', text: `已${t > tempProc.tMax ? '高于' : '达到'}「${tempProc.proc}」风味区间上限 ${tempProc.tMax}℃${biasSuffix}，无需再升温` });
+        }
+      } else {
+        findings.push({ level: 'warn', text: `${tempRoast.label}水温偏低（建议 ${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}），可能萃取不足` });
+        suggestions.push(`针对 ${tempRoast.ref}，水温升至 ${tempRoast.tMin}-${tempRoast.tMax}℃ 接近常规萃取强度区间`);
+      }
+    } else {
+      // 高于硬约束上限：过萃风险，硬约束优先（即使处理法区间更宽）
+      pts += 15;
+      findings.push({ level: 'warn', text: `${tempRoast.label}水温偏高（建议 ${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}），易过萃发苦` });
+      suggestions.push(`针对 ${tempRoast.ref}，水温下调到 ${tempRoast.tMin}-${tempRoast.tMax}℃ 更安全`);
+    }
+  } else if (tempRoast) {
+    max += 15;
+    const { t } = tempRoast;
+    if (tempRoast.in) {
+      pts += 15;
+      findings.push({ level: 'good', text: `水温 ${t}℃ 适配 ${tempRoast.label}（${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}）` });
+    } else if (tempRoast.low) {
+      if (tempRoast.delicate) {
+        pts += 13;
+        findings.push({ level: 'good', text: `水温 ${t}℃ 低于 ${tempRoast.label}常规区间（${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}），但笔记捕捉到「${tempRoast.hits.join('/')}」等细腻香气，属于有意保护型萃取，方向正确` });
+      } else {
+        pts += 7;
+        findings.push({ level: 'warn', text: `${tempRoast.label}水温偏低（建议 ${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}），可能萃取不足` });
+        suggestions.push(`针对 ${tempRoast.ref}，水温升至 ${tempRoast.tMin}-${tempRoast.tMax}℃ 接近常规萃取强度区间`);
+      }
+    } else {
+      pts += 7;
+      findings.push({ level: 'warn', text: `${tempRoast.label}水温偏高（建议 ${tempRoast.tMin}-${tempRoast.tMax}℃${tempRoast.adjNote}），易过萃发苦` });
+      suggestions.push(`针对 ${tempRoast.ref}，水温下调到 ${tempRoast.tMin}-${tempRoast.tMax}℃ 更安全`);
+    }
+  } else if (tempProc) {
+    max += 25;
+    const { t } = tempProc;
+    const biasSuffix = Math.abs(tempBias) >= 0.1 ? `（含口味偏好 ${tempBias > 0 ? '+' : ''}${tempBias.toFixed(1)}℃）` : '';
+    if (tempProc.in) {
       pts += 25;
-      findings.push({ level: 'good', text: `水温 ${t}℃ 命中「${d.process}」推荐区间 ${tMin}-${tMax}℃` });
-    } else if (t < tMin) {
-      if (notesScan.hasDelicate) {
-        // 笔记捕捉到细腻香气 → 低温是有意保护
+      findings.push({ level: 'good', text: `水温 ${t}℃ 命中「${tempProc.proc}」推荐区间 ${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}` });
+    } else if (tempProc.low) {
+      if (tempProc.delicate) {
         pts += 22;
-        findings.push({ level: 'good', text: `水温 ${t}℃ 低于「${d.process}」常规区间 ${tMin}-${tMax}℃，但笔记捕捉到「${notesScan.hits.slice(0, 3).join('/')}」等细腻香气，属于有意保护型萃取，方向正确` });
+        findings.push({ level: 'good', text: `水温 ${t}℃ 低于「${tempProc.proc}」常规区间 ${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}，但笔记捕捉到「${tempProc.hits.join('/')}」等细腻香气，属于有意保护型萃取，方向正确` });
       } else {
         pts += 12;
-        findings.push({ level: 'warn', text: `水温 ${t}℃ 偏低（建议 ${tMin}-${tMax}℃），可能萃取不足` });
-        suggestions.push(`水温升至 ${tMin}-${tMax}℃，提升萃取率到推荐区间`);
+        findings.push({ level: 'warn', text: `水温 ${t}℃ 偏低（建议 ${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}），可能萃取不足` });
+        suggestions.push(`水温升至 ${tempProc.tMin}-${tempProc.tMax}℃，提升萃取率到推荐区间`);
       }
     } else {
       pts += 12;
-      findings.push({ level: 'warn', text: `水温 ${t}℃ 偏高（建议 ${tMin}-${tMax}℃），可能过萃发苦` });
-      suggestions.push(`下次降水温到 ${tMin}-${tMax}℃，降低过萃风险`);
+      findings.push({ level: 'warn', text: `水温 ${t}℃ 偏高（建议 ${tempProc.tMin}-${tempProc.tMax}℃${biasSuffix}），可能过萃发苦` });
+      suggestions.push(`下次降水温到 ${tempProc.tMin}-${tempProc.tMax}℃，降低过萃风险`);
     }
   }
 
-  // 粉水比 vs 处理法（应用口味偏好偏移；有 bypass 时按有效萃取水算）
+  // 粉水比 vs 处理法（应用口味偏好偏移；有 bypass 时按有效萃取水算）：暂存判定，交由仲裁层统一输出
+  let ratioProc = null;
   if (proc && d.dose && effectiveWater > 0) {
-    max += 20;
     const r = effectiveWater / parseFloat(d.dose);
-    const rMin = +(proc.ratioRange[0] + ratioBias).toFixed(1);
-    const rMax = +(proc.ratioRange[1] + ratioBias).toFixed(1);
-    const noteBp = hasBypass ? '（已扣 bypass）' : '';
-    if (r >= rMin && r <= rMax) {
-      pts += 20;
-      findings.push({ level: 'good', text: `粉水比 1:${r.toFixed(1)}${noteBp} 命中推荐区间 1:${rMin}-1:${rMax}` });
-    } else if (r < rMin) {
+    ratioProc = { r,
+      rMin: +(proc.ratioRange[0] + ratioBias).toFixed(1),
+      rMax: +(proc.ratioRange[1] + ratioBias).toFixed(1),
+      proc: d.process };
+  }
+
+  // ===== 粉水比仲裁层：烘焙度=硬物理约束（定安全浓度窗），处理法=窗内风味指引；冲突时硬约束优先，只输出一条结论 =====
+  if (ratioRoast && ratioProc) {
+    max += 25;
+    const rRound = ratioRoast.r.toFixed(1);
+    const ratioBp = hasBypass ? '（已扣 bypass）' : '';
+    const biasSuffix = Math.abs(ratioBias) >= 0.1 ? `（含口味偏好 ${ratioBias > 0 ? '+' : ''}${ratioBias.toFixed(1)}）` : '';
+    if (ratioRoast.in) {
+      pts += 25;
+      findings.push({ level: 'good', text: `粉水比 1:${rRound}${ratioBp} 在${ratioRoast.label}安全浓度窗内（1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioRoast.rAdjNote}）` });
+      if (ratioRoast.r > ratioProc.rMax) {
+        if (ratioRoast.rMin > ratioProc.rMax) {
+          findings.push({ level: 'info', text: `「${ratioProc.proc}」风味浓度区间（1:${ratioProc.rMin}-1:${ratioProc.rMax}${biasSuffix}）整体比${ratioRoast.label}安全窗（1:${ratioRoast.rMin}-1:${ratioRoast.rMax}）偏浓：当前在硬约束安全窗内，浓度安全；若想向该处理法典型浓度靠拢需换更深烘的豆` });
+        } else {
+          findings.push({ level: 'info', text: `比「${ratioProc.proc}」风味区间（1:${ratioProc.rMin}-1:${ratioProc.rMax}${biasSuffix}）略浓，但${ratioRoast.label}安全窗内不构成失衡` });
+        }
+      } else if (ratioRoast.r < ratioProc.rMin) {
+        if (ratioRoast.rMax < ratioProc.rMin) {
+          findings.push({ level: 'info', text: `「${ratioProc.proc}」风味浓度区间（1:${ratioProc.rMin}-1:${ratioProc.rMax}${biasSuffix}）整体比${ratioRoast.label}安全窗（1:${ratioRoast.rMin}-1:${ratioRoast.rMax}）偏淡：当前在硬约束安全窗内，浓度安全；若想向该处理法典型浓度靠拢需换更浅烘的豆` });
+        } else {
+          findings.push({ level: 'info', text: `比「${ratioProc.proc}」风味区间（1:${ratioProc.rMin}-1:${ratioProc.rMax}${biasSuffix}）略淡，但${ratioRoast.label}安全窗内不构成萃取不足` });
+        }
+      }
+    } else if (ratioRoast.high) {
+      // 偏稀超出硬约束上限：硬约束优先（即使处理法区间更宽）
+      pts += 12;
+      findings.push({ level: 'warn', text: `粉水比 1:${rRound}${ratioBp} 对${ratioRoast.label}偏稀（安全窗 1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioRoast.rAdjNote}），易浓薄失衡` });
+      suggestions.push(`${ratioRoast.label}建议萃取粉水比 1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioBp ? '（bypass 不算入）' : ''}，当前偏稀`);
+    } else {
+      // 偏浓低于硬约束下限
+      pts += 12;
+      findings.push({ level: 'warn', text: `粉水比 1:${rRound}${ratioBp} 对${ratioRoast.label}偏浓（安全窗 1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioRoast.rAdjNote}），易萃取不均` });
+      suggestions.push(`${ratioRoast.label}建议萃取粉水比 1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioBp ? '（bypass 不算入）' : ''}，当前偏浓`);
+    }
+  } else if (ratioRoast) {
+    max += 10;
+    const rRound = ratioRoast.r.toFixed(1);
+    const ratioBp = hasBypass ? '（已扣 bypass）' : '';
+    if (ratioRoast.in) {
       pts += 10;
-      findings.push({ level: 'warn', text: `粉水比 1:${r.toFixed(1)}${noteBp} 偏浓，浓度偏离推荐区间` });
-      suggestions.push(`下次用 1:${rMin}-1:${rMax} 萃取粉水比${noteBp ? '（bypass 不算入）' : ''}，接近推荐萃取浓度区间`);
+      findings.push({ level: 'good', text: `粉水比 1:${rRound}${ratioBp} 匹配 ${ratioRoast.label}（1:${ratioRoast.rMin}-1:${ratioRoast.rMax}）` });
+    } else if (ratioRoast.high) {
+      pts += 5;
+      suggestions.push(`${ratioRoast.label}建议萃取粉水比 1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioBp ? '（bypass 不算入）' : ''}，当前偏稀`);
+    } else {
+      pts += 5;
+      suggestions.push(`${ratioRoast.label}建议萃取粉水比 1:${ratioRoast.rMin}-1:${ratioRoast.rMax}${ratioBp ? '（bypass 不算入）' : ''}，当前偏浓`);
+    }
+  } else if (ratioProc) {
+    max += 20;
+    const rRound = ratioProc.r.toFixed(1);
+    const rMin = ratioProc.rMin, rMax = ratioProc.rMax;
+    const ratioBp = hasBypass ? '（已扣 bypass）' : '';
+    const biasSuffix = Math.abs(ratioBias) >= 0.1 ? `（含口味偏好 ${ratioBias > 0 ? '+' : ''}${ratioBias.toFixed(1)}）` : '';
+    if (ratioProc.r >= rMin && ratioProc.r <= rMax) {
+      pts += 20;
+      findings.push({ level: 'good', text: `粉水比 1:${rRound}${ratioBp} 命中推荐区间 1:${rMin}-1:${rMax}${biasSuffix}` });
+    } else if (ratioProc.r < rMin) {
+      pts += 10;
+      findings.push({ level: 'warn', text: `粉水比 1:${rRound}${ratioBp} 偏浓，浓度偏离推荐区间` });
+      suggestions.push(`下次用 1:${rMin}-1:${rMax} 萃取粉水比${ratioBp ? '（bypass 不算入）' : ''}，接近推荐萃取浓度区间`);
     } else {
       pts += 10;
-      findings.push({ level: 'warn', text: `粉水比 1:${r.toFixed(1)}${noteBp} 偏稀，浓度偏离推荐区间` });
-      suggestions.push(`下次用 1:${rMin}-1:${rMax} 萃取粉水比${noteBp ? '（bypass 不算入）' : ''}，接近推荐萃取浓度区间`);
+      findings.push({ level: 'warn', text: `粉水比 1:${rRound}${ratioBp} 偏稀，浓度偏离推荐区间` });
+      suggestions.push(`下次用 1:${rMin}-1:${rMax} 萃取粉水比${ratioBp ? '（bypass 不算入）' : ''}，接近推荐萃取浓度区间`);
     }
   }
 
@@ -6416,24 +6529,36 @@ function analyzeBrew(d, opts) {
   }
 
   // 闷蒸水量（bypass 段不算闷蒸，自动跳到首个非 bypass 段）
+  // 一刀流/首段大水量无独立闷蒸段：首段水 >有效萃取水 30% 即主注水而非闷蒸（正常闷蒸仅占 12-23%），跳过倍数判据
   if (d.dose && d.pours && d.pours.length > 0) {
-    const firstReal = d.pours.find(p => p && p.water && p.bypass !== '1');
+    const segPours = d.pours.filter(p => p && p.water && p.bypass !== '1');
+    const firstReal = segPours[0];
     if (firstReal) {
       const first = parseFloat(firstReal.water);
       const dose = parseFloat(d.dose);
       if (first > 0 && dose > 0) {
-        max += 15;
-        const ratio = first / dose;
-        if (ratio >= 2 && ratio <= 3) {
-          pts += 15;
-          findings.push({ level: 'good', text: `闷蒸水量 ${first}g（${ratio.toFixed(1)}倍粉量），比例理想` });
-        } else if (ratio < 2) {
-          pts += 7;
-          findings.push({ level: 'warn', text: `闷蒸水量 ${first}g 偏少（${ratio.toFixed(1)}倍粉量），可能排气不足` });
-          suggestions.push(`闷蒸水量改为粉量的 2-3 倍（约 ${Math.round(dose*2)}-${Math.round(dose*3)}g）`);
+        const segTotal = segPours.reduce((sum, pp) => sum + parseFloat(pp.water), 0);
+        const waterBase = effectiveWater > 0 ? effectiveWater : segTotal;
+        const isMainPour = waterBase > 0 && (first / waterBase) > 0.30;
+        if (isMainPour) {
+          // 无独立闷蒸段（一刀流/首段大水量）：浸泡式排气，2-3 倍闷蒸判据不适用，本项不计分
+          const pct = Math.round(first / waterBase * 100);
+          const style = segPours.length <= 1 ? '一刀流注水' : '首段大水量注水';
+          findings.push({ level: 'info', text: `${style}（首段 ${first}g，占有效萃取水 ${pct}%），无独立闷蒸段，靠浸泡排气` });
         } else {
-          pts += 10;
-          findings.push({ level: 'info', text: `闷蒸水量 ${first}g 偏多（${ratio.toFixed(1)}倍粉量），适合深烘豆或希望加强萃取` });
+          max += 15;
+          const ratio = first / dose;
+          if (ratio >= 2 && ratio <= 3) {
+            pts += 15;
+            findings.push({ level: 'good', text: `闷蒸水量 ${first}g（${ratio.toFixed(1)}倍粉量），比例理想` });
+          } else if (ratio < 2) {
+            pts += 7;
+            findings.push({ level: 'warn', text: `闷蒸水量 ${first}g 偏少（${ratio.toFixed(1)}倍粉量），可能排气不足` });
+            suggestions.push(`闷蒸水量改为粉量的 2-3 倍（约 ${Math.round(dose*2)}-${Math.round(dose*3)}g）`);
+          } else {
+            pts += 10;
+            findings.push({ level: 'info', text: `闷蒸水量 ${first}g 偏多（${ratio.toFixed(1)}倍粉量），适合深烘豆或希望加强萃取` });
+          }
         }
       }
     }
@@ -6449,8 +6574,8 @@ function analyzeBrew(d, opts) {
       pts += 10;
       findings.push({ level: 'good', text: `分 ${n} 段注水${tail}，节奏合理` });
     } else if (n < 3) {
-      pts += 6;
-      findings.push({ level: 'info', text: `${n} 段注水${tail}（偏少段），适合追求干净度的一刀流或两段流` });
+      pts += 10;
+      findings.push({ level: 'good', text: `${n === 1 ? '一刀流' : '两段流'}${tail}，浸泡式冲煮的合法技法，粉床扰动小` });
     } else {
       pts += 6;
       findings.push({ level: 'info', text: `分 ${n} 段${tail}较多，控制能力强但容易扰动粉床` });
