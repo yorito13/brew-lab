@@ -2952,6 +2952,129 @@ canvas.psd-chart { width: 100%; max-height: 320px; background: #fff; border: 1px
   padding: 0;
 }
 
+
+  /* =============== v13.28 粉坑诊断（覆盖式独立页，不占 tab） =============== */
+  #page-puck { position: fixed; inset: 0; z-index: 60; background: var(--bg); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 12px 28px; }
+  .pk-topbar { position: sticky; top: -10px; background: var(--bg); padding: 6px 0 10px; z-index: 2; display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+  .pk-back { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 8px 14px; font-size: var(--fs-body); color: var(--ink); cursor: pointer; }
+  .pk-back:active { background: var(--soft); }
+  .pk-topbar-t { font-weight: 700; font-size: var(--fs-body); }
+  /* =============== v13.28 粉坑诊断样式 =============== */
+  .pk-hint { font-size: var(--fs-caption); color: var(--muted); margin: 2px 0 10px; line-height: 1.6; }
+  .pk-rec-list { display: flex; flex-direction: column; gap: 8px; }
+  .pk-rec {
+    text-align: left; width: 100%; background: #fff; border: 1px solid var(--line);
+    border-radius: var(--radius-md); padding: 10px 12px; cursor: pointer;
+    font-family: inherit; font-size: var(--fs-body); color: var(--ink);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .pk-rec:hover { border-color: var(--accent-soft); background: var(--brand-primary-mist); }
+  .pk-rec.on { border-color: var(--brand-primary); background: var(--brand-primary-mist); }
+  .pk-rec .pk-rec-t { font-weight: var(--fw-semi); font-size: var(--fs-body); display: flex; justify-content: space-between; gap: 8px; }
+  .pk-rec .pk-rec-m { color: var(--muted); font-size: var(--fs-tag); margin-top: 2px; }
+  .pk-rec .pk-rec-badge { flex: none; font-size: 10px; font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); line-height: 1.7; }
+  .pk-rec-meta {
+    background: var(--brand-primary-mist); border: 1px solid var(--brand-primary-soft);
+    border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-body); margin-top: 10px;
+  }
+  .pk-rec-meta .pk-rt { font-weight: 700; font-size: var(--fs-secondary); margin-bottom: 4px; }
+  .pk-rec-meta dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 6px 0 0; }
+  .pk-rec-meta dt { color: var(--muted); }
+  .pk-rec-meta dd { margin: 0; }
+  .pk-seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pk-seg button {
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: var(--radius-pill); padding: 7px 14px;
+    font-size: var(--fs-tag); font-family: inherit; cursor: pointer;
+  }
+  .pk-seg button .pk-seg-h { font-size: 10px; opacity: .72; display: block; }
+  .pk-seg button.on { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); font-weight: 600; }
+  .pk-photo-drop {
+    border: 2px dashed var(--line); border-radius: var(--radius-md);
+    padding: 20px; text-align: center; color: var(--muted); font-size: var(--fs-body);
+    cursor: pointer; transition: border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .pk-photo-drop:hover { border-color: var(--accent-soft); background: var(--brand-primary-mist); }
+  .pk-photo-preview { margin-top: 12px; }
+  .pk-photo-preview img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-md); display: block; background: var(--brand-primary-mist); }
+  .pk-photo-preview .pk-cap { font-size: var(--fs-caption); color: var(--text-tertiary); margin-top: 4px; text-align: center; }
+  .pk-check { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 8px; }
+  .pk-check .pk-q { font-size: var(--fs-body); font-weight: 600; margin-bottom: 2px; }
+  .pk-check .pk-q .pk-tag { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: var(--radius-pill); margin-right: 6px; vertical-align: 1px; background: var(--brand-primary-soft); color: var(--brand-primary-deep); }
+  .pk-check .pk-qhint { font-size: var(--fs-tag); color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+  .pk-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pk-opt {
+    flex: 1 1 130px; min-width: 120px; border: 2px solid var(--line); background: #fff;
+    border-radius: var(--radius-md); padding: 8px 8px 6px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-family: inherit; transition: border-color var(--transition-fast), background var(--transition-fast);
+  }
+  .pk-opt svg { width: 88px; height: 70px; display: block; }
+  .pk-opt .pk-opt-t { font-size: var(--fs-body); font-weight: 600; color: var(--ink); }
+  .pk-opt .pk-opt-d { font-size: var(--fs-tag); color: var(--muted); line-height: 1.35; }
+  .pk-opt.on { border-color: var(--brand-primary); background: var(--brand-primary-mist); }
+  .pk-opt.on .pk-opt-t { color: var(--brand-primary-deep); }
+  .pk-unsure { margin-top: 6px; border: 1px dashed var(--muted); background: #fff; color: var(--muted); border-radius: var(--radius-md); padding: 6px 14px; font-size: var(--fs-tag); cursor: pointer; font-family: inherit; }
+  .pk-unsure.on { background: #F1F5F9; color: var(--ink); border-style: solid; }
+  .pk-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 2px; }
+  .pk-chips button { border: 1px solid var(--line); background: #fff; border-radius: var(--radius-pill); padding: 4px 12px; font-size: var(--fs-tag); font-family: inherit; cursor: pointer; }
+  .pk-chips button.on { background: var(--accent-amber-soft); border-color: var(--accent-amber); color: #92400E; font-weight: 600; }
+  .pk-diag-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .pk-verdict { font-size: var(--fs-h2); font-weight: 700; padding: 4px 14px; border-radius: var(--radius-pill); }
+  .pk-verdict.alert { background: var(--danger-soft, #FEE2E2); color: #991B1B; }
+  .pk-verdict.warn  { background: var(--accent-amber-soft); color: #92400E; }
+  .pk-verdict.ok    { background: #DCFCE7; color: #166534; }
+  .pk-verdict.info  { background: #E0F2FE; color: #075985; }
+  .pk-verdict-text { font-size: var(--fs-secondary); font-weight: 600; }
+  .pk-block { margin-top: 12px; }
+  .pk-block h3 { font-size: var(--fs-tag); color: var(--muted); margin: 0 0 6px; font-weight: 600; letter-spacing: .03em; }
+  .pk-ev { list-style: none; margin: 0; padding: 0; }
+  .pk-ev li { font-size: var(--fs-body); padding: 7px 10px; border-radius: var(--radius-md); margin-bottom: 6px; border-left: 3px solid var(--line); background: #FBFBF9; line-height: 1.55; }
+  .pk-ev li.ev-puck { border-left-color: var(--info); }
+  .pk-ev li.ev-sense { border-left-color: var(--accent-amber); }
+  .pk-ev li.ev-param { border-left-color: var(--brand-primary); }
+  .pk-ev li.ev-rule { border-left-color: var(--danger); background: #FEE2E2; font-weight: 600; }
+  .pk-ev .pk-ev-src { font-size: var(--fs-caption); font-weight: 700; margin-right: 6px; }
+  .pk-ev li.ev-puck .pk-ev-src { color: #075985; }
+  .pk-ev li.ev-sense .pk-ev-src { color: #92400E; }
+  .pk-ev li.ev-param .pk-ev-src { color: var(--brand-primary); }
+  .pk-ev li.ev-rule .pk-ev-src { color: #991B1B; }
+  .pk-rx { background: var(--brand-primary-mist); border: 1px solid var(--brand-primary-soft); border-radius: var(--radius-md); padding: 10px 12px; font-size: var(--fs-body); }
+  .pk-rx .pk-rx-t { font-weight: 700; color: var(--brand-primary-deep); margin-bottom: 4px; font-size: var(--fs-body); }
+  .pk-rx ul { margin: 4px 0 0; padding-left: 18px; }
+  .pk-rx li { margin-bottom: 3px; line-height: 1.55; }
+  .pk-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .pk-actions button {
+    flex: 1; min-width: 130px; padding: 11px 14px; border-radius: var(--radius-md);
+    font-size: var(--fs-secondary); font-family: inherit; cursor: pointer; font-weight: 600;
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+  }
+  .pk-actions button.primary { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); }
+  .pk-actions button.primary:hover { background: var(--brand-primary-hover); }
+  .pk-actions button:disabled { opacity: .45; cursor: not-allowed; }
+  .pk-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: var(--radius-md); padding: 9px 14px;
+    font-size: var(--fs-body); font-family: inherit; cursor: pointer; margin-right: 8px;
+  }
+  .pk-btn.primary { background: var(--brand-primary); color: #fff; border-color: var(--brand-primary); font-weight: 600; }
+  .pk-btn.primary:hover { background: var(--brand-primary-hover); }
+  .pk-field-label { display: block; font-size: var(--fs-tag); color: var(--muted); margin: 12px 0 6px; }
+  .pk-badge {
+    display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 8px;
+    border-radius: var(--radius-pill); margin-left: 6px; cursor: pointer; vertical-align: 1px;
+  }
+  .pk-badge.alert { background: #FEE2E2; color: #991B1B; }
+  .pk-badge.warn  { background: var(--accent-amber-soft); color: #92400E; }
+  .pk-badge.ok    { background: #DCFCE7; color: #166534; }
+  .pk-badge.info  { background: #E0F2FE; color: #075985; }
+  .pk-badge-detail {
+    display: none; margin-top: 6px; font-size: var(--fs-tag); color: var(--muted);
+    background: var(--brand-primary-mist); border-left: 3px solid var(--brand-primary);
+    border-radius: var(--radius-md); padding: 8px 10px; line-height: 1.6;
+  }
+  .pk-badge-detail.show { display: block; }
 </style>
 <!-- ====== V13.0 vendor libs (LZ-String + qrcode-generator + jsQR) for QR sharing ====== -->
 <script>
@@ -3154,7 +3277,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.27</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.28</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3172,6 +3295,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="more-menu-title">操作</div>
     <button class="more-menu-item" onclick="closeMoreMenu(); resetProfile()">♻️ 重置口味画像</button>
     <button class="more-menu-item danger" onclick="closeMoreMenu(); clearAll()">🗑 清空全部记录</button>
+  </div>
+  <div class="more-menu-section">
+    <div class="more-menu-title">工具</div>
+    <button class="more-menu-item" onclick="closeMoreMenu(); puck_open()">粉坑诊断 · 冲完对照粉坑排查手法问题</button>
   </div>
   <div class="more-menu-section">
     <div class="more-menu-title">关于</div>
@@ -3618,6 +3745,116 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
 </div>
 
+
+  <!-- ============== v13.28 粉坑诊断（覆盖式独立页，入口在记录卡片操作区） ============== -->
+  <div id="page-puck" style="display:none">
+    <div class="pk-topbar">
+      <button type="button" class="pk-back" onclick="puck_close()">← 返回</button>
+      <span class="pk-topbar-t">粉坑诊断</span>
+    </div>
+
+    <div class="card" id="pk-step1">
+      <h2>选一杯冲煮记录</h2>
+      <p class="pk-hint">从最近的冲煮记录里挑一杯，参数会自动带进来。</p>
+      <div class="pk-rec-list" id="pk-rec-list"></div>
+
+      <div id="pk-rec-panel" style="display:none">
+        <div class="pk-rec-meta" id="pk-rec-meta"></div>
+        <div style="margin-top:12px">
+          <label style="display:block;font-size:var(--fs-tag);color:var(--muted);margin-bottom:6px">旁通档位</label>
+          <p class="pk-hint" style="margin-top:0">按滤杯名自动判断，可改。档位决定液位允许冲到多高。</p>
+          <div class="pk-seg" id="pk-bypass-seg">
+            <button type="button" data-v="low" onclick="puck_setBypass('low')">低旁通<span class="pk-seg-h">蛋糕杯 / Wave · Tricolate · 聪明杯</span></button>
+            <button type="button" data-v="mid" onclick="puck_setBypass('mid')">中旁通<span class="pk-seg-h">V60 · April · Stagg</span></button>
+            <button type="button" data-v="high" onclick="puck_setBypass('high')">高旁通<span class="pk-seg-h">折纸锥形纸 · Chemex · 凸肋骨</span></button>
+            <button type="button" data-v="unknown" onclick="puck_setBypass('unknown')">不确定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pk-work" style="display:none">
+      <div class="card" id="pk-step2">
+        <h2>拍照对照</h2>
+        <p class="pk-hint">趁滤杯还湿着，拍一张粉坑俯视图。照片只在这次诊断里对照用，不存进记录、不上传。</p>
+        <button type="button" class="pk-btn primary" onclick="document.getElementById('pk-file').click()">拍照对照</button>
+        <input type="file" id="pk-file" accept="image/*" capture="environment" style="display:none" onchange="puck_onFile(event)">
+        <div class="pk-photo-preview" id="pk-photo-preview" style="display:none">
+          <div id="pk-photo-slot"></div>
+          <div class="pk-cap">粉坑照片（仅本次对照，不保存）</div>
+        </div>
+      </div>
+
+      <div class="card" id="pk-step3">
+        <h2>粉坑自查</h2>
+        <p class="pk-hint">对照照片，每题选最像的一张。看不出就选「看不清 / 没拍到」——没看清不等于没问题。</p>
+        <div id="pk-check-list"></div>
+      </div>
+
+      <div class="card" id="pk-step4">
+        <h2>这杯喝起来</h2>
+        <p class="pk-hint">已按记录里的下次调整方向和笔记预填，喝着不一样直接改。</p>
+
+        <span class="pk-field-label">萃取方向</span>
+        <div class="dir-group" id="pk-ext-group">
+          <div class="dir-btn" data-v="under" onclick="puck_setDir('ext',this)">偏欠萃<span style="display:block;font-size:11px;opacity:.8">尖酸 / 薄 / 水感</span></div>
+          <div class="dir-btn" data-v="even" onclick="puck_setDir('ext',this)">适当</div>
+          <div class="dir-btn" data-v="over" onclick="puck_setDir('ext',this)">偏过萃<span style="display:block;font-size:11px;opacity:.8">苦 / 涩 / 杂</span></div>
+        </div>
+
+        <span class="pk-field-label">浓度方向</span>
+        <div class="dir-group" id="pk-str-group">
+          <div class="dir-btn" data-v="thin" onclick="puck_setDir('str',this)">偏淡 / 薄</div>
+          <div class="dir-btn" data-v="even" onclick="puck_setDir('str',this)">适当</div>
+          <div class="dir-btn" data-v="strong" onclick="puck_setDir('str',this)">偏浓 / 重</div>
+        </div>
+
+        <span class="pk-field-label">快速症状词（可多选）</span>
+        <div class="pk-chips" id="pk-chips">
+          <button type="button" data-kw="尖酸" onclick="puck_toggleChip(this)">尖酸</button>
+          <button type="button" data-kw="涩" onclick="puck_toggleChip(this)">涩</button>
+          <button type="button" data-kw="杂味" onclick="puck_toggleChip(this)">杂味</button>
+          <button type="button" data-kw="水感" onclick="puck_toggleChip(this)">水感 / 薄</button>
+          <button type="button" data-kw="苦" onclick="puck_toggleChip(this)">苦重</button>
+          <button type="button" data-kw="干" onclick="puck_toggleChip(this)">口干</button>
+          <button type="button" data-kw="香弱" onclick="puck_toggleChip(this)">香气弱</button>
+          <button type="button" data-kw="咸" onclick="puck_toggleChip(this)">咸感</button>
+        </div>
+
+        <span class="pk-field-label">风味笔记（可补充）</span>
+        <div class="field" style="margin-bottom:0">
+          <textarea id="pk-notes" placeholder="果酸、花香、平衡度、余韵……"></textarea>
+        </div>
+
+        <div class="pk-actions">
+          <button type="button" class="primary" onclick="puck_run()">开始诊断</button>
+        </div>
+      </div>
+
+      <div class="card" id="pk-result" style="display:none">
+        <h2>诊断结果</h2>
+        <div class="pk-diag-head">
+          <span class="pk-verdict" id="pk-verdict"></span>
+          <span class="pk-verdict-text" id="pk-verdict-text"></span>
+        </div>
+        <div class="pk-block">
+          <h3>证据链</h3>
+          <ul class="pk-ev" id="pk-ev-list"></ul>
+        </div>
+        <div class="pk-block" id="pk-rx-block">
+          <h3>处方建议</h3>
+          <div class="pk-rx" id="pk-rx-box"></div>
+        </div>
+        <div class="pk-actions">
+          <button type="button" class="primary" id="pk-save-btn" onclick="puck_saveToRecord()">存入记录</button>
+          <button type="button" onclick="puck_exportReport()">导出报告图</button>
+          <button type="button" onclick="puck_reset()">重新诊断</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 <div class="submit-bar" id="submit-bar">
   <button type="button" id="reset-btn" class="reset" onclick="resetForm()">重置</button>
   <button type="button" id="save-btn" class="save" onclick="saveRecord()">💾 保存记录</button>
@@ -3658,7 +3895,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.27</div>
+    <div class="about-version">Brew Lab · v13.28</div>
   </div>
 </div>
 
@@ -4019,6 +4256,9 @@ function switchTab(tab) {
   const pagePsd = document.getElementById('page-psd');
   if (pagePsd) pagePsd.style.display = tab === 'psd' ? 'block' : 'none';
   if (tab === 'psd' && typeof PSD_init === 'function') PSD_init();
+  // v13.28 粉坑诊断为覆盖式独立页，不占 tab；切走时确保关闭
+  const pagePuckClose = document.getElementById('page-puck');
+  if (pagePuckClose) pagePuckClose.style.display = 'none';
   // v13.22 F: 词典降 header icon，切到词典页时高亮该 icon
   const dictIconBtn = document.getElementById('dict-icon-btn');
   if (dictIconBtn) dictIconBtn.classList.toggle('active', tab === 'dict');
@@ -5116,7 +5356,7 @@ function renderList() {
       <div class="${itemCls.join(' ')}" data-id="${r.id}"${onclickAttr}>
         ${inCompare ? '<div class="compare-checkbox"></div>' : ''}
         <div class="log-head">
-          <div class="log-title">${escapeHtml(title)}</div>
+          <div class="log-title">${escapeHtml(title)}${(typeof puck_badgeHTML === 'function') ? puck_badgeHTML(r) : ''}</div>
           <div class="log-date">${fmtTime(r.createdAt)}</div>
         </div>
         ${tags.length ? `<div class="log-meta">${tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>` : ''}
@@ -5207,6 +5447,7 @@ const POL_FIELD_MAP = {
   grinder:'gr', grindSize:'gs', dripper:'dr', filter:'fi', lilyDrip:'ld', cleverBase:'cb',
   dose:'do', totalWater:'tw', ratio:'ra', temp:'tp', totalTime:'tt',
   pours:'p', rating:'rt', extractionWant:'ew', strengthWant:'sw', notes:'no',
+  puckDiag:'pk',
   id:'i', createdAt:'c'
 };
 const POL_POUR_MAP = { time:'t', water:'w', pourEnd:'e', temp:'p', valve:'v', bypass:'b' };
@@ -9773,7 +10014,8 @@ setupListFilterEvents();
 /* ================================================================
  * Brew Lab v13.16.0 · 一键冲煮模式（蓝牙秤集成）
  *
- * 自包含 IIFE 模块，注入到 pour_over_log.html `</body>` 之前。
+ * 自包含 IIFE 模块，注入到 pour_over_log.html `
+</body>` 之前。
  * 单一插入点，零现有 HTML/CSS 改动。
  *
  * 来源：PoC v3 (scale_poc_v3.html, MD5 5d9c38da42a787efa3a608c243d225a4)
@@ -12844,6 +13086,890 @@ if (document.readyState === 'loading') {
 } else {
   initCollapsibleSections();
 }
+</script>
+
+
+<script>
+/* =========================================================================
+ * v13.28 粉坑诊断
+ * 粉坑形态 × 感官 × 参数三方对撞；规则链由真机验证版本迁移，逻辑不变。
+ * 纯本地运行：照片不入记录、不上传；诊断结论以短键 pk 存入对应记录。
+ * ========================================================================= */
+
+// 小粉量阈值：低于该粉量时粉床薄，粉墙低为期望形态，不携带液位信息
+var PUCK_SMALL_DOSE_G = 15;
+
+// 规则号 → 徽章/报告用的结论级别与标题
+var PUCK_RULE_META = {
+  R4:  { cls: 'alert', level: '警告', title: '泄流型欠萃' },
+  R1a: { cls: 'alert', level: '警告', title: '通道型局部过萃' },
+  R1b: { cls: 'warn',  level: '注意', title: '通道型萃取不均' },
+  R3:  { cls: 'warn',  level: '注意', title: '不均匀型边缘欠萃' },
+  R5:  { cls: 'alert', level: '警告', title: '浸泡型过萃' },
+  R7:  { cls: 'ok',    level: '通过', title: '合法形态 · 全床浸泡' },
+  R0b: { cls: 'info',  level: '待定', title: '证据不足' },
+  R2:  { cls: 'ok',    level: '通过', title: '手法无罪，查参数' },
+  R2b: { cls: 'ok',    level: '通过', title: '手法无罪，查参数' },
+  R6:  { cls: 'ok',    level: '通过', title: '合法形态 · 分段穿床' },
+  R0:  { cls: 'info',  level: '待定', title: '证据不足' }
+};
+
+// ---------- 旁通档位预判（按滤杯/滤纸名关键词） ----------
+function puck_guessBypass(r) {
+  var d = (((r && r.dripper) || '') + ' ' + ((r && r.filter) || '')).toLowerCase();
+  // Origami/折纸：档位随滤纸走 —— 蛋糕/wave/平底纸 = 低，否则 = 高
+  if (d.indexOf('origami') >= 0 || d.indexOf('折纸') >= 0) {
+    if (d.indexOf('蛋糕') >= 0 || d.indexOf('wave') >= 0 || d.indexOf('平底') >= 0) return 'low';
+    return 'high';
+  }
+  if (d.indexOf('tricolate') >= 0 || d.indexOf('聪明') >= 0 || d.indexOf('clever') >= 0 ||
+      d.indexOf('hytrac') >= 0 || d.indexOf('hydraulic') >= 0 || d.indexOf('海创') >= 0) return 'low';
+  if (d.indexOf('kalita') >= 0 || d.indexOf('蛋糕') >= 0 || d.indexOf('wave') >= 0) return 'low';
+  if (d.indexOf('chemex') >= 0 || d.indexOf('凯梅') >= 0) return 'high';
+  if (d.indexOf('yearntour') >= 0 || d.indexOf('凸肋') >= 0) return 'high';
+  if (d.indexOf('v60') >= 0 || d.indexOf('hario') >= 0 || d.indexOf('锥形') >= 0) return 'mid';
+  if (d.indexOf('april') >= 0 || d.indexOf('梯形') >= 0 || d.indexOf('stagg') >= 0) return 'mid';
+  return 'unknown';
+}
+function puck_bypassLabel(b) {
+  return { low: '低旁通', mid: '中旁通', high: '高旁通', unknown: '旁通档位未确认' }[b] || '?';
+}
+
+// ---------- 感官文本关键词 ----------
+var PUCK_UNDER_KW = ['尖酸', '酸', '薄', '水感', '淡', '生', '青', '寡', '香弱', '咸'];
+var PUCK_OVER_KW  = ['涩', '苦', '杂', '干', '焦', '呛', '喉'];
+function puck_senseFromText(txt) {
+  var t = String(txt || '');
+  var under = PUCK_UNDER_KW.some(function (k) { return t.indexOf(k) >= 0; });
+  var over = PUCK_OVER_KW.some(function (k) { return t.indexOf(k) >= 0; });
+  return { under: under, over: over, txt: t.trim() };
+}
+
+// ---------- 粉坑剖面简笔画 ----------
+function puck_fig(inner, extra) {
+  extra = extra || '';
+  return '<svg viewBox="0 0 80 64" role="img" aria-label="示意图" style="width:88px;height:70px">' +
+    '<path d="M14 10 L66 10 L52 56 L28 56 Z" fill="#fff" stroke="#94A3B8" stroke-width="2" stroke-linejoin="round"/>' +
+    inner + extra + '</svg>';
+}
+var PUCK_FIG = {
+  smooth: puck_fig('<path d="M23.6 30 Q40 27 56.4 30 L52.9 46 Q40 43 27.1 46 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  channel: puck_fig('<path d="M23.6 30 Q32 27 36 27 L36 47 L27.1 46 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>' +
+    '<path d="M44 27 Q48 27 56.4 30 L52.9 46 L44 47 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>' +
+    '<path d="M36 47 L44 47 L40 50.5 Z" fill="#B3E0FC"/>' +
+    '<line x1="40" y1="12" x2="40" y2="41" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/>' +
+    '<polygon points="40,46 36.8,40.5 43.2,40.5" fill="#0284C7"/>'),
+  shallow: puck_fig('<path d="M25.4 26 Q40 36 54.6 26 L50.4 50 Q40 43 29.6 50 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  deephole: puck_fig('<path d="M25.4 26 Q34 26 38 34 L38 53 L42 53 L42 34 Q46 26 54.6 26 L50.4 50 L42 55 L38 55 L29.6 50 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  flat: puck_fig('<path d="M24 29 Q40 33 56 29 L52.5 47 Q40 44 27.5 47 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  offcenter: puck_fig('<path d="M24 24 L56 36 L52.5 47 Q40 44 27.5 47 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  hump: puck_fig('<path d="M25.4 30 Q32 20 40 26 Q48 31 54.6 30 L50.4 48 Q40 45 29.6 48 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  wallLow: puck_fig('<path d="M23.6 30 Q40 27 56.4 30 L52.9 46 Q40 43 27.1 46 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>'),
+  wallHigh: puck_fig('<path d="M15.4 16 Q40 13.5 64.6 16 L52 56 L28 56 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>' +
+    '<circle cx="19" cy="22" r="1.4" fill="#0F6E7E"/><circle cx="61" cy="22" r="1.4" fill="#0F6E7E"/>'),
+  wallWet: puck_fig('<path d="M23.6 30 Q40 27 56.4 30 L52.9 46 Q40 43 27.1 46 Z" fill="#D8EEF0" stroke="#0F6E7E" stroke-width="1.6"/>' +
+    '<line x1="17.8" y1="18" x2="62.2" y2="18" stroke="#0EA5E9" stroke-width="2" stroke-dasharray="4 2.5"/>' +
+    '<path d="M30 18 q2 5 0 9 M50 18 q2 5 0 9" stroke="#0EA5E9" stroke-width="1.4" fill="none" stroke-linecap="round"/>')
+};
+
+var PUCK_CHECK_ITEMS = [
+  { key: 'channel', tag: '水流',
+    q: '粉面和滤纸上，有没有水流切出来的「沟」？',
+    hint: '水走了捷径：沟里的粉被过度萃取，沟外的粉没喝到水。',
+    opts: [
+      { v: 'no',  svg: PUCK_FIG.smooth,  t: '平整，没有沟', d: '表面均匀平整，水是慢慢均匀渗下去的' },
+      { v: 'yes', svg: PUCK_FIG.channel, t: '有沟 / 冲痕', d: '粉面被冲出一道凹沟，或杯壁有竖条水痕' }
+    ] },
+  { key: 'hole', tag: '中心',
+    q: '粉面正中心是什么样？',
+    hint: '正常冲完中心会有一个浅浅的凹坑；又深又窄像水井的才是异常。',
+    opts: [
+      { v: 'shallow', svg: PUCK_FIG.shallow,  t: '浅窝窝（正常）', d: '中心一个浅浅的凹陷，周围粉面完整' },
+      { v: 'deep',    svg: PUCK_FIG.deephole, t: '又深又窄的坑', d: '像被手指戳出的水井，坑底接近杯底' }
+    ] },
+  { key: 'shape', tag: '粉面',
+    q: '粉面的形状，最像哪一种？',
+    hint: '倾斜 / 鼓包都说明水分布不均：高的地方粉碰不到水。',
+    opts: [
+      { v: 'flat',      svg: PUCK_FIG.flat,      t: '中间低、比较平', d: '整体均匀，凹陷大致在中心' },
+      { v: 'offcenter', svg: PUCK_FIG.offcenter, t: '最低点歪到一边', d: '凹陷明显偏离中心，一侧高一侧低' },
+      { v: 'hump',      svg: PUCK_FIG.hump,      t: '有鼓包 / 一边高', d: '粉面鼓成小山，或明显一边堆得高' }
+    ] },
+  { key: 'wall', tag: '内壁痕迹',
+    q: '看滤杯内壁（趁还湿着最清楚），最像哪种？',
+    hint: '粉挂多高 = 泡过多深；水冲多高 = 水冲到哪。高旁通滤杯冲太高，水会从侧壁裸纸区直接泄走。',
+    opts: [
+      { v: 'low',  svg: PUCK_FIG.wallLow,  t: '粉墙、水印都在下段', d: '粉和水痕只到一半左右，正常分段水位' },
+      { v: 'high', svg: PUCK_FIG.wallHigh, t: '粉一直挂到靠近杯口', d: '整段杯壁都挂着粉，液位长时间拉满' },
+      { v: 'wet',  svg: PUCK_FIG.wallWet,  t: '粉墙不高，但上方有水印', d: '粉只挂到一半，更高处滤纸上有水痕 / 竖条水迹' }
+    ] }
+];
+
+// ---------- 诊断状态 ----------
+var puck_state = {
+  recordId: null,
+  bypass: 'unknown',
+  bypassAuto: false,
+  answers: { channel: null, hole: null, shape: null, wall: null },
+  ext: '',      // under / even / over
+  str: '',      // thin / even / strong
+  chips: [],
+  photoDataUrl: null,
+  lastResult: null
+};
+
+// ---------- 规则引擎（纯函数：不碰 DOM） ----------
+function puck_diagnose(input) {
+  var rec = input.record || {};
+  var ck = input.answers || { channel: null, hole: null, shape: null, wall: null };
+  var bypass = input.bypass || 'unknown';
+  var sense = input.sense || { ext: '', str: '', text: '' };
+
+  var hasChannel = ck.channel === 'yes';
+  var hasDeepHole = ck.hole === 'deep';
+  var isOffCenter = ck.shape === 'offcenter';
+  var isHump = ck.shape === 'hump';
+  var wallHigh = ck.wall === 'high';
+  var wallWet = ck.wall === 'wet';
+  var channelLike = hasChannel || hasDeepHole;
+  var uneven = isOffCenter || isHump;
+  var highLevel = wallHigh || wallWet;
+  // 「干净」必须是明确否定；看不清/未答 ≠ 干净
+  var shapeClean = ck.shape === 'flat';
+  var channelClean = ck.channel === 'no' && ck.hole === 'shallow';
+  var levelClean = ck.wall === 'low';
+  var allClean = shapeClean && channelClean && levelClean;
+  var keyUnsure = ck.channel === null || ck.channel === 'unsure' ||
+                  ck.hole === null || ck.hole === 'unsure' ||
+                  ck.shape === null || ck.shape === 'unsure' ||
+                  ck.wall === null || ck.wall === 'unsure';
+
+  // 感官定性：按钮优先，按钮未设则退到笔记关键词
+  var kw = puck_senseFromText(sense.text);
+  var over = sense.ext === 'over' || (sense.ext !== 'under' && sense.ext !== 'even' && kw.over && !kw.under);
+  var under = sense.ext === 'under' || (sense.ext !== 'over' && sense.ext !== 'even' && kw.under && !kw.over);
+  if (sense.ext === 'even') { over = false; under = false; }
+  var thin = sense.str === 'thin';
+  var strong = sense.str === 'strong';
+
+  // dose 归一化：小粉量粉床薄，粉墙低为期望形态，不携带液位信息
+  var doseNum = parseFloat(rec.dose);
+  var isSmallDose = !isNaN(doseNum) && doseNum < PUCK_SMALL_DOSE_G;
+
+  var ev = [];
+  function addPuck(t) { ev.push({ cls: 'ev-puck', src: '粉坑', t: t }); }
+  function addSense(t) { ev.push({ cls: 'ev-sense', src: '感官', t: t }); }
+  function addParam(t) { ev.push({ cls: 'ev-param', src: '参数', t: t }); }
+
+  // --- 证据采集：粉坑 ---
+  if (hasChannel) addPuck('粉面/杯壁可见明显水流冲刷通道 → 水走捷径，沟内过萃、沟外欠萃');
+  if (hasDeepHole) addPuck('中心异常深水坑 → 注水长期砸中心点，中心细粉被过度翻动');
+  if (isOffCenter) addPuck('粉面最低点偏离中心 → 一侧水流集中，对侧边缘粉接触水少');
+  if (isHump) addPuck('粉面鼓包/高低不均 → 注水分布不均，高处粉萃取不足');
+  if (wallHigh) addPuck('粉墙挂到接近杯口 → 高液位长时间浸泡痕迹');
+  if (wallWet) addPuck('粉墙不高、但上方滤纸有高水线/竖条水迹 → 水位冲高后从侧壁快速泄走');
+  if (allClean) addPuck('四题全部明确阴性：无沟、无深坑、粉面平整居中、内壁痕迹在下段——注水均匀性在粉坑层面无异常证据');
+
+  // --- 小粉量归一化注记 ---
+  if (isSmallDose) {
+    if (ck.wall === 'low') {
+      addPuck('小粉量（' + doseNum + 'g）粉床薄，粉墙低为期望形态，不携带液位信息');
+    } else if (wallHigh || wallWet) {
+      addPuck('小粉量（' + doseNum + 'g）却' + (wallHigh ? '粉墙挂高' : '见高水线') + '，粉床薄本挂不住——反常强信号');
+    }
+  }
+
+  // --- 证据采集：感官 ---
+  if (over) addSense('感官判定偏过萃（苦/涩/杂方向）');
+  if (under) addSense('感官判定偏欠萃（尖酸/薄/水感方向）');
+  if (!over && !under) addSense('感官判定萃取方向基本适当');
+  if (thin) addSense('浓度偏淡/薄');
+  if (strong) addSense('浓度偏浓/重');
+  if (kw.txt) addSense('笔记关键词：「' + String(kw.txt).slice(0, 60) + '」');
+
+  // --- 证据采集：参数 ---
+  addParam('滤杯几何旁通档位：' + puck_bypassLabel(bypass) + (input.bypassAuto ? '（按滤杯/滤纸名自动判断，可改）' : '（手动指定）'));
+  var pourSegs = Array.isArray(rec.pours) ? rec.pours.filter(function (p) { return p && p.bypass !== '1' && p.bypass !== 1; }).length : 0;
+  addParam('粉量 ' + (rec.dose || '?') + 'g · 总水 ' + (rec.totalWater || '?') + 'g · 水温 ' +
+           (rec.temp ? rec.temp + '℃' : '未填') + ' · 研磨 ' + (rec.grindSize || '?') + ' · ' + pourSegs + ' 段注水');
+  if (!rec.temp) addParam('水温未填：水温类处方缺少当前基准，下次记录建议补上水温');
+
+  // --- 规则对撞（按特异性排序，先命中先报） ---
+  var ruleHit = null, verdictText = '', rxTitle = '', rxItems = [];
+
+  if (bypass === 'high' && highLevel && (under || thin)) {
+    ruleHit = 'R4';
+    verdictText = '高旁通滤杯 + ' + (wallWet ? '高水线痕迹' : '高液位痕迹') + ' → 水沿侧壁裸露滤纸直泄，绕过粉床';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '高旁通 × ' + (wallWet ? '「粉墙不高但上方有水印」——泄流的典型痕迹：水冲上去就跑了，粉来不及挂壁' : '高液位痕迹') + ' × 淡/酸/薄 → 名义水量与实际穿床水量背离，流速虚快掩盖了欠萃' });
+    rxTitle = '处方：把液位压到裸露线以下';
+    rxItems = [
+      '降低单段注水量，改为小水量多段（每段水位不超过滤纸与肋骨贴合区上沿）',
+      '注水点收向中心、画小圈，避免冲滤纸裸露壁面',
+      '中后段补水尤其克制——高液位泄流主要发生在后段大水量',
+      '同参数复测一杯：流速会变慢（水开始真正穿粉床），这是好转信号不是堵了'
+    ];
+  } else if (channelLike && over) {
+    ruleHit = 'R1a';
+    verdictText = '通道痕迹 × 苦涩杂三方吻合';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: (hasChannel ? '冲刷通道' : '') + (hasChannel && hasDeepHole ? '＋' : '') + (hasDeepHole ? '中心深坑' : '') + ' × 过萃感官 → 水流捷径内细粉过度萃取，涩杂来自局部而不是整杯' });
+    rxTitle = '处方：消灭水流捷径';
+    rxItems = [
+      '注水力度放轻、壶嘴贴近粉面，避免砸出中心坑',
+      '绕圈范围覆盖整个粉面但不冲壁，速度均匀',
+      '检查研磨：细粉比例过高会加剧通道化，可略微调粗半档对照',
+      '闷蒸阶段保证均匀润湿（注水后轻摇/搅拌布粉）'
+    ];
+  } else if (channelLike && under) {
+    ruleHit = 'R1b';
+    verdictText = '通道痕迹 × 整体偏酸薄：大部分粉床被捷径绕过';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '通道严重时沟外粉占比大，整杯表现反而是欠萃/薄' + (hasDeepHole ? '；深坑说明注水长期砸中心点' : '') });
+    rxTitle = '处方：先修均匀性，再谈参数';
+    rxItems = [
+      '注水力度放轻、画小圈覆盖全粉面，杜绝中心点直冲',
+      '闷蒸水量给足（约 2 倍粉量）并确认粉层全部润湿',
+      '均匀性修好之前不要急着升温/加粉水比——捷径不修，参数改动会被通道噪声淹没'
+    ];
+  } else if (uneven && (under || thin)) {
+    ruleHit = 'R3';
+    verdictText = (isHump && !isOffCenter ? '粉面鼓包' : '粉坑偏心') + ' × 淡/酸：高处/对侧的粉没喝到水';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: (isOffCenter ? '最低点偏心' : '') + (isOffCenter && isHump ? '＋' : '') + (isHump ? '鼓包/高低不均' : '') + ' × 欠萃 → 高处与边缘粉接触水少，净效果偏淡薄' });
+    rxTitle = '处方：把注水点拉回中心';
+    rxItems = [
+      '确认滤杯/分享壶放置水平（手机水平仪可查）',
+      '绕圈以滤杯几何中心为圆心，后段补水也要覆盖偏心对侧',
+      '检查壶嘴出水方向是否偏向一边'
+    ];
+  } else if (bypass === 'low' && highLevel && over) {
+    ruleHit = 'R5';
+    verdictText = '低旁通 + 高液位' + (wallWet ? '高水线' : '全床浸泡') + ' × 苦涩：粉层被长时间高强度浸泡';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '低旁通高液位本身合法，但与过萃感官吻合时 → 浸泡时间/细粉接触过量' + (wallWet ? '；水印盖过粉墙说明单段水量冲太猛、液位瞬间盖顶' : '') });
+    rxTitle = '处方：缩短浸泡或降接触强度';
+    rxItems = [
+      '磨粗半档到一档（低旁通滤杯萃取率天然高，粗一点更安全）',
+      '水温降 1–2℃，或缩短总萃取时间（后段水早停）',
+      '也可改分段注水打散高液位停留——低旁通档下拉高液位是你的自由变量，向低调即可',
+      '若使用聪明杯底座：减少关阀浸泡时长'
+    ];
+  } else if (bypass === 'low' && highLevel && !over && !keyUnsure) {
+    ruleHit = 'R7';
+    verdictText = '低旁通滤杯 + 高液位全床浸泡（一刀流/长浸泡）：粉墙挂高是预期痕迹，手法合法';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '低旁通档液位是自由变量——全床浸泡把滴滤变成半浸泡，粉墙挂高/水印都是浸泡证据而非故障' + (wallWet ? '；水印盖过粉墙说明单段水量冲得猛，感官没问题即手法成立' : '') });
+    if (hasChannel || uneven) {
+      ev.push({ cls: 'ev-puck', src: '粉坑', t: '但粉坑同时存在' + (hasChannel ? '水流沟' : '') + (hasChannel && uneven ? '＋' : '') + (uneven ? '粉面不均' : '') + '——浸泡形态合法不代表分布均匀，见上方对应证据' });
+    }
+    rxTitle = '这个组合不用改';
+    rxItems = [
+      '低旁通＋一刀流/长浸泡萃取均匀度高，小粉量也能靠浸泡时间顶住萃取率——甜感在线说明参数匹配',
+      '若以后出现苦涩：先降浸泡强度（磨粗/缩短关阀时间），不用改注水结构',
+      '若风味仍有问题，与粉坑/手法无关——去研磨、水温、粉水比和豆子层排查'
+    ];
+  } else if (bypass === 'unknown' && highLevel && !keyUnsure) {
+    ruleHit = 'R0b';
+    verdictText = '高液位痕迹已见，但旁通档位未确认——液位是否越界无法仲裁';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '液位判读基准随档位变化：低旁通高液位合法，高旁通高液位=侧壁泄流。档位未定，该证据不能定性也不能丢弃' });
+    rxTitle = '下一步';
+    rxItems = [
+      '在上方旁通档位里选一个（低/中/高），再重新诊断',
+      '不确定档位时，回想注水时水位是否超过滤纸与杯壁贴合区——高过裸露区对高旁通滤杯（折纸锥形纸/Chemex 类）即泄流风险'
+    ];
+  } else if (allClean && (under || thin)) {
+    ruleHit = 'R2';
+    verdictText = '粉坑平整干净 × 欠萃感官对撞 → 注水手法被排除，问题在研磨/水温/粉水比/豆';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '粉坑无通道证据 + 偏酸薄 → 水走得很均匀，只是整床萃取率不够' });
+    rxTitle = '处方：在参数层找萃取率';
+    rxItems = [
+      '水温 +1~2℃' + (rec.temp ? '（当前 ' + rec.temp + '℃）' : ''),
+      '磨细半档，或粉水比向 1:15 方向收（当前 ' + (rec.ratio || '?') + '）',
+      '延长总萃取时间 / 增加注水段数让尾段多萃一点',
+      '排除豆子因素：极浅烘本身需要更高萃取强度，换一支深烘豆对照可快速分离变量'
+    ];
+    if (bypass === 'high') rxItems.push('高旁通滤杯补充：若注水时液位曾拉到滤纸裸露区，泄流不一定在粉坑留痕——下次试小水量分段、液位压在贴合线以下对照');
+  } else if (allClean && over && bypass !== 'low') {
+    ruleHit = 'R2b';
+    verdictText = '粉坑平整干净 × 过萃感官 → 手法被排除，参数层萃取强度过高';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '平整粉坑 + 苦涩 → 水温/研磨/粉水比给过头了' });
+    rxTitle = '处方：回调萃取强度';
+    rxItems = [
+      '水温 -1~2℃' + (rec.temp ? '（当前 ' + rec.temp + '℃）' : ''),
+      '磨粗半档，或粉水比向 1:16~17 方向放（当前 ' + (rec.ratio || '?') + '）',
+      '缩短尾段注水时间'
+    ];
+  } else if (bypass === 'low' && allClean && !over && !(under || thin)) {
+    ruleHit = 'R6';
+    verdictText = '低旁通滤杯 + 低液位分段穿床：粉坑形态完全合法';
+    ev.push({ cls: 'ev-rule', src: '对撞', t: '低旁通档液位是自由变量，粉墙低不报警' });
+    rxTitle = '这个组合不用改';
+    rxItems = ['若风味仍有问题，与粉坑/手法无关——去研磨、水温、粉水比和豆子层排查'];
+  } else {
+    ruleHit = 'R0';
+    if (keyUnsure || bypass === 'unknown') {
+      verdictText = '关键证据还没齐，先不下结论';
+      if (keyUnsure) {
+        var QLBL = { channel: 'Q1 水流沟', hole: 'Q2 中心坑', shape: 'Q3 粉面形状', wall: 'Q4 内壁痕迹' };
+        var miss = ['channel', 'hole', 'shape', 'wall'].filter(function (k) {
+          return ck[k] === null || ck[k] === 'unsure';
+        }).map(function (k) { return QLBL[k]; });
+        ev.push({ cls: 'ev-rule', src: '对撞', t: '以下自查题未明确作答：' + miss.join('、') + '——没看清的题不能当作「没有问题」，否则可能误判「手法无罪」' });
+        rxTitle = '下一步';
+        rxItems = ['滤杯刚滴完、内壁还湿着的时候拍一张特写，对照图重选（水痕干了会消失）', '实在看不出就选「看不清 / 没拍到」，按证据缺失处理，不会硬下结论'];
+        if (bypass === 'unknown') rxItems.unshift('先确认滤杯几何旁通档位（低/中/高）——液位痕迹的判读基准随档位变化');
+      } else {
+        ev.push({ cls: 'ev-rule', src: '对撞', t: '旁通档位未确认：液位痕迹的判读基准随档位变化（低旁通高液位合法、高旁通高液位危险），请先选择档位' });
+        rxTitle = '下一步';
+        rxItems = ['先确认滤杯几何旁通档位（低/中/高），再重新诊断', '也可以补充感官方向（偏欠萃/偏过萃）让对撞成立'];
+      }
+    } else {
+      verdictText = '三方信号没有形成明确对撞';
+      ev.push({ cls: 'ev-rule', src: '对撞', t: '现有粉坑证据与感官信号不构成已知模式之一——这本身是有效信息：问题可能不在注水手法层' });
+      rxTitle = '下一步';
+      rxItems = ['补充感官方向（偏欠萃/偏过萃）后重新诊断', '若感官也基本适当：这杯大概率没问题，粉坑层无异常证据'];
+    }
+  }
+
+  // 中旁通高液位：不构成独立诊断，给风险附注
+  if (ruleHit !== 'R4' && bypass === 'mid' && highLevel) {
+    ev.push({ cls: 'ev-param', src: '参数', t: '附注：中旁通滤杯（V60 类）出现高液位痕迹——V60 肋骨有导气作用，风险低于高旁通档，但后段大水量仍建议留意液位' });
+  }
+
+  return {
+    rule: ruleHit,
+    meta: PUCK_RULE_META[ruleHit] || PUCK_RULE_META.R0,
+    verdictText: verdictText,
+    evidence: ev,
+    rxTitle: rxTitle,
+    rxItems: rxItems
+  };
+}
+
+// ---------- 页面流程 ----------
+function puck_enter(recordId) {
+  puck_renderRecList(recordId);
+  if (recordId) puck_pickRecord(recordId);
+  if (!recordId) puck_reset(true);
+}
+
+function puck_renderRecList(preselectId) {
+  var box = document.getElementById('pk-rec-list');
+  if (!box) return;
+  var all = (typeof loadAll === 'function') ? loadAll() : [];
+  if (!all.length) {
+    box.innerHTML = '<p class="pk-hint" style="margin:0">还没有冲煮记录。先在「新建记录」里存一杯，再来做诊断。</p>';
+    return;
+  }
+  box.innerHTML = all.slice(0, 30).map(function (r) {
+    var title = r.beanName || [r.origin, r.farm].filter(Boolean).join(' · ') || '未命名记录';
+    var meta = [r.dripper, r.filter, r.dose ? r.dose + 'g' : '', r.temp ? r.temp + '℃' : ''].filter(Boolean).join(' · ');
+    var badge = '';
+    var pd = puck_parseDiag(r.puckDiag);
+    if (pd && pd.r && PUCK_RULE_META[pd.r]) {
+      var m = PUCK_RULE_META[pd.r];
+      badge = '<span class="pk-rec-badge" style="background:' + puck_levelBg(m.cls) + ';color:' + puck_levelFg(m.cls) + '">' + m.level + '</span>';
+    }
+    return '<button type="button" class="pk-rec' + (r.id === preselectId ? ' on' : '') + '" onclick="puck_pickRecord(\'' + r.id + '\')">' +
+      '<span class="pk-rec-t"><span>' + escapeHtml(title) + '</span>' + badge + '</span>' +
+      '<span class="pk-rec-m">' + escapeHtml(meta || ' ') + (r.createdAt ? ' · ' + fmtTime(r.createdAt) : '') + '</span></button>';
+  }).join('');
+}
+
+function puck_pickRecord(id) {
+  var all = (typeof loadAll === 'function') ? loadAll() : [];
+  var r = all.find(function (x) { return x.id === id; });
+  if (!r) return;
+  puck_state.recordId = id;
+  puck_state.bypass = puck_guessBypass(r);
+  puck_state.bypassAuto = puck_state.bypass !== 'unknown';
+  // 感官预填：ew/sw 反向（希望更高萃取=这杯偏欠萃）+ 笔记关键词交给引擎
+  puck_state.ext = r.extractionWant === 'higher' ? 'under' : (r.extractionWant === 'lower' ? 'over' : (r.extractionWant === 'even' ? 'even' : ''));
+  puck_state.str = r.strengthWant === 'higher' ? 'thin' : (r.strengthWant === 'lower' ? 'strong' : (r.strengthWant === 'even' ? 'even' : ''));
+  puck_state.chips = [];
+  puck_state.photoDataUrl = null;
+  puck_state.answers = { channel: null, hole: null, shape: null, wall: null };
+  puck_state.lastResult = null;
+
+  document.getElementById('pk-rec-panel').style.display = 'block';
+  document.getElementById('pk-work').style.display = 'block';
+  document.getElementById('pk-result').style.display = 'none';
+  var photoPrev = document.getElementById('pk-photo-preview');
+  if (photoPrev) photoPrev.style.display = 'none';
+  var slot = document.getElementById('pk-photo-slot');
+  if (slot) slot.innerHTML = '';
+  var fi = document.getElementById('pk-file');
+  if (fi) fi.value = '';
+
+  // 记录摘要
+  var pours = (r.pours || []).filter(function (p) { return p && p.bypass !== '1' && p.bypass !== 1; });
+  var rows = [
+    ['豆子', (r.beanName || '?') + (r.origin ? ' · ' + r.origin : '') + (r.process ? ' · ' + r.process : '')],
+    ['滤杯/滤纸', (r.dripper || '?') + (r.filter ? ' / ' + r.filter : '') + (r.cleverBase === '使用' ? ' · 聪明杯底座' : '')],
+    ['研磨', (r.grinder || '?') + (r.grindSize ? ' · ' + r.grindSize : '')],
+    ['粉/水/温', (r.dose || '?') + 'g / ' + (r.totalWater || '?') + 'g / ' + (r.temp || '?') + '℃' + (r.ratio ? ' · ' + r.ratio : '')],
+    ['注水', pours.length + ' 段' + (r.totalTime ? ' · 总时长 ' + r.totalTime : '')]
+  ];
+  var html = '<div class="pk-rt">' + escapeHtml(r.beanName || r.origin || '冲煮记录') + '</div><dl>';
+  rows.forEach(function (x) { html += '<dt>' + x[0] + '</dt><dd>' + escapeHtml(String(x[1])) + '</dd>'; });
+  html += '</dl>';
+  document.getElementById('pk-rec-meta').innerHTML = html;
+
+  document.getElementById('pk-notes').value = r.notes || '';
+  puck_renderRecList(id);
+  puck_renderChecks();
+  puck_markBypass();
+  puck_markDirs();
+  document.getElementById('pk-step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function puck_setBypass(v) {
+  puck_state.bypass = v;
+  puck_state.bypassAuto = false;
+  puck_markBypass();
+}
+function puck_markBypass() {
+  document.querySelectorAll('#pk-bypass-seg button').forEach(function (b) {
+    b.classList.toggle('on', b.dataset.v === puck_state.bypass);
+  });
+}
+
+// ---------- 照片（仅当次对照，不入库） ----------
+function puck_onFile(ev) {
+  var file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    puck_state.photoDataUrl = e.target.result;
+    var slot = document.getElementById('pk-photo-slot');
+    slot.innerHTML = '';
+    var img = document.createElement('img');
+    img.alt = '粉坑对照照片（仅本地显示，未保存）';
+    img.src = e.target.result;
+    slot.appendChild(img);
+    document.getElementById('pk-photo-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ---------- 四题自查 ----------
+function puck_renderChecks() {
+  var box = document.getElementById('pk-check-list');
+  box.innerHTML = PUCK_CHECK_ITEMS.map(function (it, i) {
+    var opts = it.opts.map(function (o) {
+      return '<button type="button" class="pk-opt" id="pk-opt-' + it.key + '-' + o.v + '" onclick="puck_setAnswer(\'' + it.key + '\',\'' + o.v + '\')">' +
+        o.svg + '<span class="pk-opt-t">' + o.t + '</span><span class="pk-opt-d">' + o.d + '</span></button>';
+    }).join('');
+    return '<div class="pk-check">' +
+      '<div class="pk-q"><span class="pk-tag">' + it.tag + '</span>Q' + (i + 1) + '. ' + it.q + '</div>' +
+      '<div class="pk-qhint">' + it.hint + '</div>' +
+      '<div class="pk-opts">' + opts + '</div>' +
+      '<button type="button" class="pk-unsure" id="pk-opt-' + it.key + '-unsure" onclick="puck_setAnswer(\'' + it.key + '\',\'unsure\')">看不清 / 没拍到</button>' +
+      '</div>';
+  }).join('');
+  PUCK_CHECK_ITEMS.forEach(function (it) { puck_markAnswer(it.key); });
+}
+function puck_setAnswer(key, v) {
+  puck_state.answers[key] = puck_state.answers[key] === v ? null : v;
+  puck_markAnswer(key);
+}
+function puck_markAnswer(key) {
+  var v = puck_state.answers[key];
+  document.querySelectorAll('[id^="pk-opt-' + key + '-"]').forEach(function (btn) {
+    btn.classList.toggle('on', btn.id === 'pk-opt-' + key + '-' + v);
+  });
+}
+
+// ---------- 感官 ----------
+function puck_setDir(which, btn) {
+  puck_state[which] = btn.dataset.v;
+  var gid = which === 'ext' ? 'pk-ext-group' : 'pk-str-group';
+  document.querySelectorAll('#' + gid + ' .dir-btn').forEach(function (b) {
+    b.classList.toggle('on', b === btn);
+  });
+}
+function puck_markDirs() {
+  [['ext', 'pk-ext-group'], ['str', 'pk-str-group']].forEach(function (pair) {
+    document.querySelectorAll('#' + pair[1] + ' .dir-btn').forEach(function (b) {
+      b.classList.toggle('on', b.dataset.v === puck_state[pair[0]]);
+    });
+  });
+  document.querySelectorAll('#pk-chips button').forEach(function (b) {
+    b.classList.toggle('on', puck_state.chips.indexOf(b.dataset.kw) >= 0);
+  });
+}
+function puck_toggleChip(btn) {
+  var kw = btn.dataset.kw;
+  var i = puck_state.chips.indexOf(kw);
+  if (i >= 0) puck_state.chips.splice(i, 1); else puck_state.chips.push(kw);
+  btn.classList.toggle('on', i < 0);
+}
+
+// ---------- 运行诊断 ----------
+function puck_collectSenseText() {
+  var notes = (document.getElementById('pk-notes') || {}).value || '';
+  return notes + ' ' + puck_state.chips.join(' ');
+}
+function puck_currentRecord() {
+  var all = (typeof loadAll === 'function') ? loadAll() : [];
+  return all.find(function (x) { return x.id === puck_state.recordId; }) || null;
+}
+function puck_run() {
+  var rec = puck_currentRecord();
+  if (!rec) { toast('请先选一杯冲煮记录'); return; }
+  var result = puck_diagnose({
+    record: rec,
+    answers: puck_state.answers,
+    bypass: puck_state.bypass,
+    bypassAuto: puck_state.bypassAuto,
+    sense: { ext: puck_state.ext, str: puck_state.str, text: puck_collectSenseText() }
+  });
+  puck_state.lastResult = result;
+  puck_renderResult(result);
+}
+
+function puck_levelBg(cls) {
+  return { alert: '#FEE2E2', warn: '#FEF3C7', ok: '#DCFCE7', info: '#E0F2FE' }[cls] || '#E0F2FE';
+}
+function puck_levelFg(cls) {
+  return { alert: '#991B1B', warn: '#92400E', ok: '#166534', info: '#075985' }[cls] || '#075985';
+}
+
+function puck_renderResult(result) {
+  var out = document.getElementById('pk-result');
+  out.style.display = 'block';
+  var v = document.getElementById('pk-verdict');
+  v.textContent = result.meta.level;
+  v.className = 'pk-verdict ' + result.meta.cls;
+  v.style.background = puck_levelBg(result.meta.cls);
+  v.style.color = puck_levelFg(result.meta.cls);
+  document.getElementById('pk-verdict-text').textContent = result.meta.title + ' · ' + result.verdictText;
+  document.getElementById('pk-ev-list').innerHTML = result.evidence.map(function (e) {
+    return '<li class="' + e.cls + '"><span class="pk-ev-src">' + e.src + '</span>' + escapeHtml(e.t) + '</li>';
+  }).join('');
+  document.getElementById('pk-rx-box').innerHTML =
+    '<div class="pk-rx-t">' + escapeHtml(result.rxTitle) + '</div><ul>' +
+    result.rxItems.map(function (x) { return '<li>' + escapeHtml(x) + '</li>'; }).join('') + '</ul>';
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ---------- 存入记录（走现有 loadAll/saveAll 机制） ----------
+function puck_compactDiag(result) {
+  return JSON.stringify({
+    ch: {
+      c: puck_state.answers.channel,
+      h: puck_state.answers.hole,
+      s: puck_state.answers.shape,
+      w: puck_state.answers.wall
+    },
+    b: puck_state.bypass,
+    r: result.rule,
+    t: Date.now()
+  });
+}
+function puck_parseDiag(raw) {
+  if (!raw) return null;
+  try {
+    var o = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!o || !o.ch) return null;
+    return o;
+  } catch (e) { return null; }
+}
+function puck_saveToRecord() {
+  var result = puck_state.lastResult;
+  if (!result) { toast('请先开始诊断'); return; }
+  if (!puck_state.recordId) { toast('请先选一杯冲煮记录'); return; }
+  var all = (typeof loadAll === 'function') ? loadAll() : [];
+  var idx = all.findIndex(function (x) { return x.id === puck_state.recordId; });
+  if (idx < 0) { toast('记录找不到了'); return; }
+  all[idx] = Object.assign({}, all[idx], {
+    puckDiag: puck_compactDiag(result),
+    updatedAt: Date.now()
+  });
+  saveAll(all);
+  puck_renderRecList(puck_state.recordId);
+  if (typeof updateBadge === 'function') updateBadge();
+  toast('已存入这杯记录');
+}
+
+function puck_reset(silent) {
+  puck_state.recordId = null;
+  puck_state.bypass = 'unknown';
+  puck_state.bypassAuto = false;
+  puck_state.answers = { channel: null, hole: null, shape: null, wall: null };
+  puck_state.ext = ''; puck_state.str = ''; puck_state.chips = [];
+  puck_state.photoDataUrl = null;
+  puck_state.lastResult = null;
+  var panel = document.getElementById('pk-rec-panel');
+  if (panel) panel.style.display = 'none';
+  var work = document.getElementById('pk-work');
+  if (work) work.style.display = 'none';
+  var res = document.getElementById('pk-result');
+  if (res) res.style.display = 'none';
+  var photoPrev = document.getElementById('pk-photo-preview');
+  if (photoPrev) photoPrev.style.display = 'none';
+  var slot = document.getElementById('pk-photo-slot');
+  if (slot) slot.innerHTML = '';
+  var fi = document.getElementById('pk-file');
+  if (fi) fi.value = '';
+  var ta = document.getElementById('pk-notes');
+  if (ta) ta.value = '';
+  puck_renderRecList(null);
+  if (!silent) window.scrollTo(0, 0);
+}
+
+// ---------- 详情页徽章 ----------
+function puck_badgeHTML(r) {
+  var pd = puck_parseDiag(r && r.puckDiag);
+  if (!pd || !pd.r || !PUCK_RULE_META[pd.r]) return '';
+  var m = PUCK_RULE_META[pd.r];
+  return '<span class="pk-badge ' + m.cls + '" onclick="event.stopPropagation();puck_toggleBadge(this)" title="点击展开当时结论">' +
+    m.level + ' 粉坑</span>' +
+    '<div class="pk-badge-detail">粉坑诊断（' + (pd.t ? fmtTime(pd.t) : '时间未知' ) + '）：' +
+    m.title + ' · 规则 ' + pd.r + '</div>';
+}
+function puck_toggleBadge(el) {
+  var d = el.nextElementSibling;
+  if (d && d.classList.contains('pk-badge-detail')) d.classList.toggle('show');
+}
+
+// =========================================================================
+// 导出报告图：Canvas 2D 手绘 1080px 宽长图，零依赖；中文按字符宽度手动换行
+// =========================================================================
+function puck_wrapText(ctx, text, maxW) {
+  var lines = [];
+  String(text == null ? '' : text).split('\n').forEach(function (para) {
+    var cur = '';
+    for (var i = 0; i < para.length; i++) {
+      var ch = para[i];
+      var test = cur + ch;
+      if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = ch; }
+      else cur = test;
+    }
+    lines.push(cur);
+  });
+  return lines;
+}
+
+function puck_exportReport() {
+  var result = puck_state.lastResult;
+  var rec = puck_currentRecord();
+  if (!result || !rec) { toast('请先开始诊断'); return; }
+
+  var W = 1080, M = 56;
+  var INK = '#0F172A', MUTED = '#475569', LINE = '#E5E7EB', BRAND = '#0F6E7E', DEEP = '#084752';
+  var canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = 100;
+  var ctx = canvas.getContext('2d');
+  var contentW = W - M * 2;
+
+  function ctxSetFont(px) { ctx.font = px + 'px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif'; return ctx; }
+  function block(lines, opt) {
+    opt = opt || {};
+    var lh = opt.lh || 34;
+    var gapBefore = opt.gapBefore || 0;
+    var h = gapBefore + lines.length * lh + (opt.gapAfter != null ? opt.gapAfter : 18);
+    return { lines: lines, opt: opt, lh: lh, gapBefore: gapBefore, h: h };
+  }
+
+  // 照片高度需要异步加载后才知道；用 Promise 包一层
+  var photoReady = new Promise(function (resolve) {
+    if (!puck_state.photoDataUrl) { resolve(null); return; }
+    var im = new Image();
+    im.onload = function () { resolve(im); };
+    im.onerror = function () { resolve(null); };
+    im.src = puck_state.photoDataUrl;
+  });
+
+  photoReady.then(function (photoImg) {
+    // 组装所有块（先测高，再绘制）
+    var blocks = [];
+    blocks.push({ header: true, h: 150 });
+    var pours = (rec.pours || []).filter(function (p) { return p && p.bypass !== '1' && p.bypass !== 1; });
+    var paramLine = '粉量 ' + (rec.dose || '?') + 'g · 水温 ' + (rec.temp ? rec.temp + '℃' : '未填') + ' · 粉水比 ' + (rec.ratio || '?') +
+      ' · 注水 ' + pours.length + ' 段 · 滤杯 ' + ((rec.dripper || '?') + (rec.filter ? ' / ' + rec.filter : ''));
+    blocks.push(block(puck_wrapText(ctxSetFont(26), paramLine, contentW), { fontPx: 26, color: INK, lh: 40, gapBefore: 8, gapAfter: 10 }));
+    blocks.push(block(['旁通档位：' + puck_bypassLabel(puck_state.bypass)], { fontPx: 26, color: INK, lh: 40, gapAfter: 22 }));
+
+    // 四题答案
+    var ansLabel = {
+      channel: { no: '无沟（平整）', yes: '有沟 / 冲痕', unsure: '看不清' },
+      hole: { shallow: '浅窝（正常）', deep: '又深又窄的坑', unsure: '看不清' },
+      shape: { flat: '中间低、比较平', offcenter: '最低点歪到一边', hump: '有鼓包 / 一边高', unsure: '看不清' },
+      wall: { low: '粉墙水印都在下段', high: '粉挂到靠近杯口', wet: '粉墙不高但上方有水印', unsure: '看不清' }
+    };
+    var qNames = ['Q1 水流沟', 'Q2 中心坑', 'Q3 粉面形状', 'Q4 内壁痕迹'];
+    var qKeys = ['channel', 'hole', 'shape', 'wall'];
+    var ansLines = [];
+    qKeys.forEach(function (k, i) {
+      var v = puck_state.answers[k];
+      var label = (ansLabel[k] && ansLabel[k][v]) || (v == null ? '未作答' : v);
+      ansLines.push(qNames[i] + '：' + label);
+    });
+    blocks.push(block(ansLines, { fontPx: 26, color: INK, lh: 42, gapAfter: 22 }));
+
+    // 结论
+    var meta = result.meta;
+    blocks.push({ verdict: true, h: 130, meta: meta });
+    blocks.push(block(puck_wrapText(ctxSetFont(25), result.meta.title + ' · ' + result.verdictText, contentW), { fontPx: 25, color: MUTED, lh: 38, gapAfter: 24 }));
+
+    // 证据链
+    blocks.push({ sectionTitle: '证据链', h: 56 });
+    result.evidence.forEach(function (e) {
+      var lines = puck_wrapText(ctxSetFont(24), '[' + e.src + '] ' + e.t, contentW - 16);
+      blocks.push(block(lines, { fontPx: 24, color: e.cls === 'ev-rule' ? '#991B1B' : INK, lh: 36, gapBefore: 6, gapAfter: 10, bullet: e.cls }));
+    });
+
+    // 处方
+    blocks.push({ sectionTitle: result.rxTitle, h: 56 });
+    result.rxItems.forEach(function (x, i) {
+      var lines = puck_wrapText(ctxSetFont(24), (i + 1) + '. ' + x, contentW - 16);
+      blocks.push(block(lines, { fontPx: 24, color: INK, lh: 36, gapBefore: 4, gapAfter: 10 }));
+    });
+
+    // 照片（如有）
+    if (puck_state.photoDataUrl) {
+      blocks.push({ sectionTitle: '粉坑对照照片', h: 56, photo: true });
+    }
+    blocks.push({ footer: true, h: 110 });
+
+    var y = 0;
+    // 计算总高
+    var totalH = 0;
+    blocks.forEach(function (b) {
+      if (b.photo) {
+        if (photoImg) {
+          var pw = contentW;
+          var ph = Math.round(photoImg.height * (pw / photoImg.width));
+          b.imgH = Math.min(ph, 620);
+          b.h = 56 + b.imgH + 24;
+        } else { b.h = 0; }
+      }
+      totalH += b.h;
+    });
+
+    canvas.width = W;
+    canvas.height = totalH;
+    // 背景
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#FAFAF7';
+    ctx.fillRect(0, 0, W, totalH);
+
+    y = 0;
+    blocks.forEach(function (b) {
+      if (b.header) {
+        ctx.fillStyle = BRAND;
+        ctx.fillRect(0, 0, W, 6);
+        ctxSetFont(40);
+        ctx.fillStyle = BRAND;
+        ctx.textBaseline = 'alphabetic';
+        ctx.fillText('Brew Lab · 粉坑诊断报告', M, 78);
+        ctxSetFont(24);
+        ctx.fillStyle = MUTED;
+        var title = rec.beanName || rec.origin || '冲煮记录';
+        ctx.fillText(title + ' · ' + fmtTime(Date.now()), M, 122);
+        ctx.strokeStyle = LINE;
+        ctx.beginPath(); ctx.moveTo(M, 146); ctx.lineTo(W - M, 146); ctx.stroke();
+        y += b.h;
+        return;
+      }
+      if (b.verdict) {
+        var bg = puck_levelBg(b.meta.cls), fg = puck_levelFg(b.meta.cls);
+        ctxSetFont(34);
+        var labelW = ctx.measureText(b.meta.level).width + 56;
+        ctx.fillStyle = bg;
+        roundRect(ctx, M, y + 10, labelW, 64, 32);
+        ctx.fill();
+        ctx.fillStyle = fg;
+        ctx.fillText(b.meta.level, M + 28, y + 55);
+        ctx.fillStyle = DEEP;
+        ctx.fillText(b.meta.title, M + labelW + 24, y + 55);
+        y += b.h;
+        return;
+      }
+      if (b.sectionTitle) {
+        if (b.photo && !photoImg) { return; }
+        ctxSetFont(30);
+        ctx.fillStyle = BRAND;
+        ctx.fillText(b.sectionTitle, M, y + 38);
+        ctx.strokeStyle = LINE;
+        ctx.beginPath(); ctx.moveTo(M, y + 50); ctx.lineTo(W - M, y + 50); ctx.stroke();
+        y += 56;
+        if (b.photo && photoImg) {
+          var dh = b.imgH;
+          ctx.save();
+          roundRect(ctx, M, y, contentW, dh, 12);
+          ctx.clip();
+          var scale = Math.max(contentW / photoImg.width, dh / photoImg.height);
+          var dw = photoImg.width * scale, dh2 = photoImg.height * scale;
+          ctx.drawImage(photoImg, M + (contentW - dw) / 2, y + (dh - dh2) / 2, dw, dh2);
+          ctx.restore();
+          y += dh + 24;
+        }
+        return;
+      }
+      if (b.footer) {
+        ctx.strokeStyle = LINE;
+        ctx.beginPath(); ctx.moveTo(M, y + 20); ctx.lineTo(W - M, y + 20); ctx.stroke();
+        ctxSetFont(22);
+        ctx.fillStyle = MUTED;
+        ctx.textAlign = 'center';
+        ctx.fillText('Brew Lab 手冲记录 · 粉坑 × 感官 × 参数', W / 2, y + 66);
+        ctx.textAlign = 'left';
+        y += b.h;
+        return;
+      }
+      // 文本块
+      y += b.gapBefore || 0;
+      ctxSetFont(b.opt.fontPx || 24);
+      ctx.fillStyle = b.opt.color || INK;
+      if (b.opt.bullet) {
+        var bulletColor = { 'ev-puck': '#0EA5E9', 'ev-sense': '#D97706', 'ev-param': BRAND, 'ev-rule': '#DC2626' }[b.opt.bullet] || LINE;
+        ctx.fillStyle = bulletColor;
+        ctx.fillRect(M, y - b.lh + 12, 5, b.lines.length * b.lh - 12);
+        ctx.fillStyle = b.opt.color || INK;
+      }
+      b.lines.forEach(function (ln) {
+        ctx.fillText(ln, M + 16, y);
+        y += b.lh;
+      });
+      y += (b.opt.gapAfter != null ? b.opt.gapAfter : 18);
+    });
+
+    canvas.toBlob(function (blob) {
+      if (!blob) { toast('报告图生成失败'); return; }
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var fname = 'brewlab_puck_' + (rec.beanName || rec.id || 'report').replace(/[\\/:*?"<>|\s]+/g, '_') + '.png';
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }, 'image/png');
+  });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// ---------- 覆盖式打开 / 关闭诊断页 ----------
+function puck_open(id) {
+  document.getElementById('page-puck').style.display = 'block';
+  window.scrollTo(0, 0);
+  puck_enter(id);
+}
+function puck_close() {
+  document.getElementById('page-puck').style.display = 'none';
+}
+function puck_startFromList(id) {
+  puck_open(id);
+}
+
+// 列表渲染后若 DOM 已就绪，无需额外初始化（渲染由 switchTab 触发）
 </script>
 
 </body>
