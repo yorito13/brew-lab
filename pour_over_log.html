@@ -3277,7 +3277,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.28</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.29</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3715,7 +3715,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         <div class="psd-stat-card psd-small"><div class="psd-label">识别粒数</div><div class="psd-value" id="psd-stat-count">--</div></div>
         <div class="psd-stat-card psd-small"><div class="psd-label">粉铺区覆盖率</div><div class="psd-value" id="psd-stat-coverage">--</div><div class="psd-unit">%</div></div>
       </div>
-      <div class="psd-method-note">分布口径：按颗粒<b>数量分布</b>（number-based）。工业标准激光粒度仪多为<b>体积分布</b>（volume-based），二者不可直接对比 —— 数量分布对细粉更敏感。<br>Span 值仅可用于跨磨豆机 / 跨档位<b>相对比较</b>，不可与商业设备（Malvern / Kruve 等）口径直接对齐。</div>
+      <div class="psd-method-note">分布口径：按颗粒<b>数量分布</b>（number-based）。工业标准激光粒度仪多为<b>体积分布</b>（volume-based），二者不可直接对比 —— 数量分布对细粉更敏感。<br>Span 值仅可用于跨磨豆机 / 跨档位<b>相对比较</b>，不可与商业设备（Malvern / Kruve 等）口径直接对齐。<br>细粉率（&lt;200μm）受照片分辨率制约：校正后单像素约对应 280μm，<b>&lt;200μm 细粉在当前管线下物理不可分辨</b>，显示「--」代表检出限不足而非细粉为零；显示「&lt;x%」为本张未检出、按样本量给出的统计上限。细粉评估请以感官与流速表现为准。</div>
     </div>
 
     <!-- KDE 密度曲线 -->
@@ -3895,7 +3895,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.28</div>
+    <div class="about-version">Brew Lab · v13.29</div>
   </div>
 </div>
 
@@ -12412,17 +12412,21 @@ function quantile(sortedArr, q) {
   if (lo === hi) return sortedArr[lo];
   return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (pos - lo);
 }
-function computeStats(ecdArr_um) {
+function computeStats(ecdArr_um, lodUm) {
+  // v13.29：lodUm = 方法检出限（μm）。图像法像素分辨率对应粒径 + <50μm 噪声过滤，
+  // 取两者较大值。lodUm >= 200 时 0 粒 <200μm 是"看不到"而非"没有"——
+  // finesDetectable=false，展示层报"分辨率不足"，禁止报 0（伪量化）。
   var arr = ecdArr_um.slice().sort(function(a, b){ return a - b; });
   var n = arr.length;
-  if (n === 0) return { n: 0, d10: NaN, d50: NaN, d90: NaN, span: NaN, finesPct: NaN };
+  var detectable = (!isFinite(lodUm)) || lodUm < 200;
+  if (n === 0) return { n: 0, d10: NaN, d50: NaN, d90: NaN, span: NaN, finesPct: NaN, finesDetectable: detectable, finesLodUm: lodUm };
   var d10 = quantile(arr, 0.10);
   var d50 = quantile(arr, 0.50);
   var d90 = quantile(arr, 0.90);
   var span = (d50 > 0) ? (d90 - d10) / d50 : NaN;
   var fines = 0;
   for (var i = 0; i < arr.length; i++) if (arr[i] < 200) fines++;
-  return { n: n, d10: d10, d50: d50, d90: d90, span: span, finesPct: 100 * fines / n, sorted: arr };
+  return { n: n, d10: d10, d50: d50, d90: d90, span: span, finesPct: 100 * fines / n, finesDetectable: detectable, finesLodUm: lodUm, sorted: arr };
 }
 
 /**
@@ -12776,6 +12780,13 @@ function runPipeline(file) {
         drawOverlayPreview(document.getElementById('psd-cv-overlay'), warpedCanvas, result.particles);
         STATE.particles = result.particles;
 
+        // v13.29：细粉检出限按 ECD 口径反推——最小可测面积=1px，
+        // ECD = 2*sqrt(面积/π) = 2*mmPerPx/sqrt(π)；校正后分辨率固定 4px/mm，
+        // 与拍摄距离无关，故默认 mmPerPx=0.25 → 单像素 ECD≈282μm，
+        // 200μm 细粉在当前管线物理上不可分辨（细粉率恒 0 是盲视而非真值）
+        var ecdLodUm = 2000 * mmPerPx_true / Math.sqrt(Math.PI);
+        var finesLodUm = Math.max(50, ecdLodUm);
+
         var meta = document.getElementById('psd-pipeline-meta');
         if (meta) {
           meta.innerHTML =
@@ -12785,13 +12796,14 @@ function runPipeline(file) {
             '<span class="psd-kv">Otsu 阈值: <b>' + result.thresh + '</b></span> · ' +
             '<span class="psd-kv">覆盖率: <b>' + result.coveragePct.toFixed(1) + '%</b></span> · ' +
             '<span class="psd-kv">剔除: 边界 <b>' + result.rejects.boundary + '</b> · &lt;50μm <b>' + result.rejects.tooSmall + '</b> · &gt;5mm <b>' + result.rejects.tooLarge + '</b></span> · ' +
+            '<span class="psd-kv">细粉检出限: <b>' + Math.round(finesLodUm) + 'μm</b>' + (finesLodUm >= 200 ? '（≥200μm，细粉率不可测）' : '') + '</span> · ' +
             '<span class="psd-kv">耗时: <b>' + dt + ' ms</b></span>';
         }
         // 隐藏空态提示
         var empty = document.getElementById('psd-empty');
         if (empty) empty.style.display = 'none';
 
-        var stats = computeStats(result.particles.map(function(p){ return p.ecd_um; }));
+        var stats = computeStats(result.particles.map(function(p){ return p.ecd_um; }), finesLodUm);
         renderStats(stats, result.coveragePct);
         renderChart(stats);
 
@@ -12814,7 +12826,25 @@ function renderStats(s, coveragePct) {
   document.getElementById('psd-stat-d50').textContent = fmt(s.d50, 0);
   document.getElementById('psd-stat-d90').textContent = fmt(s.d90, 0);
   document.getElementById('psd-stat-span').textContent = fmt(s.span, 2);
-  document.getElementById('psd-stat-fines').textContent = fmt(s.finesPct, 1);
+  // v13.29 细粉率三态：检出限≥200μm → --（物理盲视，禁报 0）；
+  // 可测但 0 粒 → 上限式 <x%（不伪量化）；有检出 → 数值
+  var finesEl = document.getElementById('psd-stat-fines');
+  var finesUnit = finesEl ? finesEl.parentElement.querySelector('.psd-unit') : null;
+  if (finesEl) {
+    if (isFinite(s.finesPct) && s.finesDetectable === false) {
+      finesEl.textContent = '--';
+      finesEl.title = '当前分辨率检出限约 ' + Math.round(s.finesLodUm) + 'μm，无法分辨 <200μm 细粉';
+      if (finesUnit) finesUnit.style.visibility = 'hidden';
+    } else if (isFinite(s.finesPct) && s.finesPct === 0) {
+      finesEl.textContent = '<' + (100 / s.n < 0.1 ? 0.1 : Math.ceil(1000 / s.n) / 10).toFixed(1);
+      finesEl.title = '本张未检出 <200μm 颗粒（n=' + s.n + '），95% 上限约 ' + (300 / s.n).toFixed(1) + '%';
+      if (finesUnit) finesUnit.style.visibility = '';
+    } else {
+      finesEl.textContent = fmt(s.finesPct, 1);
+      finesEl.title = '';
+      if (finesUnit) finesUnit.style.visibility = '';
+    }
+  }
   document.getElementById('psd-stat-count').textContent = s.n;
   document.getElementById('psd-stat-coverage').textContent = fmt(coveragePct, 1);
   var banner = document.getElementById('psd-diag-banner');
@@ -12856,7 +12886,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.26 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.29 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
@@ -12888,8 +12918,22 @@ function runUnitTests() {
   for (var c = 0; c < 200; c++) t3.push(Math.max(1000, randomNormal(2000, 300)));
   var s3 = computeStats(t3);
   log('info-log', '  D10=' + s3.d10.toFixed(0) + ' D50=' + s3.d50.toFixed(0) + ' D90=' + s3.d90.toFixed(0) + ' fines=' + s3.finesPct.toFixed(2) + '%');
-  assert(s3.finesPct === 0, '细粉率 === 0');
+  assert(s3.finesPct === 0, '细粉率 === 0（无检出限参数，默认可测）');
+  assert(s3.finesDetectable === true, '无 lodUm 参数时 finesDetectable=true（向后兼容）');
   assert(s3.d10 >= 1000, 'D10 >= 1000μm');
+
+  // Test 3b (V13.29 新增)：检出限逻辑
+  log('info-log', '\n[Test 3b] 细粉率检出限（v13.29）');
+  var tFine = [];
+  for (var fb = 0; fb < 800; fb++) tFine.push(600 + (fb % 7) * 10);
+  for (var ff = 0; ff < 200; ff++) tFine.push(150 + (ff % 5));
+  var sFine = computeStats(tFine, 150);
+  assert(sFine.finesDetectable === true && Math.abs(sFine.finesPct - 20) < 1, 'lod=150μm 时 200 粒 <200μm 被计入（fines=' + sFine.finesPct.toFixed(1) + '%）');
+  var sBlind = computeStats(tFine, 282);
+  assert(sBlind.finesDetectable === false, 'lod=282μm（管线实际值）→ finesDetectable=false（禁报 0）');
+  assert(sBlind.finesLodUm === 282, 'finesLodUm 透传 282');
+  var sZero = computeStats(t3, 150);
+  assert(sZero.finesDetectable === true && sZero.finesPct === 0, '可测但真无细粉 → finesPct=0（展示层转 <上限%）');
 
   // Test 4: 空数组
   log('info-log', '\n[Test 4] 空数组保护');
@@ -13515,7 +13559,9 @@ function puck_pickRecord(id) {
   puck_renderChecks();
   puck_markBypass();
   puck_markDirs();
-  document.getElementById('pk-step2').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // v13.29 修复：选记录后落在记录摘要+旁通确认（rec-panel），
+  // 不能直接跳 pk-step2——自动推导的旁通档位需要用户先核对，滚过去就漏了
+  document.getElementById('pk-rec-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function puck_setBypass(v) {
