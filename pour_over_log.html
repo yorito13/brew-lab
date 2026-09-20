@@ -1008,6 +1008,38 @@
     letter-spacing: 0.3px;
   }
   .recommend-btn:active { opacity: 0.85; }
+
+  /* v13.30 豆档案选择器 */
+  .bean-picker { margin-bottom: 10px; }
+  .bean-picker-row { display: flex; gap: 8px; align-items: stretch; }
+  #bean-search { flex: 1; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-size: var(--fs-body); background: var(--card); color: var(--text); }
+  #bean-search:focus { outline: none; border-color: var(--info); }
+  .bean-scan-btn { flex: 0 0 auto; padding: 0 14px; border: 1.5px solid var(--info); background: transparent; color: var(--info); border-radius: var(--radius-md); font-size: var(--fs-body); cursor: pointer; }
+  .bean-scan-btn:active { opacity: 0.8; }
+  .bean-search-results { margin-top: 6px; border: 1px solid var(--border); border-radius: var(--radius-md); max-height: 280px; overflow-y: auto; background: var(--card); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .bsr-item { padding: 9px 12px; cursor: pointer; border-bottom: 1px solid var(--border); }
+  .bsr-item:last-child { border-bottom: none; }
+  .bsr-item:hover { background: var(--hover, rgba(14,165,233,0.08)); }
+  .bsr-name { font-size: var(--fs-body); font-weight: var(--fw-semi); }
+  .bsr-arch { font-size: 10px; color: var(--muted); font-weight: normal; border: 1px solid var(--border); padding: 0 5px; border-radius: 8px; }
+  .bsr-meta { font-size: var(--fs-caption); color: var(--muted); margin-top: 2px; }
+  .bsr-empty { padding: 12px; font-size: var(--fs-caption); color: var(--muted); text-align: center; }
+  .bean-picked { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: var(--fs-caption); }
+  .bp-tag { flex: 1; padding: 6px 10px; background: rgba(76,175,125,0.1); border: 1px solid rgba(76,175,125,0.4); border-radius: var(--radius-md); color: #2e7d52; }
+  .bp-tag small { color: var(--muted); margin-left: 4px; }
+  .bp-archive, .bp-clear { padding: 4px 10px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius-md); font-size: 11px; cursor: pointer; color: var(--muted); }
+  .bp-clear:hover { color: #d9534f; border-color: #d9534f; }
+
+  /* v13.30 拍卡预览 */
+  .bean-scan-preview { margin-top: 8px; }
+  .bsp-bar { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--card); }
+  .bsp-bar img { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; flex: 0 0 auto; }
+  .bsp-status { flex: 1; font-size: var(--fs-caption); color: var(--text); line-height: 1.4; }
+  .bsp-close { flex: 0 0 auto; border: none; background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; }
+  .bsp-err { color: #b3402f; background: rgba(217,83,79,0.07); border-color: rgba(217,83,79,0.35); font-size: var(--fs-caption); line-height: 1.4; }
+  .bsp-ok { border-color: rgba(76,175,125,0.5); background: rgba(76,175,125,0.06); }
+  input.scan-fill-high { background: rgba(255,213,79,0.25) !important; transition: background 1s; }
+  input.scan-low-conf { box-shadow: inset 0 0 0 2px rgba(240,130,60,0.55); }
   /* V13.15.6: 推荐方案结果卡片 */
   .recommend-result {
     margin-top: 14px;
@@ -3277,7 +3309,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.29</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.30</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3326,6 +3358,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       <!-- 豆子信息 -->
       <div class="card">
         <h2>豆子信息</h2>
+        <div class="bean-picker">
+          <div class="bean-picker-row">
+            <input type="search" id="bean-search" placeholder="🔍 搜豆档案：豆名/产地/庄园/烘焙商，回车带出" autocomplete="off">
+            <button type="button" id="bean-scan-btn" class="bean-scan-btn" title="拍豆卡/包装自动识别">📷 拍卡</button>
+            <input type="file" id="bean-scan-file" accept="image/*" capture="environment" style="display:none">
+          </div>
+          <div id="bean-scan-preview" class="bean-scan-preview" style="display:none"></div>
+          <div id="bean-search-results" class="bean-search-results" style="display:none"></div>
+          <div id="bean-picked" class="bean-picked" style="display:none"></div>
+        </div>
         <div class="field">
           <label>豆名 / 标签（可选）</label>
           <input type="text" id="bean-name" placeholder="如：耶加雪菲 G1 · 6月烘">
@@ -3895,7 +3937,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.29</div>
+    <div class="about-version">Brew Lab · v13.30</div>
   </div>
 </div>
 
@@ -4774,6 +4816,329 @@ function setProcessValue(v) {
     if (inp) { inp.value = v; inp.style.display = ''; }
   }
 }
+// === v13.30: 豆档案库 ===
+const BEAN_LIB_KEY = 'pour_over_bean_lib_v1';
+function loadBeanLib() {
+  try { const a = JSON.parse(localStorage.getItem(BEAN_LIB_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch(e) { return []; }
+}
+function saveBeanLib(lib) {
+  try { localStorage.setItem(BEAN_LIB_KEY, JSON.stringify(lib)); } catch(e) {}
+}
+// 档案包含的字段（豆子信息 10 项中的可复用项）
+const BEAN_LIB_FIELDS = ['beanName','origin','farm','process','variety','plot','batch','roaster','agtron','cuppingFlavor'];
+function normalizeBeanName(s) {
+  return (s || '').toLowerCase().replace(/[\s·•\-_/\\().,:;'"'']/g, '').replace(/瑰夏/g, 'geisha').replace(/耶加雪菲/g, 'yirgacheffe');
+}
+function _lev(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  const dp = [];
+  for (let i=0;i<=m;i++) { dp[i]=[i]; for (let j=1;j<=n;j++) { if (i===0) dp[0][j]=j; else { const c=a[i-1]===b[j-1]?0:1; dp[i][j]=Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c); } } }
+  return dp[m][n];
+}
+// 相似度：规范化后编辑距离/包含关系，返回 0-1
+function beanNameSimilarity(a, b) {
+  const x = normalizeBeanName(a), y = normalizeBeanName(b);
+  if (!x || !y) return 0;
+  if (x === y) return 1;
+  if (x.includes(y) || y.includes(x)) return 0.9;
+  const d = _lev(x, y);
+  return Math.max(0, 1 - d / Math.max(x.length, y.length));
+}
+function findSimilarBean(lib, name) {
+  let best = null, bestScore = 0;
+  lib.forEach(b => { const s = beanNameSimilarity(name, b.beanName); if (s > bestScore) { bestScore = s; best = b; } });
+  return { bean: best, score: bestScore };
+}
+// 灰色区间（需人工确认合并/新建）
+function ambiguousBean(name) {
+  const hit = findSimilarBean(loadBeanLib(), name);
+  return (hit.bean && hit.score >= 0.55 && hit.score < 0.86) ? hit : null;
+}
+// 合并进指定档案（填补空字段，不覆盖），更新统计
+function mergeRecordIntoBean(beanId, data) {
+  const lib = loadBeanLib();
+  const b = lib.find(x => x.id === beanId);
+  if (!b) return;
+  b.useCount = (b.useCount || 0) + 1;
+  b.lastUsedAt = Date.now();
+  b.status = 'active';
+  BEAN_LIB_FIELDS.forEach(f => { if (!b[f] && data[f]) b[f] = data[f]; });
+  saveBeanLib(lib);
+}
+// 用即存：保存记录后调用。≥0.86 自动合并，否则新建
+function upsertBeanFromRecord(data, forceCreate) {
+  if (!data.beanName) return { action: 'skip' };
+  const lib = loadBeanLib();
+  if (!forceCreate) {
+    const hit = findSimilarBean(lib, data.beanName);
+    if (hit.bean && hit.score >= 0.86) {
+      const b = hit.bean;
+      b.useCount = (b.useCount || 0) + 1;
+      b.lastUsedAt = Date.now();
+      b.status = 'active';
+      BEAN_LIB_FIELDS.forEach(f => { if (!b[f] && data[f]) b[f] = data[f]; });
+      saveBeanLib(lib);
+      return { action: 'merged', target: b };
+    }
+  }
+  const nb = { id: 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,6), status: 'active', useCount: 1, firstUsedAt: Date.now(), lastUsedAt: Date.now() };
+  BEAN_LIB_FIELDS.forEach(f => { if (data[f]) nb[f] = data[f]; });
+  lib.push(nb);
+  saveBeanLib(lib);
+  return { action: 'created', target: nb };
+}
+// 搜索：关键字匹配多字段，在架优先 + 最近/常用排序
+function searchBeanLib(keyword) {
+  const lib = loadBeanLib();
+  const kw = (keyword || '').trim().toLowerCase();
+  let list;
+  if (!kw) {
+    list = lib.filter(b => b.status !== 'archived');
+  } else {
+    list = lib.filter(b => {
+      return BEAN_LIB_FIELDS.some(f => (b[f] || '').toString().toLowerCase().includes(kw));
+    });
+  }
+  list.sort((x, y) => {
+    if ((x.status==='active') !== (y.status==='active')) return x.status==='active' ? -1 : 1;
+    return (y.lastUsedAt||0) - (x.lastUsedAt||0);
+  });
+  return list;
+}
+function setBeanStatus(id, status) {
+  const lib = loadBeanLib();
+  const b = lib.find(x => x.id === id);
+  if (b) { b.status = status; saveBeanLib(lib); }
+}
+
+// === v13.30: 豆档案选择交互 ===
+function showBeanMergeModal(existing, newName) {
+  return new Promise(resolve => {
+    const modal = document.createElement('div');
+    modal.className = 'bm-modal show';
+    modal.style.zIndex = 100000;
+    modal.innerHTML = `<div class="bm-modal-card">
+      <h3>这支豆和已有档案很像</h3>
+      <p>你输入的：<b>${escapeHtml(newName)}</b><br>已有档案：<b>${escapeHtml(existing.beanName || '(未命名)')}</b><br><span style="color:#888;font-size:12px">${escapeHtml([existing.origin,existing.farm,existing.process,existing.batch].filter(Boolean).join(' · '))}</span></p>
+      <p style="font-size:13px;color:#666">是同一支豆（合并、补全字段），还是确实不同（强制新建档案）？</p>
+      <div class="bm-row" style="margin-top:10px;justify-content:flex-end">
+        <button type="button" data-act="cancel">取消保存</button>
+        <button type="button" data-act="new" class="danger">强制新建</button>
+        <button type="button" data-act="merge" class="primary">是同一支，合并</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    const close = (val) => { modal.remove(); resolve(val); };
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(false); });
+    modal.querySelector('[data-act="cancel"]').addEventListener('click', () => close(false));
+    modal.querySelector('[data-act="new"]').addEventListener('click', () => close('new'));
+    modal.querySelector('[data-act="merge"]').addEventListener('click', () => close('merge'));
+  });
+}
+function renderBeanResults(keyword) {
+  const box = document.getElementById('bean-search-results');
+  if (!box) return;
+  const list = searchBeanLib(keyword).slice(0, 8);
+  if (!list.length) {
+    box.innerHTML = `<div class="bsr-empty">无匹配档案${keyword ? '，按下方填写后保存会自动建档' : '（还没有豆档案）'}</div>`;
+    box.style.display = 'block';
+    return;
+  }
+  box.innerHTML = list.map(b => {
+    const meta = [b.origin, b.farm, b.process, b.batch].filter(Boolean).join(' · ');
+    return `<div class="bsr-item" data-bid="${b.id}">
+      <div class="bsr-name">${escapeHtml(b.beanName || '(未命名)')}${b.status==='archived' ? ' <span class="bsr-arch">已归档</span>' : ''}</div>
+      <div class="bsr-meta">${escapeHtml(meta || '—')}${b.lastUsedAt ? ' · 最近 '+fmtDateShort(b.lastUsedAt) : ''}</div>
+    </div>`;
+  }).join('');
+  box.style.display = 'block';
+  box.querySelectorAll('.bsr-item').forEach(it => {
+    it.addEventListener('click', () => pickBean(it.dataset.bid));
+  });
+}
+function fmtDateShort(ts) {
+  const d = new Date(ts);
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+function pickBean(id) {
+  const b = loadBeanLib().find(x => x.id === id);
+  if (!b) return;
+  // 带出字段
+  const map = { beanName:'bean-name', origin:'origin', farm:'farm', process:null, variety:'variety', plot:'plot', batch:'batch', roaster:'roaster', agtron:'agtron', cuppingFlavor:'cupping-flavor' };
+  Object.keys(map).forEach(f => {
+    const elId = map[f];
+    if (elId) { const el = document.getElementById(elId); if (el) el.value = b[f] || ''; }
+  });
+  if (typeof setProcessValue === 'function') setProcessValue(b.process || '');
+  // 更新使用统计
+  const lib = loadBeanLib();
+  const cur = lib.find(x => x.id === id);
+  if (cur) { cur.useCount = (cur.useCount||0)+1; cur.lastUsedAt = Date.now(); cur.status = cur.status==='archived' ? 'active' : cur.status; saveBeanLib(lib); }
+  // 已选提示条
+  const picked = document.getElementById('bean-picked');
+  picked.innerHTML = `<span class="bp-tag">✅ ${escapeHtml(b.beanName || '已带出字段')} <small>${escapeHtml([b.process,b.batch].filter(Boolean).join(' · '))}</small></span>
+    <button type="button" class="bp-archive" data-bid="${b.id}" title="归档（喝光/不再日常选）">归档</button>
+    <button type="button" class="bp-clear" title="清除带出，手动填写">✕</button>`;
+  picked.style.display = 'flex';
+  document.getElementById('bean-search-results').style.display = 'none';
+  document.getElementById('bean-search').value = '';
+  picked.querySelector('.bp-clear').addEventListener('click', clearBeanPick);
+  picked.querySelector('.bp-archive').addEventListener('click', (e) => { setBeanStatus(e.currentTarget.dataset.bid, 'archived'); clearBeanPick(); toast('已归档，可在搜索含归档时找到'); });
+}
+function clearBeanPick() {
+  const picked = document.getElementById('bean-picked');
+  if (picked) { picked.innerHTML = ''; picked.style.display = 'none'; }
+}
+/* === v13.30 拍卡识别 === */
+const VISION_FIELD_MAP = {
+  beanName: 'bean-name', origin: 'origin', farm: 'farm', variety: 'variety',
+  plot: 'plot', batch: 'batch', roaster: 'roaster', agtron: 'agtron', cuppingFlavor: 'cupping-flavor'
+};
+function initBeanScan() {
+  const btn = document.getElementById('bean-scan-btn');
+  const file = document.getElementById('bean-scan-file');
+  if (!btn || !file) return;
+  btn.addEventListener('click', () => file.click());
+  file.addEventListener('change', async () => {
+    const f = file.files && file.files[0];
+    if (f) await handleBeanScan(f);
+    file.value = '';
+  });
+}
+// 本地压缩：长边 1600，JPEG 0.8
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const maxSide = 1600;
+      let { width, height } = img;
+      if (Math.max(width, height) > maxSide) {
+        const k = maxSide / Math.max(width, height);
+        width = Math.round(width * k); height = Math.round(height * k);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.8));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片读取失败')); };
+    img.src = url;
+  });
+}
+async function handleBeanScan(file) {
+  const preview = document.getElementById('bean-scan-preview');
+  if (!preview) return;
+  let dataUrl;
+  try { dataUrl = await compressImage(file); }
+  catch(e) { toast(e.message || '图片处理失败'); return; }
+  preview.style.display = 'block';
+  preview.innerHTML = `<div class="bsp-bar"><img src="${dataUrl}" alt="预览"><div class="bsp-status">⏳ 识别中…</div></div>`;
+  const cfg = loadLLMConfig();
+  if (!isLLMConfigValid(cfg)) {
+    preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ LLM 未配置或未启用，请先在 LLM 设置中配置豆包等视觉模型</div>`;
+    return;
+  }
+  const prompt = `你是咖啡豆信息识别助手。请识别图片中咖啡豆卡片或包装上的信息，只输出 JSON 对象，包含以下字段（全部为字符串，卡上没有、看不清或无法确定的字段值设为 null，严禁推测或编造）：
+- beanName: 豆名/标签，按卡面原样抄录（中文或英文原名，不要翻译改写）
+- origin: 产地（国家/产区，如 埃塞俄比亚、哥伦比亚）
+- farm: 庄园/处理站名称
+- process: 处理法，归一为以下之一：水洗/日晒/蜜处理/厌氧日晒/厌氧水洗/湿刨/双重发酵/其他；卡面是英文(Washed/Natural/Honey等)也要转成对应中文
+- variety: 豆种（如 原生种/瑰夏/铁皮卡/波旁）
+- plot: 地块
+- batch: 批次/Lot 编号，原样抄录
+- roaster: 烘焙商
+- agtron: 烘焙度数值(Agtron)或文字（如 78 / 浅烘）；只有文字描述烘焙程度时给文字
+- cuppingFlavor: 卡面的风味描述，用顿号连接（如 白桃、茉莉、蜂蜜）
+- confidence: 各字段置信度对象，键同上述字段，值为 high/medium/low
+再次强调：不确定一律 null，不要虚构。`;
+  const messages = [{
+    role: 'user',
+    content: [
+      { type: 'text', text: prompt },
+      { type: 'image_url', image_url: { url: dataUrl } }
+    ]
+  }];
+  let json;
+  try {
+    const r = await callLLM(messages, { config: cfg, vision: true });
+    json = r.json;
+  } catch(e) {
+    preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ 识别失败：${escapeHtml((e.message||e).toString().slice(0,120))}<br><small>若报模型不支持图片，请在 LLM 设置改用豆包 seed-1.8 等视觉模型</small></div>`;
+    return;
+  }
+  applyVisionResult(json, preview, dataUrl);
+}
+function applyVisionResult(json, preview, dataUrl) {
+  if (!json || typeof json !== 'object') {
+    preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ 识别结果无法解析，请重试或手动填写</div>`;
+    return;
+  }
+  const conf = json.confidence || {};
+  let filled = 0;
+  Object.keys(VISION_FIELD_MAP).forEach(f => {
+    const v = json[f];
+    const el = document.getElementById(VISION_FIELD_MAP[f]);
+    if (!el) return;
+    el.classList.remove('scan-fill-high','scan-low-conf');
+    if (v !== null && v !== undefined && String(v).trim()) {
+      el.value = String(v).trim();
+      el.classList.add('scan-fill-high');
+      if (conf[f] === 'low' || conf[f] === 'medium') el.classList.add('scan-low-conf');
+      filled++;
+    }
+  });
+  if (json.process && typeof setProcessValue === 'function') setProcessValue(json.process);
+  if (!filled) {
+    preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ 没有从卡上识别出可用字段，请重拍（正对、铺平、光线均匀）或手动填写</div>`;
+    return;
+  }
+  const lowCount = Object.keys(VISION_FIELD_MAP).filter(f => conf[f]==='low'||conf[f]==='medium').length;
+  preview.innerHTML = `<div class="bsp-bar bsp-ok">
+    <img src="${dataUrl}" alt="预览">
+    <div class="bsp-status">✅ 已识别填入 <b>${filled}</b> 个字段（黄色高亮）${lowCount ? '，其中 '+lowCount+' 个置信度偏低，请核对' : ''}。核对/修改后点保存即自动建档。</div>
+    <button type="button" class="bsp-close">✕</button>
+  </div>`;
+  preview.querySelector('.bsp-close').addEventListener('click', () => { preview.style.display = 'none'; preview.innerHTML = ''; });
+  // 5 秒后渐弱高亮
+  setTimeout(() => {
+    Object.values(VISION_FIELD_MAP).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('scan-fill-high','scan-low-conf');
+    });
+  }, 8000);
+}
+document.addEventListener('DOMContentLoaded', initBeanScan);
+if (document.readyState !== 'loading') initBeanScan();
+
+function initBeanPicker() {
+  const inp = document.getElementById('bean-search');
+  if (!inp) return;
+  let t = null;
+  inp.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => renderBeanResults(inp.value), 150);
+  });
+  inp.addEventListener('focus', () => renderBeanResults(inp.value));
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = document.querySelector('#bean-search-results .bsr-item');
+      if (first) first.click();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#bean-search') && !e.target.closest('#bean-search-results')) {
+      const box = document.getElementById('bean-search-results');
+      if (box) box.style.display = 'none';
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', initBeanPicker);
+if (document.readyState !== 'loading') initBeanPicker();
+
 function getFormData() {
   return {
     beanName: document.getElementById('bean-name').value.trim(),
@@ -4905,10 +5270,22 @@ async function saveRecord(e) {
       if (typeof updateFlavorPanel === 'function') updateFlavorPanel();
     }
   }
-  _doSaveRecord(data);
+  // v13.30 新建记录且有豆名时：灰色相似档案弹窗确认合并/新建
+  const curEditId = document.getElementById('edit-id').value;
+  let beanChoice = null;
+  if (!curEditId && data.beanName) {
+    const amb = ambiguousBean(data.beanName);
+    if (amb) {
+      const ans = await showBeanMergeModal(amb.bean, data.beanName);
+      if (ans === false) return;
+      if (ans === 'merge') beanChoice = { mode: 'merge', beanId: amb.bean.id };
+      else beanChoice = { mode: 'new' };
+    }
+  }
+  _doSaveRecord(data, beanChoice);
 }
 
-function _doSaveRecord(data) {
+function _doSaveRecord(data, beanChoice) {
   const all = loadAll();
   const editId = document.getElementById('edit-id').value;
   if (editId) {
@@ -4922,6 +5299,15 @@ function _doSaveRecord(data) {
     data.createdAt = Date.now();
     all.unshift(data);
     toast('已保存 ✓');
+    // v13.30 用即存：合并进已有档案或新建豆档案
+    try {
+      if (beanChoice && beanChoice.mode === 'merge') {
+        mergeRecordIntoBean(beanChoice.beanId, data);
+      } else if (data.beanName) {
+        upsertBeanFromRecord(data, beanChoice && beanChoice.mode === 'new');
+      }
+      if (typeof clearBeanPick === 'function') clearBeanPick();
+    } catch(e) { console.warn('豆档案建档失败', e); }
   }
   saveAll(all);
   updateBadge();
@@ -7561,6 +7947,43 @@ function detectFineCoffee(origin) {
   return false;
 }
 
+// === v13.30: mesh20 过筛率 → 激光 D50（体积分布）经验换算 ===
+// 依据：lognormal 粒径分布模型，D50 = sieve * exp(-sigma * Phi^-1(p))
+// sieve=850μm(mesh20)，sigma=ln(粒径跨度)；中心0.50（好刀盘手冲），0.42-0.58 为刃型差异带
+// 注意：单筛过筛率只是累计分布上的一个点，无法严格反推 D50；下列为经验带，非精确值
+function _normInv(p) {
+  const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.3577518672690,-30.66479806614716,2.506628277459239];
+  const b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];
+  const c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+  const d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];
+  const plow=0.02425, phigh=1-plow;
+  if (p<plow) {
+    const q=Math.sqrt(-2*Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  if (p<=phigh) {
+    const q=p-0.5, r=q*q;
+    return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+  }
+  const q=Math.sqrt(-2*Math.log(1-p));
+  return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+function d50FromPass(passPct, sigma) {
+  const p = Math.min(0.99, Math.max(0.01, passPct/100));
+  return 850 * Math.exp(-sigma * _normInv(p));
+}
+// 返回中心值 + 经验带（过筛率±2档调节 × 刃型跨度叠加）
+function d50Band(grindLow, grindHigh) {
+  const center = d50FromPass((grindLow+grindHigh)/2, 0.50);
+  const lowVal = d50FromPass(grindHigh, 0.58);   // 过筛率高(细) + 宽跨度 → 下限
+  const highVal = d50FromPass(grindLow, 0.42);  // 过筛率低(粗) + 窄跨度 → 上限
+  return {
+    center: Math.round(center),
+    low: Math.round(Math.min(lowVal, center)),
+    high: Math.round(Math.max(highVal, center))
+  };
+}
+
 function derivePlan(ctx) {
   const { profile, roastLevel, processVal, dose, origin } = ctx;
   const caseRef = gatherFiveStarCases(ctx);
@@ -7661,6 +8084,7 @@ function derivePlan(ctx) {
   const grindLow  = Math.max(50, grindCenter - 2);
   const grindHigh = Math.min(85, grindCenter + 2);
   const grindRange = `${grindLow}-${grindHigh}%`;
+  const d50 = d50Band(grindLow, grindHigh);
 
   // === 7. 注水分段（V13.15.6 默认 2 段，产地解锁或案例支持时 3 段）===
   const D = (typeof dose === 'number' && dose > 0) ? dose : 15;
@@ -7760,7 +8184,7 @@ function renderRecommendation(plan) {
       <div class="rec-cell"><div class="rec-cell-label">旁通量</div><div class="rec-cell-value">${plan.bypass}</div></div>
       <div class="rec-cell"><div class="rec-cell-label">滤纸${plan.paperCaseAdjusted ? ' ⭐' : ''}</div><div class="rec-cell-value">${plan.paper}</div></div>
       <div class="rec-cell"><div class="rec-cell-label">基准水温</div><div class="rec-cell-value">${plan.baseTemp}℃</div></div>
-      <div class="rec-cell"><div class="rec-cell-label">研磨度（mesh 20 过筛率）</div><div class="rec-cell-value">${plan.grindRange}</div></div>
+      <div class="rec-cell"><div class="rec-cell-label">研磨度（mesh 20 过筛率）</div><div class="rec-cell-value">${plan.grindRange}<div style="font-size:11px;color:#a98;font-weight:normal;margin-top:2px">激光 D50 ≈ ${plan.d50.center}μm（${plan.d50.low}–${plan.d50.high}）</div></div></div>
       <div class="rec-cell"><div class="rec-cell-label">注水段数${plan.segmentCaseAdjusted ? ' ⭐' : ''}</div><div class="rec-cell-value">${plan.segmentTarget} 段</div></div>
     </div>
   `;
@@ -8299,9 +8723,10 @@ async function callLLM(messages, opts) {
     model: cfg.model,
     messages: messages,
     temperature: (typeof cfg.temperature === 'number') ? cfg.temperature : 0.3,
-    top_p: 0.8,
-    response_format: { type: 'json_object' }
+    top_p: 0.8
   };
+  // v13.30: 视觉调用部分模型不支持 response_format，跳过并由下方正则兜底抽 JSON
+  if (!(opts && opts.vision)) body.response_format = { type: 'json_object' };
   const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
   const timeoutMs = (cfg.timeout || 60) * 1000;
   let timer = null;
@@ -10088,6 +10513,14 @@ setupListFilterEvents();
 .bm-seg .top{display:flex;justify-content:space-between;align-items:center}
 .bm-seg .top b{font-size:13px}
 .bm-seg .meta{font-size:11px;color:#777;margin-top:2px}
+.bm-livecurve-card{margin:8px 2px;padding:8px 8px 4px;background:#fff;border:1px solid #e6ddcc;border-radius:10px}
+.bm-lc-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#6b4a2b;margin-bottom:4px}
+.bm-lc-target{color:#888;font-size:11px;display:flex;align-items:center;gap:3px}
+.bm-lc-target input{width:52px;padding:2px 4px;border:1px solid #ddd;border-radius:5px;font-size:11px;text-align:right}
+.bm-lc-legend{display:flex;gap:12px;justify-content:center;font-size:10px;color:#999;padding:2px 0 4px}
+.bm-lc-legend .lg-w{color:#3b7dd8}.bm-lc-legend .lg-f{color:#f0a560}.bm-lc-legend .lg-g{color:#4caf7d}
+body.theme-dark .bm-livecurve-card{background:#2a2620;border-color:#444}
+body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd}
 
 .bm-ratio{font-size:22px;font-weight:600;color:#6b4a2b;text-align:center;margin:6px 0}
 
@@ -10496,6 +10929,7 @@ setupListFilterEvents();
         segments: [],
         startedAt: 0,
         liftedAt: 0,
+        liveCurve: [],
         totalBrewTime: 0,
         totalPourTime: 0,
         totalPourWater: 0,
@@ -10618,6 +11052,9 @@ setupListFilterEvents();
     }
     feed({ weight, flowRate, ts }) {
       this._latestFlow = flowRate;
+      if (this.brew.startedAt && (this.state === 'POURING' || this.state === 'DRIPPING')) {
+        this.brew.liveCurve.push({ t: ts - this.brew.startedAt, w: +weight.toFixed(2), f: +flowRate.toFixed(2), phase: this.state === 'POURING' ? 'pour' : 'drip' });
+      }
       if (this._currentSeg && this.state === 'POURING') {
         this._currentSeg.curve.push({ t: ts - this._currentSeg.startAt, w: +weight.toFixed(2), f: +flowRate.toFixed(2), phase: 'pour' });
         if (flowRate > this._currentSeg.peakFlow) this._currentSeg.peakFlow = +flowRate.toFixed(2);
@@ -10860,7 +11297,10 @@ setupListFilterEvents();
     a.on('weight', ({ weight, ts }) => {
       const el = $('bm-weight');
       if (el) el.textContent = weight.toFixed(1);
-      if (session) session.feed({ weight, flowRate: _flow, ts });
+      if (session) {
+        session.feed({ weight, flowRate: _flow, ts });
+        if (session.state === 'POURING' || session.state === 'DRIPPING') maybeDrawLiveCurve();
+      }
     });
     a.on('timer',   ({ ms })       => { const el=$('bm-timer'); if (el) el.textContent = (ms/1000).toFixed(1); });
     a.on('battery', ({ percent })  => { const el=$('bm-battery'); if (el) el.textContent = percent; });
@@ -10976,6 +11416,14 @@ setupListFilterEvents();
     } else if (s === 'POURING' || s === 'DRIPPING') {
       el.innerHTML = `
         <div class="bm-timer-big" id="bm-brew-timer">${fmtTime((Date.now()-sessionStartTs))}</div>
+        <div class="bm-livecurve-card">
+          <div class="bm-lc-head">
+            <span>📈 实时曲线</span>
+            <span class="bm-lc-target">目标 <input id="bm-lc-goal" type="number" min="0" step="1" value="${getLiveCurveGoal()}" title="目标总水量，画水平参考线"> g</span>
+          </div>
+          <div id="bm-livecurve"></div>
+          <div class="bm-lc-legend"><span class="lg-w">— 累计重量(g)</span><span class="lg-f">— 流速(g/s)</span><span class="lg-g">┄ 目标</span></div>
+        </div>
         <div style="text-align:center;font-size:12px;color:#888;margin-bottom:6px">
           ${b.dryDose ? '干粉 <b>'+b.dryDose+'g</b> · ' : ''}当前 <b>${$('bm-weight').textContent}g</b>
         </div>
@@ -10983,6 +11431,12 @@ setupListFilterEvents();
         <button type="button" id="bm-btn-finish" class="danger" style="margin-top:6px">✋ 完成冲煮（手动）</button>
       `;
       $('bm-btn-finish').addEventListener('click', () => $('bm-finish-modal').classList.add('show'));
+      const goalInp = $('bm-lc-goal');
+      if (goalInp) {
+        goalInp.addEventListener('input', (e) => { setLiveCurveGoal(e.target.value); drawLiveCurve(); });
+      }
+      _lastLiveDraw = 0;
+      drawLiveCurve();
     } else if (s === 'LIFT_PENDING') {
       el.innerHTML = `
         <div class="bm-timer-big">${b.liftedAt && b.startedAt ? fmtTime(b.liftedAt - b.startedAt) : '—'} <small>已锁定</small></div>
@@ -11054,6 +11508,66 @@ setupListFilterEvents();
     $('bm-btn-undo').addEventListener('click', () => session.cancelLift());
   }
   function hideUndoBar() { const el=$('bm-undo-slot'); if (el) el.innerHTML = ''; }
+
+  /* === v13.30 连秤实时曲线 === */
+  const LIVE_GOAL_KEY = 'pour_over_live_curve_goal_v1';
+  function getLiveCurveGoal() {
+    try { return parseInt(localStorage.getItem(LIVE_GOAL_KEY) || '0') || 0; } catch(e) { return 0; }
+  }
+  function setLiveCurveGoal(v) {
+    try { localStorage.setItem(LIVE_GOAL_KEY, String(v || 0)); } catch(e) {}
+  }
+  let _lastLiveDraw = 0;
+  function drawLiveCurve() {
+    const host = $('bm-livecurve');
+    if (!host || !session) return;
+    const curve = session.brew.liveCurve || [];
+    const W = Math.max(220, host.clientWidth || 300), H = 150;
+    const PAD = { l: 34, r: 34, t: 10, b: 18 };
+    const iw = W - PAD.l - PAD.r, ih = H - PAD.t - PAD.b;
+    const tMaxRaw = curve.length ? curve[curve.length-1].t : 0;
+    const tMax = Math.max(30000, Math.ceil(tMaxRaw/10000)*10000);
+    let wMax = 0, fMax = 0;
+    curve.forEach(p => { if (p.w > wMax) wMax = p.w; if (p.f > fMax) fMax = p.f; });
+    const goal = getLiveCurveGoal();
+    if (goal > wMax) wMax = goal;
+    wMax = Math.max(50, Math.ceil(wMax/50)*50);
+    fMax = Math.max(5, Math.ceil(fMax));
+    const X = t => PAD.l + (t/tMax)*iw;
+    const Yw = w => PAD.t + ih - (w/wMax)*ih;
+    const Yf = f => PAD.t + ih - (f/fMax)*ih;
+    // 网格（重量4档）
+    let grid = '';
+    for (let i=0;i<=4;i++) {
+      const wv = wMax*i/4, y = Yw(wv);
+      grid += `<line x1="${PAD.l}" y1="${y}" x2="${PAD.l+iw}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
+      grid += `<text x="${PAD.l-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#aaa">${Math.round(wv)}</text>`;
+      grid += `<text x="${PAD.l+iw+4}" y="${y+3}" text-anchor="start" font-size="9" fill="#f0a560">${(fMax*i/4).toFixed(0)}</text>`;
+    }
+    // 时间轴刻度
+    for (let i=0;i<=4;i++) {
+      const tv = tMax*i/4, x = X(tv);
+      grid += `<text x="${x}" y="${H-5}" text-anchor="middle" font-size="9" fill="#aaa">${(tv/1000).toFixed(0)}s</text>`;
+    }
+    const wPath = curve.map((p,i) => `${i?'L':'M'}${X(p.t).toFixed(1)},${Yw(p.w).toFixed(1)}`).join('');
+    const fPath = curve.map((p,i) => `${i?'L':'M'}${X(p.t).toFixed(1)},${Yf(p.f).toFixed(1)}`).join('');
+    let goalLine = '';
+    if (goal > 0) {
+      const yg = Yw(goal);
+      goalLine = `<line x1="${PAD.l}" y1="${yg}" x2="${PAD.l+iw}" y2="${yg}" stroke="#4caf7d" stroke-width="1.2" stroke-dasharray="5,4"/>`;
+    }
+    host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block">
+      ${grid}${goalLine}
+      <path d="${fPath}" fill="none" stroke="#f0a560" stroke-width="1.3" stroke-linejoin="round"/>
+      <path d="${wPath}" fill="none" stroke="#3b7dd8" stroke-width="2" stroke-linejoin="round"/>
+    </svg>`;
+  }
+  function maybeDrawLiveCurve() {
+    const now = Date.now();
+    if (now - _lastLiveDraw < 200) return;
+    _lastLiveDraw = now;
+    drawLiveCurve();
+  }
 
   /* ============================================================
    * 8. 模式切换 — 控制连秤面板/手动 timer 的显隐
@@ -12886,7 +13400,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.29 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.30 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
