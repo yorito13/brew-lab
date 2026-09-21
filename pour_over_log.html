@@ -3309,7 +3309,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.30</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.30.1</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3937,7 +3937,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.30</div>
+    <div class="about-version">Brew Lab · v13.30.1</div>
   </div>
 </div>
 
@@ -8123,6 +8123,7 @@ function derivePlan(ctx) {
     roastLabel: tempRange.label,
     baseTemp, tempDelta,
     grindRange, grindCenter,
+    d50,
     totalWater,
     pours,
     segmentTarget, segmentReason, segmentCaseAdjusted,

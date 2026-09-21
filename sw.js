@@ -1,6 +1,6 @@
 // 手冲咖啡日志 PWA Service Worker
 // 版本：bump 此值即可让用户在下次访问时拿到最新文件
-const VERSION = 'brewlab-v13.30-livecurve-d50-beanlib-scan-2026-09-20';
+const VERSION = 'brewlab-v13.30.1-fix-recommend-d50-2026-09-20';
 const PRECACHE = VERSION + '-precache';
 
 // 需要预缓存的核心资源（同目录相对路径）
