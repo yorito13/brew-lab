@@ -3309,7 +3309,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.30.1</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.31</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3937,7 +3937,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.30.1</div>
+    <div class="about-version">Brew Lab · v13.31</div>
   </div>
 </div>
 
@@ -5006,13 +5006,13 @@ function initBeanScan() {
     file.value = '';
   });
 }
-// 本地压缩：长边 1600，JPEG 0.8
+// v13.31: 本地压缩 长边 1280，优先 WebP 0.72（同画质体积约 JPEG 6-7 成），不支持回退 JPEG
 function compressImage(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      const maxSide = 1600;
+      const maxSide = 1280;
       let { width, height } = img;
       if (Math.max(width, height) > maxSide) {
         const k = maxSide / Math.max(width, height);
@@ -5022,7 +5022,9 @@ function compressImage(file) {
       canvas.width = width; canvas.height = height;
       canvas.getContext('2d').drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      let out = canvas.toDataURL('image/webp', 0.72);
+      if (!/^data:image\/webp[;,]/.test(out)) out = canvas.toDataURL('image/jpeg', 0.72);
+      resolve(out);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('图片读取失败')); };
     img.src = url;
@@ -5031,9 +5033,12 @@ function compressImage(file) {
 async function handleBeanScan(file) {
   const preview = document.getElementById('bean-scan-preview');
   if (!preview) return;
+  const tAllStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   let dataUrl;
   try { dataUrl = await compressImage(file); }
   catch(e) { toast(e.message || '图片处理失败'); return; }
+  // v13.31: 统计压缩后体积（base64 字符数约等于字节数）
+  const imgKB = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75 / 1024);
   preview.style.display = 'block';
   preview.innerHTML = `<div class="bsp-bar"><img src="${dataUrl}" alt="预览"><div class="bsp-status">⏳ 识别中…</div></div>`;
   const cfg = loadLLMConfig();
@@ -5041,19 +5046,14 @@ async function handleBeanScan(file) {
     preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ LLM 未配置或未启用，请先在 LLM 设置中配置豆包等视觉模型</div>`;
     return;
   }
-  const prompt = `你是咖啡豆信息识别助手。请识别图片中咖啡豆卡片或包装上的信息，只输出 JSON 对象，包含以下字段（全部为字符串，卡上没有、看不清或无法确定的字段值设为 null，严禁推测或编造）：
-- beanName: 豆名/标签，按卡面原样抄录（中文或英文原名，不要翻译改写）
-- origin: 产地（国家/产区，如 埃塞俄比亚、哥伦比亚）
-- farm: 庄园/处理站名称
-- process: 处理法，归一为以下之一：水洗/日晒/蜜处理/厌氧日晒/厌氧水洗/湿刨/双重发酵/其他；卡面是英文(Washed/Natural/Honey等)也要转成对应中文
-- variety: 豆种（如 原生种/瑰夏/铁皮卡/波旁）
-- plot: 地块
-- batch: 批次/Lot 编号，原样抄录
-- roaster: 烘焙商
-- agtron: 烘焙度数值(Agtron)或文字（如 78 / 浅烘）；只有文字描述烘焙程度时给文字
-- cuppingFlavor: 卡面的风味描述，用顿号连接（如 白桃、茉莉、蜂蜜）
-- confidence: 各字段置信度对象，键同上述字段，值为 high/medium/low
-再次强调：不确定一律 null，不要虚构。`;
+  const prompt = `识别图中咖啡豆卡片/包装信息，只输出 JSON 对象。字段均为字符串：
+beanName 豆名(原样抄录不翻译)、origin 产地、farm 庄园/处理站、
+process 处理法(归一为:水洗/日晒/蜜处理/厌氧日晒/厌氧水洗/湿刨/双重发酵/其他,英文Washed/Natural/Honey等转中文)、
+variety 豆种、plot 地块、batch 批次(原样)、roaster 烘焙商、
+agtron 烘焙度(Agtron数值如78,或浅烘/中烘等文字)、
+cuppingFlavor 风味(顿号连接,如 白桃、茉莉、蜂蜜)、
+confidence 各字段置信度对象(值high/medium/low,键同上述字段)。
+卡上没有、看不清、无法确定一律 null，严禁推测编造。直接输出 JSON，不要解释。`;
   const messages = [{
     role: 'user',
     content: [
@@ -5061,17 +5061,19 @@ async function handleBeanScan(file) {
       { type: 'image_url', image_url: { url: dataUrl } }
     ]
   }];
-  let json;
+  let json, reqMs;
   try {
     const r = await callLLM(messages, { config: cfg, vision: true });
-    json = r.json;
+    json = r.json; reqMs = r.elapsedMs;
   } catch(e) {
     preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ 识别失败：${escapeHtml((e.message||e).toString().slice(0,120))}<br><small>若报模型不支持图片，请在 LLM 设置改用豆包 seed-1.8 等视觉模型</small></div>`;
     return;
   }
-  applyVisionResult(json, preview, dataUrl);
+  const tAllEnd = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  const timing = { totalMs: Math.round(tAllEnd - tAllStart), reqMs, imgKB };
+  applyVisionResult(json, preview, dataUrl, timing);
 }
-function applyVisionResult(json, preview, dataUrl) {
+function applyVisionResult(json, preview, dataUrl, timing) {
   if (!json || typeof json !== 'object') {
     preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ 识别结果无法解析，请重试或手动填写</div>`;
     return;
@@ -5096,9 +5098,13 @@ function applyVisionResult(json, preview, dataUrl) {
     return;
   }
   const lowCount = Object.keys(VISION_FIELD_MAP).filter(f => conf[f]==='low'||conf[f]==='medium').length;
+  // v13.31: 耗时/体积信息（接口耗时 + 总耗时 + 压缩后图片大小）
+  const timeTxt = (timing && timing.totalMs != null)
+    ? `<span style="color:#7a9;font-size:11px;margin-left:4px">⏱ ${(timing.totalMs/1000).toFixed(1)}s（接口 ${(timing.reqMs/1000).toFixed(1)}s${timing.imgKB ? ' · 图 '+timing.imgKB+'KB' : ''}）</span>`
+    : '';
   preview.innerHTML = `<div class="bsp-bar bsp-ok">
     <img src="${dataUrl}" alt="预览">
-    <div class="bsp-status">✅ 已识别填入 <b>${filled}</b> 个字段（黄色高亮）${lowCount ? '，其中 '+lowCount+' 个置信度偏低，请核对' : ''}。核对/修改后点保存即自动建档。</div>
+    <div class="bsp-status">✅ 已识别填入 <b>${filled}</b> 个字段（黄色高亮）${lowCount ? '，其中 '+lowCount+' 个置信度偏低，请核对' : ''}。${timeTxt}<br>核对/修改后点保存即自动建档。</div>
     <button type="button" class="bsp-close">✕</button>
   </div>`;
   preview.querySelector('.bsp-close').addEventListener('click', () => { preview.style.display = 'none'; preview.innerHTML = ''; });
@@ -8728,11 +8734,14 @@ async function callLLM(messages, opts) {
   };
   // v13.30: 视觉调用部分模型不支持 response_format，跳过并由下方正则兜底抽 JSON
   if (!(opts && opts.vision)) body.response_format = { type: 'json_object' };
+  // v13.31: 视觉场景限制输出长度，减少推理/生成等待（非视觉维持原行为）
+  if (opts && opts.vision) body.max_tokens = (typeof opts.maxTokens === 'number') ? opts.maxTokens : 800;
   const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
   const timeoutMs = (cfg.timeout || 60) * 1000;
   let timer = null;
   if (ctrl) timer = setTimeout(() => ctrl.abort(), timeoutMs);
   let resp;
+  const tReqStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   try {
     resp = await fetch(url, {
       method: 'POST',
@@ -8747,6 +8756,7 @@ async function callLLM(messages, opts) {
     if (timer) clearTimeout(timer);
     throw new Error('网络请求失败：' + (e.message || e));
   }
+  const tReqEnd = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
   if (timer) clearTimeout(timer);
   if (!resp.ok) {
     let detail = '';
@@ -8770,7 +8780,7 @@ async function callLLM(messages, opts) {
       throw new Error('LLM 输出 JSON 解析失败');
     }
   }
-  return { raw: content, json: parsed, model: cfg.model };
+  return { raw: content, json: parsed, model: cfg.model, elapsedMs: Math.round(tReqEnd - tReqStart) };
 }
 
 // === LLM 配置 modal 操作 ===
@@ -13401,7 +13411,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.30 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.31 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
