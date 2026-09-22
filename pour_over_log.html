@@ -3309,7 +3309,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.31</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.31.2</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3937,7 +3937,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.31</div>
+    <div class="about-version">Brew Lab · v13.31.2</div>
   </div>
 </div>
 
@@ -5063,7 +5063,12 @@ confidence 各字段置信度对象(值high/medium/low,键同上述字段)。
   }];
   let json, reqMs;
   try {
-    const r = await callLLM(messages, { config: cfg, vision: true });
+    const r = await callLLM(messages, {
+      config: cfg, vision: true,
+      onStatus: (msg) => {
+        preview.innerHTML = `<div class="bsp-bar"><img src="${dataUrl}" alt="预览"><div class="bsp-status" style="color:#d90">⏳ ${escapeHtml(msg)}</div></div>`;
+      }
+    });
     json = r.json; reqMs = r.elapsedMs;
   } catch(e) {
     preview.innerHTML = `<div class="bsp-bar bsp-err">⚠️ 识别失败：${escapeHtml((e.message||e).toString().slice(0,120))}<br><small>若报模型不支持图片，请在 LLM 设置改用豆包 seed-1.8 等视觉模型</small></div>`;
@@ -8736,28 +8741,50 @@ async function callLLM(messages, opts) {
   if (!(opts && opts.vision)) body.response_format = { type: 'json_object' };
   // v13.31: 视觉场景限制输出长度，减少推理/生成等待（非视觉维持原行为）
   if (opts && opts.vision) body.max_tokens = (typeof opts.maxTokens === 'number') ? opts.maxTokens : 800;
+  // v13.31.2: 视觉识别无需深度思考——仅对方舟端点关闭思考链，避免拖慢/产生思维链；
+  // 其他兼容服务(如OpenAI)不传该字段以防 400
+  if (opts && opts.vision && /(^|\.)volces\.com|ark\.cn-beijing/i.test(cfg.baseUrl || '')) {
+    body.thinking = { type: 'disabled' };
+  }
   const ctrl = (typeof AbortController === 'function') ? new AbortController() : null;
   const timeoutMs = (cfg.timeout || 60) * 1000;
-  let timer = null;
-  if (ctrl) timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  let resp;
   const tReqStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-  try {
-    resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + cfg.apiKey
-      },
-      body: JSON.stringify(body),
-      signal: ctrl ? ctrl.signal : undefined
-    });
-  } catch (e) {
+  const bodyStr = JSON.stringify(body);
+  const onStatus = (opts && typeof opts.onStatus === 'function') ? opts.onStatus : null;
+  // v13.31.1: 限流(429)/服务端(5xx)自动退避重试
+  const maxRetries = (opts && typeof opts.maxRetries === 'number') ? opts.maxRetries : 3;
+  let resp, attempt = 0, timer = null;
+  while (true) {
+    if (ctrl) timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + cfg.apiKey
+        },
+        body: bodyStr,
+        signal: ctrl ? ctrl.signal : undefined
+      });
+    } catch (e) {
+      if (timer) clearTimeout(timer);
+      throw new Error('网络请求失败：' + (e.message || e));
+    }
     if (timer) clearTimeout(timer);
-    throw new Error('网络请求失败：' + (e.message || e));
+    const retryable = resp.status === 429 || (resp.status >= 500 && resp.status <= 599);
+    if (resp.ok || !retryable || attempt >= maxRetries) break;
+    // 解析等待秒数：优先 Retry-After，否则指数退避（20/40/60s）
+    let waitS = 0;
+    const ra = resp.headers.get('retry-after');
+    if (ra) { const n = parseFloat(ra); if (n > 0) waitS = n; }
+    if (!waitS) waitS = Math.min(60, 10 * Math.pow(2, attempt));
+    try { await resp.text(); } catch (e) {}
+    const isLimit = resp.status === 429;
+    if (onStatus) onStatus((isLimit ? '触发每分钟请求上限' : '服务端临时繁忙') + '，' + waitS + 's 后自动重试（' + (attempt + 1) + '/' + maxRetries + '）');
+    await new Promise(r => setTimeout(r, waitS * 1000));
+    attempt++;
   }
   const tReqEnd = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-  if (timer) clearTimeout(timer);
   if (!resp.ok) {
     let detail = '';
     try { detail = await resp.text(); } catch (e) {}
