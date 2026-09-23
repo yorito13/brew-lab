@@ -1,107 +1,117 @@
-# Brew Lab · 手冲咖啡 V13.15.10
+---
+AIGC:
+    Label: "1"
+    ContentProducer: 001191110102MACQD9K64018705
+    ProduceID: 3207698845546936_0-drive/227229407580216383/brewlab_v13.31.1/README.md
+    ReservedCode1: ""
+    ContentPropagator: 001191110102MACQD9K64028705
+    PropagateID: 3207698845546936#1790134921418
+    ReservedCode2: ""
+---
+# Brew Lab · 手冲咖啡实验室 v13.31.2
 
-> 一个完全本地、移动端优先的手冲冲煮记录与实验室级分析工具。
+> 一个完全本地、移动端优先的手冲冲煮记录与实验室级分析工具。单文件 PWA，浏览器直接跑，数据不出本机。
 
-**核心特性：**
-- ☕ 单杯 11 维偏离评估（萃取率/TDS/酸甜苦平衡/口感/温度等）
-- 📊 多杯横向对比（≤3 杯 + 曲线叠加 + 跨维度跳转）
-- 🤖 LLM 风味推断与改进建议（防污染 6 件套，本地分析为主、LLM 为辅）
-- 🌗 暗色主题（三态 auto / light / dark + 防 FOUC）
-- 📱 PWA 完整支持（添加到主屏幕、独立启动、完全离线、4 张 iOS Splash）
-- 🔒 数据完全本地（localStorage，不上云、不联网，仅 LLM 评估按需调用）
+## 核心能力
+
+- ⚖️ **连秤实时曲线**：Web Bluetooth 直连 BOOKOO Themis Mini / Ultra，注水重量实时成曲线，自动记录冲煮节奏（含演示模式可无设备体验）
+- 📐 **粒径 D50 分析**：基于过筛数据计算 D50 与分布带（过筛率越高、D50 越小），把研磨度量化进冲煮决策
+- 📇 **豆档案库**：本地管理豆子信息与历史档案，配方与豆子挂钩
+- 📷 **拍卡识别（视觉 LLM）**：拍豆袋/信息卡，多模态 LLM 自动抽取豆子字段，高置信结构化回填
+- 🩺 **粉坑诊断**：粉坑 × 感官 × 参数三方对撞，滤杯几何旁通档位与液位原理，输出零依赖诊断报告
+- 🔁 **冲煮复盘**：LLM 对整次冲煮做归因分析，给出可执行改进方向
+- ☕ **单杯多维偏离评估**：萃取率 / TDS / 酸甜苦平衡 / 口感 / 温度等
+- 📊 **多杯横向对比**：≤3 杯 + 曲线叠加 + 跨维度跳转
+- 🌗 **暗色主题**：auto / light / dark 三态，防 FOUC
+- 📱 **完整 PWA**：添加到主屏幕、独立启动、完全离线
+- 🔒 **数据完全本地**：localStorage，不上云；仅 LLM 按需联网
 
 ## 快速启动
 
-> ⚠️ PWA 安装、离线缓存等功能必须通过 http(s) 服务器访问。
-> 直接双击 `pour_over_log.html`（file:// 协议）只能用基础记录功能，**不能添加到主屏幕**。
+> ⚠️ PWA 安装、离线缓存、蓝牙连秤必须通过 http(s) 访问或在支持的浏览器中进行；直接双击 `pour_over_log.html`（file://）只能用基础记录功能。
 
-### Mac / Linux
-
-```bash
-./start.sh
-# 浏览器打开 http://localhost:8765/pour_over_log.html
-```
-
-### Windows
-
-双击 `start.bat`，浏览器会自动打开。
-
-### 公网部署（推荐 Cloudflare Pages）
-
-任何静态 http(s) 服务器都行。**Cloudflare Pages** 体验最佳：
-
-1. 登录 [pages.cloudflare.com](https://pages.cloudflare.com/) → Create a project → **Direct Upload**
-2. 项目名填 `brew-lab`（或自定义）
-3. 把整个 `brew-lab-v13.15` 文件夹（或 zip 解压后内容）拖上去
-4. 等 ~1 分钟构建完，拿到 `https://brew-lab.pages.dev/pour_over_log.html`
-
-**其他选项：**
-- **GitHub Pages**：把整个文件夹丢到一个 repo，Settings → Pages → Source 选 main → Save，适合长期迭代（每次 git push 自动重新部署）
-- **Vercel / Netlify**：拖文件夹秒部署
-- **Nginx / Apache**：放到 web 根目录即可
-
-## 安装到手机/电脑（PWA）
-
-1. 用浏览器打开站点（例：`https://brew-lab.pages.dev/pour_over_log.html`）
-2. **iOS Safari**：底部「分享」→「添加到主屏幕」
-3. **Android Chrome**：地址栏右侧"安装"图标，或菜单 → "添加到主屏幕"
-4. **桌面 Chrome / Edge**：地址栏右侧出现安装图标，点击即可
-
-安装后图标在桌面（深青底 + 白色 lily 滤杯 + 琥珀核心），独立窗口启动，跟原生 App 一样。**iOS 启动时会显示对应分辨率的 Brew Lab 启动页**（覆盖 ~80% iPhone / iPad Pro 11" 设备）。
-
-## 文件清单
+当前仓库核心为两个文件：
 
 | 文件 | 说明 |
 | --- | --- |
-| pour_over_log.html | 主程序（单文件，7774 行） |
-| manifest.json | PWA 清单 |
-| sw.js | Service Worker（离线缓存，VERSION = brewlab-v13.15-2026-06-14） |
-| icon-192.png / icon-512.png | Android / 通用标准图标 |
-| icon-180.png | iOS apple-touch-icon |
-| icon-maskable-512.png | Android 自适应图标（safe zone 中心 80%） |
-| splash-1290x2796.png | iPhone 14/15/16 Pro Max 启动页 |
-| splash-1179x2556.png | iPhone 14/15/16 Pro 启动页 |
-| splash-1170x2532.png | iPhone 14/15/16 标准款启动页 |
-| splash-1668x2388.png | iPad Pro 11" 启动页 |
-| start.sh / start.bat | 本地一键启动脚本（macOS/Linux 与 Windows） |
+| `pour_over_log.html` | 主程序（单文件，约 1.46 万行） |
+| `sw.js` | Service Worker（离线缓存，`VERSION = brewlab-v13.31.2-ark-switch-model-2026-09-21`） |
+
+> 注：历史版本曾含 `manifest.json`、icon、splash、`start.sh/.bat` 等；以你仓库实际文件为准。
+
+### 公网部署（GitHub Pages）
+
+1. 把 `pour_over_log.html` 与 `sw.js` 上传到仓库根目录
+2. Settings → Pages → Source 选 `main` / `(root)` → Save
+3. 等 1–3 分钟，访问 `https://<用户名>.github.io/<仓库名>/pour_over_log.html`
+
+其他静态平台（Cloudflare Pages / Vercel / Netlify / Nginx）拖文件即可。
+
+## 安装到手机 / 电脑（PWA）
+
+1. 用浏览器打开站点
+2. **iOS Safari**：分享 → 添加到主屏幕（注：iOS 不支持 Web Bluetooth，连秤仅限 Android）
+3. **Android Chrome / Edge**：菜单 → 添加到主屏幕 / 安装应用
+4. **桌面 Chrome / Edge**：地址栏安装图标
+
+安装后独立窗口启动，与原生 App 一致。
+
+## 连秤（Android Chrome / Edge）
+
+1. 秤开机并处于蓝牙广播状态
+2. 进入「连秤」模式，选择设备类型 **BOOKOO Themis Mini / Ultra**
+3. 在系统蓝牙选择器中选中设备（名称形如 `BOOKOO_SC_U …`）
+4. 连接成功后注水自动成曲线、自动记录
+
+无设备时可用 `BOOKOO_SC_U_MOCK (演示)` 模式体验完整流程。
+
+## LLM 配置（可选）
+
+拍卡识别与冲煮复盘需要 LLM；**本地分析始终优先，LLM 只在需要推理/视觉时调用**。
+
+1. 进入 ⚙️ 设置 → LLM 配置
+2. 选择 provider：
+   - **火山方舟（豆包，OpenAI 兼容）**
+   - **Anthropic Claude（OpenAI 兼容代理）**
+   - **自定义（OpenAI 兼容）**：可接 DeepSeek / 通义 / Kimi / 智谱 / OpenAI 等
+3. 填 **API Key + Model ID**（用模型的 Model ID，不是控制台展示名）
+4. 测试连接通过后即可使用
+
+**默认推荐模型：`doubao-seed-2-0-lite-260428`** —— 交互级低延迟、识图高置信、复盘更精准。
+
+工程细节：
+
+- 视觉识别在方舟端点自动关闭深度思考（`thinking: disabled`），避免思维链拖慢
+- HTTP 429 / 5xx 自动指数退避重试（最多 3 次，遵循 `Retry-After`，UI 显示倒计时）
+- 拍照图自动压缩（长边 1280、优先 WebP），减小上传体积
+- API Key 仅保存在使用者自己浏览器的 localStorage，无内置统一密钥
 
 ## 数据存储
 
-- 所有冲煮记录保存在浏览器 **localStorage**，完全本地、不上云
-- LLM 评估按需联网（用户自行配置 API Key，仅评估时调用）
-- 换浏览器/换设备数据不会自动同步（HTML 顶部有数据导出/导入按钮）
+- 所有记录保存在浏览器 **localStorage**，完全本地、不上云
+- LLM 按需联网，Key 不离开本机
+- 换浏览器 / 设备不会自动同步（顶部有数据导出 / 导入）
 - 清浏览器数据 = 清记录，建议定期导出备份
 
-## LLM 评估配置（可选）
+## 更新方式
 
-V13.14 起支持调用 LLM 做风味推断与改进建议。**本地分析始终优先**，LLM 仅在本地分析不够充分时调用。
+替换 `pour_over_log.html`，并确认 `sw.js` 顶部 `VERSION` 已更新；浏览器下次访问会自动拉新版。若未刷新：
 
-1. 进入"⚙️ 设置" → "LLM 评估配置"
-2. 选 provider（火山方舟 / OpenAI / Anthropic / 自定义 OpenAI 兼容端点）
-3. 填 API Key + Model ID（火山方舟用 `doubao-seed-1-6-251015` 等 Model ID，**不是控制台展示名**）
-4. "测试连接" 通过后即可在评估卡使用 🤖 按钮触发
+1. 关闭并重新打开 PWA
+2. 或 DevTools → Application → Service Workers → Unregister 后硬刷
 
-**防污染 6 件套**：知识基线 grounding + 可疑措辞负面提示 + Schema 强约束 + 低温度 0.3 + 不确定标记 + 模型抗幻觉排序 — 确保 LLM 当"翻译器"而非"专家"，不会把网络上不靠谱内容当作权威。
+## 近期版本
 
-## 主题切换
+- **v13.31.2**：视觉识别切换至 `doubao-seed-2-0-lite`；方舟端点关闭思考链
+- **v13.31.1**：429 / 5xx 自动退避重试 + UI 倒计时（应对豆包 1.8 停服配额清零）
+- **v13.31**：图片压缩 1280/WebP、`max_tokens`、识别阶段耗时展示
+- **v13.30.1**：修复推荐方案因漏返 `d50` 导致点击无反应
+- **v13.30**：四大功能上线 —— 连秤实时曲线 / D50 / 豆档案库 / 拍卡识别
 
-页面右上角 🌓 按钮切换三态：
-- 🌓 **auto**：跟随系统（默认）
-- ☀️ **light**：强制浅色
-- 🌙 **dark**：强制暗色
+## 许可
 
-设置会保存在 localStorage，下次打开自动恢复。
+个人使用 / 自部署，无商业限制（如需修改源码请保留版本号注释）。
 
-## 更新
+---
 
-下次更新只需要替换文件（**重点替换 `sw.js` 顶部的 `VERSION` 常量**），浏览器下次访问会自动拉新版。如果发现页面没更新，可以：
-1. 手动关闭并重新打开 PWA
-2. 或在浏览器 → DevTools → Application → Service Workers → "Unregister" 强制刷新
-
-## 版本
-
-**当前版本：V13.15.10（杯测风味字段 + 本地推荐冲煮方案（按需））**
-- 2026-06-16 计时器「暂停」改为「结束」并自动填充总时长 / BP 段勾选后两个时间字段隐藏 + 序列化拦截（顺带解决 BP 末段时总时长未生效的曲线 bug）
-- 2026-06-14 V13.15 P0 品牌锚点 / P1 节奏 token 化 / P2 微交互 / P3.1 暗色 / P3.2 iOS Splash / P3.3 chart 暗色 + PWA icon 刷新 / P3.4 内联 token + sw.js bump / V13.15.1 启动屏 + Logo 横线修复
-
-**许可：** 个人使用 / 自部署，无商业限制（如需修改源码请保留版本号注释）。
+> 本内容由 Coze AI 生成，请遵循相关法律法规及《人工智能生成合成内容标识办法》使用与传播。
