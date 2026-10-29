@@ -455,6 +455,16 @@
     color: #2e7d32;
     font-weight: var(--fw-semi);
   }
+  /* v13.35 摇杆底座三档流速：慢→中→快，颜色由绿渐暖红，视觉对应流速递增 */
+  .pour-item .pour-valve[data-state="s1"] {
+    background: #e8f5e9; border-color: #81c784; color: #2e7d32; font-weight: var(--fw-semi);
+  }
+  .pour-item .pour-valve[data-state="s2"] {
+    background: #fff7e6; border-color: #ffb74d; color: #b35900; font-weight: var(--fw-semi);
+  }
+  .pour-item .pour-valve[data-state="s3"] {
+    background: #fdecea; border-color: #e57373; color: #c62828; font-weight: var(--fw-semi);
+  }
   /* 旁路水（bypass）切换按钮：任意段都可标记，不参与萃取，只稀释入杯浓度 */
   .pour-item .pour-bypass {
     order: 2;
@@ -3335,7 +3345,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.32</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.36</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3963,7 +3973,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.33</div>
+    <div class="about-version">Brew Lab · v13.36</div>
   </div>
 </div>
 
@@ -4359,9 +4369,12 @@ function addPour(water = '', time = '', temp = '', valve = '', bypass = '', pour
     <input type="text" placeholder="段开始 0:00" value="${time}" class="pour-time" title="该段注水开始时刻（首段固定 0:00）">
     <input type="text" placeholder="停水 0:15" value="${pourEnd}" class="pour-end" title="该段注水停止时间（之后是焖蒸/等待）">
     <input type="number" placeholder="温℃" value="${tempFill}" class="pour-temp" inputmode="decimal" step="0.5" data-auto-temp="${tempFill === mainTemp && tempFill !== '' ? '1' : ''}" oninput="this.dataset.autoTemp=''">
-    <select class="pour-valve" data-state="${valve}" onchange="onValveChange(this)">
+    <select class="pour-valve" data-state="${valve}" onchange="onValveChange(this)" title="聪明杯摇杆底座档位">
       <option value="">阀</option>
       <option value="closed">关</option>
+      <option value="s1">慢</option>
+      <option value="s2">中</option>
+      <option value="s3">快</option>
       <option value="open">开</option>
     </select>
     <button type="button" class="pour-bypass" data-bypass="${bypass}" onclick="onBypassToggle(this)" title="旁路水 bypass：标记后该段不参与萃取，只稀释入杯浓度">BP</button>
@@ -4386,8 +4399,11 @@ function onMainTempChange(inp) {
   });
   if (typeof markAnalysisStale === 'function') markAnalysisStale();
 }
+// v13.35: 聪明杯摇杆底座档位。s1=慢流 s2=中流 s3=快流，open 为旧数据兼容（等同全开/快）
+const POUR_VALVE_LABELS = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '开' };
 function onValveChange(sel) {
   sel.dataset.state = sel.value || '';
+  if (typeof markAnalysisStale === 'function') markAnalysisStale();
 }
 function onBypassToggle(btn) {
   const cur = btn.dataset.bypass === '1' ? '' : '1';
@@ -5205,6 +5221,23 @@ function getFormData() {
     strengthWant: document.getElementById('strength-want').dataset.value || '',
     notes: document.getElementById('notes').value.trim()
   };
+  // v13.35 连秤底阀时间线：[[相对首段注水秒, 档位code], ...]（来自连秤模块隐藏桥接节点）
+  const vb = document.getElementById('bm-valve-events-bridge');
+  if (vb && vb.value && vb.value.trim()) {
+    try {
+      const arr = JSON.parse(vb.value);
+      if (Array.isArray(arr) && arr.length) data.valveEvents = arr;
+    } catch (e) {}
+  }
+  // v13.36 阀操作屏蔽区间：[[起秒,止秒], ...]
+  const vmb = document.getElementById('bm-valve-masks-bridge');
+  if (vmb && vmb.value && vmb.value.trim()) {
+    try {
+      const marr = JSON.parse(vmb.value);
+      if (Array.isArray(marr) && marr.length) data.valveMasks = marr;
+    } catch (e) {}
+  }
+  return data;
 }
 function setFormData(d) {
   document.getElementById('bean-name').value = d.beanName || '';
@@ -5231,6 +5264,16 @@ function setFormData(d) {
   setPours(d.pours);
   // setPours 完成后再切聪明杯底座状态（确保 valve 字段显示正确）
   onCleverBaseChange();
+  // v13.35 回灌底阀时间线到桥接节点（编辑旧记录时不丢，再保存仍带上）
+  const _vb = document.getElementById('bm-valve-events-bridge');
+  if (_vb) {
+    _vb.value = (Array.isArray(d.valveEvents) && d.valveEvents.length) ? JSON.stringify(d.valveEvents) : '';
+  }
+  // v13.36 回灌阀操作屏蔽区间
+  const _vmb = document.getElementById('bm-valve-masks-bridge');
+  if (_vmb) {
+    _vmb.value = (Array.isArray(d.valveMasks) && d.valveMasks.length) ? JSON.stringify(d.valveMasks) : '';
+  }
   setRating(d.rating || 0);
   setDirValue('extraction-want', d.extractionWant || '');
   setDirValue('strength-want', d.strengthWant || '');
@@ -5742,7 +5785,7 @@ function renderList() {
       const w = p.water || '-';
       const t = p.time  || '-';
       const tp = p.temp ? `@${p.temp}℃` : '';
-      const vv = p.valve === 'closed' ? ' [关阀]' : (p.valve === 'open' ? ' [开阀]' : '');
+      const vv = p.valve ? (' [' + ((typeof POUR_VALVE_LABELS !== 'undefined' && POUR_VALVE_LABELS[p.valve]) || p.valve) + '阀]') : '';
       const bp = p.bypass === '1' ? ' [旁路]' : '';
       return `${i+1}段 ${w}g@${t}${tp}${vv}${bp}`;
     }).join(' / ');
@@ -6780,7 +6823,7 @@ function computeExtraction(d) {
     const totalWater = allPours.reduce((s, p) => s + parseFloat(p.water || 0), 0);
     const cbCfg = KNOWLEDGE.extraction.cleverBase;
     if (totalWater > 0) {
-      const filledValve = allPours.filter(p => p.valve === 'open' || p.valve === 'closed');
+      const filledValve = allPours.filter(p => p.valve === 'open' || p.valve === 'closed' || p.valve === 's1' || p.valve === 's2' || p.valve === 's3');
       if (filledValve.length === 0) {
         // 选了用底座但完全没填阀门 → 中等浸泡兜底
         factor *= cbCfg.unknownFactor;
@@ -8565,9 +8608,34 @@ function buildSingleEvalPrompt(record) {
       if (p.water)   parts.push(p.water + 'g');
       if (p.temp)    parts.push('@' + p.temp + '℃');
       if (p.pourEnd) parts.push('停水' + p.pourEnd);
+      // v13.35: 段阀档位（关/慢/中/快），旧数据 open 记为「开」
+      if (p.valve)   parts.push('阀' + ((typeof POUR_VALVE_LABELS !== 'undefined' && POUR_VALVE_LABELS[p.valve]) || p.valve));
       return '第' + (i + 1) + '段(' + parts.join(' ') + ')';
     }).join('；');
     objective.push('分段：' + pourSummary);
+  }
+  // v13.35: 连秤记录的底阀操作时间线 [[相对秒, 档位], ...]，档位 closed=关 s1=慢 s2=中 s3=快
+  if (Array.isArray(record.valveEvents) && record.valveEvents.length) {
+    const vGear = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '开' };
+    const vLine = record.valveEvents.map(item => {
+      if (!Array.isArray(item) || item.length < 2) return '';
+      const t = parseFloat(item[0]);
+      if (!isFinite(t)) return '';
+      const mm = Math.floor(t / 60), ss = Math.round(t % 60);
+      return mm + ':' + String(ss).padStart(2, '0') + '→' + (vGear[item[1]] || item[1]);
+    }).filter(Boolean).join('，');
+    if (vLine) objective.push('底阀操作时间线：' + vLine);
+  }
+  // v13.36: 阀操作扰动屏蔽区间 [[起秒,止秒], ...]——该时段重量数据因拨阀手力冲击被剔除，分析时勿当作真实重量/流速
+  if (Array.isArray(record.valveMasks) && record.valveMasks.length) {
+    const mLine = record.valveMasks.map(m => {
+      if (!Array.isArray(m) || m.length < 2) return '';
+      const s = parseFloat(m[0]), e = parseFloat(m[1]);
+      if (!isFinite(s) || !isFinite(e)) return '';
+      const f = t => { const mm = Math.floor(t / 60), ss = Math.round(t % 60); return mm + ':' + String(ss).padStart(2, '0'); };
+      return f(s) + '–' + f(e);
+    }).filter(Boolean).join('，');
+    if (mLine) objective.push('拨阀扰动屏蔽区间（重量读数不可用）：' + mLine);
   }
   const subjective = (record.flavor || '').trim() || '（用户未填风味描述）';
   const localDigest = buildLocalAnalysisDigest(record); // V13.14.2: 单杯本地分析摘要
@@ -9814,7 +9882,36 @@ function buildCompareCurvesSVG(records, colors) {
     ).join(' ');
     return `<path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="0.85"/>`;
   }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${axes}${svgYAxis}${svgXAxis}${paths}</svg>`;
+  // v13.35 对比图底阀竖线：按 records 索引与各曲线对齐
+  const CMP_VALVE_COLOR = { closed: '#4a4036', s1: '#5b8c5a', s2: '#d4943a', s3: '#c0504d', open: '#c0504d' };
+  const CMP_VALVE_SHORT = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '快' };
+  const cmpValveMarks = (Array.isArray(records) ? records : []).map((r, i) => {
+    if (!r || !Array.isArray(r.valveEvents)) return '';
+    return r.valveEvents.map(item => {
+      if (!Array.isArray(item) || item.length < 2) return '';
+      const t = parseFloat(item[0]);
+      if (!isFinite(t) || t < 0 || t > xMaxRounded) return '';
+      const col = CMP_VALVE_COLOR[item[1]] || '#999';
+      const lbl = CMP_VALVE_SHORT[item[1]] || '?';
+      const x = sx(t);
+      return `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${(padT + innerH).toFixed(1)}" stroke="${col}" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.75"/>` +
+             `<text x="${x.toFixed(1)}" y="${(padT + 8 + (i % 2) * 9).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="${col}">${lbl}</text>`;
+    }).join('');
+  }).join('');
+  // v13.36 对比图阀扰动灰带：各记录 valveMasks=[[起秒,止秒],...]，统一灰带
+  const cmpMaskBands = (Array.isArray(records) ? records : []).map(r => {
+    if (!r || !Array.isArray(r.valveMasks)) return '';
+    return r.valveMasks.map(m => {
+      if (!Array.isArray(m) || m.length < 2) return '';
+      const s = parseFloat(m[0]), e = parseFloat(m[1]);
+      if (!isFinite(s) || !isFinite(e) || e <= s) return '';
+      const x0 = sx(Math.max(0, Math.min(s, xMaxRounded)));
+      const x1 = sx(Math.max(0, Math.min(e, xMaxRounded)));
+      if (x1 - x0 < 0.5) return '';
+      return `<rect x="${x0.toFixed(1)}" y="${padT}" width="${(x1 - x0).toFixed(1)}" height="${innerH}" fill="#8a7d63" opacity="0.12"/>`;
+    }).join('');
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${cmpMaskBands}${cmpValveMarks}${axes}${svgYAxis}${svgXAxis}${paths}</svg>`;
 }
 
 function buildBrewCurveHTML(brew) {
@@ -9998,6 +10095,31 @@ function buildBrewCurveHTML(brew) {
     return `<circle cx="${sx(s.pourEnd).toFixed(1)}" cy="${sy(s.cumWater).toFixed(1)}" r="2.5" fill="${C.line}"/>`;
   }).join('');
 
+  // v13.35 底阀档位竖线（复盘回放）：brew.valveEvents = [[相对秒, gear], ...]
+  const VALVE_CHART_COLOR = { closed: '#4a4036', s1: '#5b8c5a', s2: '#d4943a', s3: '#c0504d', open: '#c0504d' };
+  const VALVE_GEAR_SHORT = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '快' };
+  const valveMarks = (Array.isArray(brew.valveEvents) ? brew.valveEvents : []).map(item => {
+    if (!Array.isArray(item) || item.length < 2) return '';
+    let t = parseFloat(item[0]);
+    if (!isFinite(t) || t < 0) return '';
+    const gear = item[1] === 'open' ? 's3' : item[1];
+    const col = VALVE_CHART_COLOR[item[1]] || '#999';
+    const lbl = VALVE_GEAR_SHORT[item[1]] || '?';
+    return `<line x1="${sx(t).toFixed(1)}" y1="${padT}" x2="${sx(t).toFixed(1)}" y2="${(padT + innerH).toFixed(1)}" stroke="${col}" stroke-width="1.3" stroke-dasharray="3 3" opacity="0.8"/>` +
+           `<text x="${sx(t).toFixed(1)}" y="${(padT + innerH - 3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="${col}">${lbl}</text>`;
+  }).join('');
+
+  // v13.36 阀操作扰动屏蔽灰带（复盘）：brew.valveMasks = [[起秒,止秒], ...]
+  const maskBands = (Array.isArray(brew.valveMasks) ? brew.valveMasks : []).map(m => {
+    if (!Array.isArray(m) || m.length < 2) return '';
+    const s = parseFloat(m[0]), e = parseFloat(m[1]);
+    if (!isFinite(s) || !isFinite(e) || e <= s) return '';
+    const x0 = sx(s), x1 = sx(e);
+    if (x1 <= padL || x0 >= padL + innerW || x1 - x0 < 0.5) return '';
+    return `<rect x="${x0.toFixed(1)}" y="${padT}" width="${(x1 - x0).toFixed(1)}" height="${innerH}" fill="#8a7d63" opacity="0.13"/>` +
+           `<text x="${((x0 + x1) / 2).toFixed(1)}" y="${(padT + 22).toFixed(1)}" text-anchor="middle" font-size="8" fill="#9a8d74">阀扰</text>`;
+  }).join('');
+
   // 温度折线 + 点 + 标签（V12.4: extend 延伸点不画 circle/text，仅延长线条）
   let svgTemp = '';
   if (hasTemp && tempPoints.length > 0) {
@@ -10051,7 +10173,7 @@ function buildBrewCurveHTML(brew) {
   const axes = `<line x1="${padL}" y1="${(padT + innerH).toFixed(1)}" x2="${(padL + innerW).toFixed(1)}" y2="${(padT + innerH).toFixed(1)}" stroke="${C.axis}" stroke-width="1"/>` +
                `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${(padT + innerH).toFixed(1)}" stroke="${C.axis}" stroke-width="1"/>`;
 
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${svgFills}${axes}${svgYAxis}${svgYAxisR}${svgXAxis}${svgTemp}<path d="${pathD}" fill="none" stroke="${C.line}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${svgBypassCurve}${pourMarks}</svg>`;
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${maskBands}${valveMarks}${svgFills}${axes}${svgYAxis}${svgYAxisR}${svgXAxis}${svgTemp}<path d="${pathD}" fill="none" stroke="${C.line}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${svgBypassCurve}${pourMarks}</svg>`;
 
   // 元信息（V12.4: 末段 bypass 时累计 = 前一段 cumWater，bypass 单段水量另列）
   // V13.15.2: BP 段已无 time/pourEnd 数据 → 在 raw 中被过滤 → isLastBypass 恒为 false。
@@ -10568,6 +10690,45 @@ setupListFilterEvents();
   }
 
   /* ============================================================
+   * v13.35 底阀档位 —— 聪明杯摇杆底座（关 + 三档流速）
+   * 物理产品四卡位：全关(浸泡) / 慢速 / 中速 / 快速全开。
+   * 仅作时间线打点（事实记录），不参与伪量化评分、不反推风味。
+   * ============================================================ */
+  const VALVE_GEARS = [
+    { code: 'closed', cls: 'v-closed', label: '关', sub: '浸泡' },
+    { code: 's1',     cls: 'v-s1',     label: '慢', sub: '慢速' },
+    { code: 's2',     cls: 'v-s2',     label: '中', sub: '中速' },
+    { code: 's3',     cls: 'v-s3',     label: '快', sub: '全开' }
+  ];
+  const VALVE_GEAR_MAP = VALVE_GEARS.reduce((m, g) => { m[g.code] = g; return m; }, {});
+  // 旧两档词汇归一：open 视为全开 s3
+  function normalizeValveGear(code) {
+    if (code === 'open') return 's3';
+    return VALVE_GEAR_MAP[code] ? code : '';
+  }
+  function valveGearLabel(code) {
+    const g = VALVE_GEAR_MAP[normalizeValveGear(code)];
+    return g ? g.label : code;
+  }
+
+  /* ============================================================
+   * v13.36 阀操作扰动屏蔽（手速无关·两阶段自动检测）
+   * 实测：拨摇杆的手力经底座→滤杯压在秤上，峰值瞬态、约1s回稳、松手回原值=纯动态冲击。
+   * 实际操作「先按手机打点 → 手伸过去拨」，故打点后先进入【守候】：
+   *   - 数据照常记录，用冲击前干净读数建背景噪声基线，等待拨阀尖峰；
+   *   - 检出尖峰才【冻结】（起点=尖峰时刻，比打点更准），不写曲线/不喂探测器，回稳即恢复。
+   * 阈值为自适应+地板值；⚠待真机采集若干真实拨阀波形后标定收敛。
+   * ============================================================ */
+  const VMK_ARM_MS        = 2600;  // 守候上限：打点后多少 ms 内仍等待冲击（覆盖手伸过去较慢）
+  const VMK_BASE_N        = 12;    // 建背景基线用的最近干净读数条数
+  const VMK_MAD_K         = 6;     // 冲击判据：去趋势残差 > K×基线MAD
+  const VMK_FLOOR_G       = 0.8;   // 冲击判据地板（g/帧），防止平稳时 MAD≈0 过敏；待标定
+  const VMK_LOOKBACK_MS   = 500;   // 打点瞬间回看：近窗内已有冲击（先拨后按）则从冲击点回滚
+  const VMK_SETTLE_MS     = 400;   // 冻结后连续 400ms 相邻跳变≤平息阈值 → 恢复
+  const VMK_SETTLE_G      = 0.4;   // 平息阈值（g/帧）
+  const VMK_FREEZE_MAX_MS = 1600;  // 冻结兜底上限，防止长时间不回稳把真实滴滤挡掉
+
+  /* ============================================================
    * 1. CSS — 动态注入到 <head>
    * ============================================================ */
   const CSS_TEXT = `
@@ -10643,6 +10804,43 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
 .bm-log{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#1d160e;color:#d4b88e;padding:8px 10px;border-radius:6px;max-height:100px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin-top:8px}
 .bm-toggle-log{font-size:11px;color:#888;cursor:pointer;margin:6px 0 0;display:inline-block}
 
+/* v13.35 底阀（聪明杯摇杆底座）控制条：关 / 慢 / 中 / 快 四档手动打点 */
+.bm-valve-bar{margin:8px 2px 2px;padding:8px 10px;background:#fff;border:1px solid #e6ddcc;border-radius:10px}
+.bm-valve-head{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#6b4a2b;margin-bottom:6px}
+.bm-valve-head .bm-valve-current{font-weight:600;font-variant-numeric:tabular-nums}
+.bm-valve-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.bm-valve-btn{padding:9px 0 7px;border:1.5px solid #d8cbb2;border-radius:8px;background:#faf7f0;font-size:13px;font-weight:600;color:#6b4a2b;cursor:pointer;line-height:1.15}
+.bm-valve-btn small{display:block;font-size:9px;font-weight:400;color:#a99; color:#a89a82;margin-top:2px}
+.bm-valve-btn:active{transform:scale(.96)}
+.bm-valve-btn.v-closed.active{background:#4a4036;color:#fff;border-color:#4a4036}
+.bm-valve-btn.v-s1.active{background:#5b8c5a;color:#fff;border-color:#5b8c5a}
+.bm-valve-btn.v-s2.active{background:#d4943a;color:#fff;border-color:#d4943a}
+.bm-valve-btn.v-s3.active{background:#c0504d;color:#fff;border-color:#c0504d}
+.bm-valve-timeline{margin-top:8px;font-size:11px;color:#777;font-variant-numeric:tabular-nums;max-height:74px;overflow-y:auto}
+.bm-valve-timeline .vt-row{display:flex;gap:6px;align-items:flex-start;padding:1px 0}
+.bm-valve-timeline .vt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:0 0 auto;margin-top:4px}
+.bm-valve-timeline .vt-empty{color:#bbb;text-align:center;padding:2px 0}
+.bm-valve-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.bm-valve-undo{font-size:11px;color:#856404;background:none;border:none;text-decoration:underline;cursor:pointer;padding:0}
+.bm-valve-undo:disabled{color:#ccc;text-decoration:none;cursor:default}
+body.theme-dark .bm-valve-bar{background:#2a2620;border-color:#444}
+body.theme-dark .bm-valve-btn{background:#23201a;border-color:#4a3f2e;color:#d4b88e}
+body.theme-dark .bm-valve-btn small{color:#8a7c66}
+body.theme-dark .bm-valve-timeline{color:#a89580}
+/* v13.36 阀操作屏蔽态：重量/流速格置灰 + 阀条「屏蔽中」提示 */
+.bm-stat.is-masked .v{color:#b3a892 !important}
+.bm-stat.is-masked .v::after{content:" 阀扰屏蔽";font-size:9px;font-weight:600;color:#fff;background:#9a8d74;border-radius:4px;padding:1px 4px;margin-left:4px;vertical-align:middle}
+.bm-valve-masking{margin-top:6px;font-size:11px;font-weight:600;color:#8a7d63;background:#f1ece1;border:1px dashed #c9bda3;border-radius:6px;padding:5px 8px;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.bm-valve-masking.is-armed{color:#7a6a45;background:#f6f1e3;border-color:#d8c9a0}
+.bm-valve-masking.is-frozen{color:#a4443f;background:#fbeae9;border-color:#dfa3a0;animation:bmMaskPulse 1.1s ease-in-out infinite}
+@keyframes bmMaskPulse{0%,100%{opacity:1}50%{opacity:.62}}
+.bm-valve-manual{border:1px solid #b9a98a;background:#fff;border-radius:5px;font-size:10px;font-weight:700;color:#7a6a45;padding:2px 7px;cursor:pointer}
+.is-frozen .bm-valve-manual{border-color:#cf8f8c;color:#a4443f}
+body.theme-dark .bm-valve-masking{background:#332d22;color:#c9b891;border-color:#574a33}
+body.theme-dark .bm-valve-masking.is-armed{background:#35301f;color:#d4c391;border-color:#6b5e38}
+body.theme-dark .bm-valve-masking.is-frozen{background:#3d2624;color:#e0a39f;border-color:#7a4542}
+body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
+
 @media (prefers-color-scheme: dark){
   body.theme-dark .bm-panel{background:linear-gradient(180deg,#2a2118,#231a11);border-color:#5a4530}
   body.theme-dark .bm-panel h4{color:#d4b88e;border-bottom-color:#3d2e1f}
@@ -10698,6 +10896,7 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
 
   <h4 style="margin-top:14px">③ 冲煮模式 <span id="bm-state-badge" class="bm-badge brew">IDLE</span></h4>
   <div id="bm-brew-view"></div>
+  <div id="bm-valve-slot"></div>
   <div id="bm-undo-slot"></div>
 
   <span class="bm-toggle-log" id="bm-toggle-log">▶ 显示事件日志</span>
@@ -10765,6 +10964,22 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
     modeSwitch.insertAdjacentElement('afterend', scalePanel);
     document.body.appendChild(bypassModal);
     document.body.appendChild(finishModal);
+    // v13.35 隐藏桥接节点：连秤阀事件时间线经此落到主表单 getFormData/setFormData
+    if (!document.getElementById('bm-valve-events-bridge')) {
+      const bridge = document.createElement('input');
+      bridge.type = 'hidden';
+      bridge.id = 'bm-valve-events-bridge';
+      bridge.value = '';
+      document.body.appendChild(bridge);
+    }
+    // v13.36 隐藏桥接节点：阀操作屏蔽区间
+    if (!document.getElementById('bm-valve-masks-bridge')) {
+      const mbridge = document.createElement('input');
+      mbridge.type = 'hidden';
+      mbridge.id = 'bm-valve-masks-bridge';
+      mbridge.value = '';
+      document.body.appendChild(mbridge);
+    }
     return true;
   }
 
@@ -11032,6 +11247,12 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       this._pour = new PourDetector();
       this._lift = new LiftDetector();
       this._liftTimer = null;
+      this._vmArmAt = 0;           // v13.36 阀扰动守候起点（绝对ms）；0=未守候
+      this._vmFrozen = false;      // 检出冲击后是否已冻结
+      this._vmFreezeAt = 0;        // 冻结起点
+      this._vmStableSince = 0;     // 冻结后开始平息的时刻
+      this._vmPrevW = null;        // 冻结期判稳用上一帧重量
+      this._wHist = [];            // 最近 {w,ts}，建背景基线 / 回看 / UI 冻结基线
       this._listeners = {};
       this._setupDetectors();
     }
@@ -11048,7 +11269,11 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
         totalPourTime: 0,
         totalPourWater: 0,
         bypass: { amount: 0, note: '' },
-        brewRatio: ''
+        brewRatio: '',
+        // v13.35 底阀时间线：[{ at: 绝对ms(运行时), t: 相对首段注水秒(落库), gear }]
+        valveEvents: [],
+        // v13.36 阀操作扰动屏蔽区间（运行时）：[{sAt,eAt}] 绝对ms；落库序列化为 [[相对秒,相对秒], ...]
+        valveMasks: []
       };
     }
     on(event, fn) { (this._listeners[event] = this._listeners[event] || []).push(fn); return this; }
@@ -11060,6 +11285,7 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
         const isFirst = this.brew.segments.length === 0;
         if (isFirst) {
           this.brew.startedAt = at;
+          this._refreshValveTimes();
           // v13.19.0: 首段注水启动秤内计时器，让秤上显示屏与网页冲煮时间同步
           if (this.adapter && this.adapter.connected) {
             (async () => {
@@ -11134,6 +11360,163 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       this._recalcSummary();
       this._emit('bypassUpdated', { bypass: this.brew.bypass });
     }
+    // v13.35 底阀打点。同一档位重复点不重复记录（幂等）。
+    // v13.36：打点后进入阀扰动「守候」（不冻结，等冲击），检出拨阀尖峰再冻结。
+    markValve(gear, at = Date.now()) {
+      const code = normalizeValveGear(gear);
+      if (!code) return false;
+      const last = this.brew.valveEvents[this.brew.valveEvents.length - 1];
+      if (last && last.gear === code) return false;
+      const ev = { at, t: 0, gear: code };
+      if (this.brew.startedAt) ev.t = +((at - this.brew.startedAt) / 1000).toFixed(1);
+      this.brew.valveEvents.push(ev);
+      this._armValveWatch(at);
+      this._emit('valveMark', { ev, events: this.brew.valveEvents });
+      return true;
+    }
+    undoValve() {
+      const ev = this.brew.valveEvents.pop();
+      if (ev) {
+        // 撤销打点：取消本次守候/冻结，并回收未闭合或最近一条屏蔽区间
+        const wasFrozen = this._vmFrozen;
+        this._disarmValveWatch();
+        if (wasFrozen) this.brew.valveMasks.pop();
+        this._emit('valveUndo', { removed: ev, events: this.brew.valveEvents });
+      }
+      return !!ev;
+    }
+    currentValveGear() {
+      const last = this.brew.valveEvents[this.brew.valveEvents.length - 1];
+      return last ? last.gear : '';
+    }
+    // -------- v13.36 阀扰动：守候 → 检出冲击 → 冻结至回稳 --------
+    // 冻结（数据被挡）时返回 true；守候（数据照记）返回 false
+    isValveFrozen() { return this._vmFrozen; }
+    isValveArmed() { return this._vmArmAt > 0 && !this._vmFrozen; }
+    _armValveWatch(at) {
+      // 已在守候/冻结中重复打点（理论上幂等已挡同档；换档连击）不重开，沿用当前窗
+      if (this._vmArmAt) return;
+      this._vmArmAt = at;
+      this._vmFrozen = false;
+      this._vmFreezeAt = 0;
+      this._vmStableSince = 0;
+      this._vmPrevW = null;
+      // 先拨后按兜底：打点瞬间回看近窗，若已出现大跳变，则把冲击点当作冻结起点并回滚曲线
+      const recent = this._wHist.filter(p => p.ts >= at - VMK_LOOKBACK_MS && p.ts <= at);
+      const th = this._impactThreshold(recent.length >= 4 ? recent : this._wHist);
+      let hitAt = 0;
+      for (let i = 1; i < recent.length; i++) {
+        if (Math.abs(recent[i].w - recent[i - 1].w) >= th) { hitAt = recent[i].ts; break; }
+      }
+      if (hitAt) this._enterFreeze(hitAt);
+      this._emit('valveWatch', { phase: this._vmFrozen ? 'freeze' : 'arm', at: hitAt || at });
+    }
+    _disarmValveWatch() {
+      this._vmArmAt = 0;
+      this._vmFrozen = false;
+      this._vmFreezeAt = 0;
+      this._vmStableSince = 0;
+      this._vmPrevW = null;
+    }
+    // 守候期检测冲击；返回 true 表示本帧起进入冻结
+    _detectImpact(weight, at) {
+      if (!this._vmArmAt || this._vmFrozen) return false;
+      if (at - this._vmArmAt > VMK_ARM_MS) { this._disarmValveWatch(); this._emit('valveWatch', { phase: 'armTimeout', at }); return false; }
+      const th = this._impactThreshold(this._wHist);
+      const n = this._wHist.length;
+      let hit = false;
+      if (n >= 3) {
+        // 去趋势残差：当前增量相对前一增量的突变，抑制注水/滴滤的平滑趋势
+        const d1 = weight - this._wHist[n - 1].w;
+        const d0 = this._wHist[n - 1].w - this._wHist[n - 2].w;
+        hit = Math.abs(d1 - d0) >= th || Math.abs(d1) >= Math.max(VMK_FLOOR_G, th * 1.4);
+      } else if (n >= 1) {
+        hit = Math.abs(weight - this._wHist[n - 1].w) >= th;
+      }
+      if (hit) { this._enterFreeze(at); return true; }
+      return false;
+    }
+    // 背景噪声自适应阈值：最近干净读数的中位增量 + K×MAD，叠加地板值
+    _impactThreshold(hist) {
+      const ds = [];
+      for (let i = Math.max(1, hist.length - VMK_BASE_N); i < hist.length; i++) {
+        ds.push(Math.abs(hist[i].w - hist[i - 1].w));
+      }
+      if (ds.length < 3) return VMK_FLOOR_G * 2;
+      const s = ds.slice().sort((a, b) => a - b);
+      const med = s[Math.floor(s.length / 2)];
+      const dev = ds.map(x => Math.abs(x - med)).sort((a, b) => a - b);
+      const mad = dev[Math.floor(dev.length / 2)];
+      return Math.max(VMK_FLOOR_G, med + VMK_MAD_K * mad);
+    }
+    _enterFreeze(at) {
+      this._vmFrozen = true;
+      this._vmFreezeAt = at;
+      this._vmStableSince = 0;
+      this._vmPrevW = null;
+      this.brew.valveMasks.push({ sAt: at, eAt: 0 });
+      // 回滚已写入的冲击点：liveCurve / 当前段曲线中时间戳 ≥ 冲击时刻的点弹出（冲击帧本身也不进曲线）
+      if (this.brew.startedAt) {
+        const cutRel = at - this.brew.startedAt;
+        while (this.brew.liveCurve.length && this.brew.liveCurve[this.brew.liveCurve.length - 1].t >= cutRel) {
+          this.brew.liveCurve.pop();
+        }
+        if (this._currentSeg && this._currentSeg.curve) {
+          const cutSeg = at - this._currentSeg.startAt;
+          while (this._currentSeg.curve.length && this._currentSeg.curve[this._currentSeg.curve.length - 1].t >= cutSeg) {
+            this._currentSeg.curve.pop();
+          }
+        }
+      }
+      this._emit('valveWatch', { phase: 'freeze', at });
+    }
+    // 冻结期每帧：相邻跳变平息则恢复；超兜底上限强制恢复。返回 true=仍在冻结
+    _updateFreeze(weight, at) {
+      if (!this._vmFrozen) return false;
+      if (at - this._vmFreezeAt >= VMK_FREEZE_MAX_MS) { this._exitFreeze(at); return false; }
+      let jump = Infinity;
+      if (this._vmPrevW !== null) jump = Math.abs(weight - this._vmPrevW);
+      this._vmPrevW = weight;
+      if (jump <= VMK_SETTLE_G) {
+        if (!this._vmStableSince) this._vmStableSince = at;
+        if (at - this._vmStableSince >= VMK_SETTLE_MS) { this._exitFreeze(at); return false; }
+      } else {
+        this._vmStableSince = 0;
+      }
+      return true;
+    }
+    _exitFreeze(at) {
+      const cur = this.brew.valveMasks[this.brew.valveMasks.length - 1];
+      if (cur && !cur.eAt) cur.eAt = at;
+      this._disarmValveWatch();
+      this._emit('valveWatch', { phase: 'done', at, mask: cur });
+    }
+    // 手动兜底：守候久未检出冲击时，用户可立即冻结；再点一次恢复
+    manualMaskToggle(at = Date.now()) {
+      if (this._vmFrozen) { this._exitFreeze(at); return 'done'; }
+      if (this._vmArmAt) {
+        // 取消守候，直接以打点时刻作为屏蔽起点（保守）
+        const startAt = this.brew.valveEvents.length
+          ? this.brew.valveEvents[this.brew.valveEvents.length - 1].at
+          : at;
+        this._vmArmAt = 0;
+        this._vmFrozen = true;
+        this._vmFreezeAt = startAt;
+        this._vmStableSince = 0;
+        this._vmPrevW = null;
+        this.brew.valveMasks.push({ sAt: startAt, eAt: 0 });
+        this._emit('valveWatch', { phase: 'freeze', at: startAt, manual: true });
+        return 'freeze';
+      }
+      return 'idle';
+    }
+    // 首段注水确定 startedAt 后，回填此前（startedAt 之前/同时）阀事件的相对时间
+    _refreshValveTimes() {
+      if (!this.brew.startedAt) return;
+      this.brew.valveEvents.forEach(ev => {
+        ev.t = Math.max(0, +((ev.at - this.brew.startedAt) / 1000).toFixed(1));
+      });
+    }
     finishBrew() {
       if (this.state === 'POST_BREW' || this.state === 'IDLE') return;
       if (this._liftTimer) { clearTimeout(this._liftTimer); this._liftTimer = null; }
@@ -11158,6 +11541,8 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
     }
     reset() {
       if (this._liftTimer) { clearTimeout(this._liftTimer); this._liftTimer = null; }
+      this._disarmValveWatch();
+      this._wHist = [];
       this.brew = this._emptyBrew();
       this._currentSeg = null;
       this._pour.reset();
@@ -11166,6 +11551,16 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
     }
     feed({ weight, flowRate, ts }) {
       this._latestFlow = flowRate;
+      // 最近读数历史：建背景噪声基线 / 打点回看 / UI 冻结基线
+      this._wHist.push({ w: weight, ts });
+      if (this._wHist.length > 40) this._wHist.shift();
+      // 已冻结：本帧只参与判稳，不写曲线、不喂探测器；恢复当帧落入下面正常记录
+      if (this._vmFrozen) {
+        if (this._updateFreeze(weight, ts)) return { frozen: true, weight, flowRate, ts };
+      } else if (this._vmArmAt) {
+        // 守候：数据照记，仅检测冲击；检出当帧丢弃
+        if (this._detectImpact(weight, ts)) return { frozen: true, weight, flowRate, ts };
+      }
       if (this.brew.startedAt && (this.state === 'POURING' || this.state === 'DRIPPING')) {
         this.brew.liveCurve.push({ t: ts - this.brew.startedAt, w: +weight.toFixed(2), f: +flowRate.toFixed(2), phase: this.state === 'POURING' ? 'pour' : 'drip' });
       }
@@ -11182,6 +11577,14 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       if (this.state === 'DRIPPING' && this._lift.feed({ weight, ts })) {
         this._enterLiftPending(ts, weight);
       }
+      return { frozen: false, weight, flowRate, ts };
+    }
+    // 冻结中供 UI 显示的干净基线重量（冻结起点前最后一个读数）
+    maskedBaselineWeight() {
+      if (!this._vmFreezeAt) return null;
+      const before = this._wHist.filter(p => p.ts < this._vmFreezeAt);
+      const src = before.length ? before[before.length - 1] : null;
+      return src ? src.w : null;
     }
     _enterLiftPending(ts, weight) {
       this._lift.disarm();
@@ -11325,6 +11728,43 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
     if (typeof window.markAnalysisStale === 'function') window.markAnalysisStale();
   }
 
+  // v13.35 把本次冲煮的底阀时间线（相对秒）写入隐藏桥接节点，供主表单 getFormData 落库
+  function syncValveEvents(brew) {
+    const bridge = document.getElementById('bm-valve-events-bridge');
+    if (!bridge) return;
+    const evs = (brew.valveEvents || [])
+      .filter(ev => ev.gear)
+      .map(ev => [+((ev.at && brew.startedAt) ? ((ev.at - brew.startedAt) / 1000) : ev.t).toFixed(1), normalizeValveGear(ev.gear)]);
+    if (!evs.length) { bridge.value = ''; return; }
+    try { bridge.value = JSON.stringify(evs); } catch (e) { bridge.value = ''; }
+  }
+  function clearValveEventsBridge() {
+    const bridge = document.getElementById('bm-valve-events-bridge');
+    if (bridge) bridge.value = '';
+  }
+
+  // v13.36 把阀操作屏蔽区间（相对秒）写入隐藏桥接节点；未闭合区间用冲煮收尾时刻兜底闭合
+  function syncValveMasks(brew, endAt) {
+    const bridge = document.getElementById('bm-valve-masks-bridge');
+    if (!bridge) return;
+    const base = brew.startedAt || 0;
+    const closeAt = endAt || Date.now();
+    const arr = (brew.valveMasks || [])
+      .map(m => {
+        const s = base ? Math.max(0, +((m.sAt - base) / 1000).toFixed(1)) : 0;
+        const eAt = m.eAt || closeAt;
+        const e = base ? Math.max(s, +((eAt - base) / 1000).toFixed(1)) : s;
+        return [s, e];
+      })
+      .filter(m => m[1] > m[0]);
+    if (!arr.length) { bridge.value = ''; return; }
+    try { bridge.value = JSON.stringify(arr); } catch (e) { bridge.value = ''; }
+  }
+  function clearValveMasksBridge() {
+    const bridge = document.getElementById('bm-valve-masks-bridge');
+    if (bridge) bridge.value = '';
+  }
+
   // bypass → 新增一个 bypass 段（累计 = 总水量 + bypass）
   function syncBypass(amount) {
     if (typeof window.addPour !== 'function') return;
@@ -11400,20 +11840,39 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       $('bm-btn-connect').disabled = false;
       $('bm-btn-disconnect').disabled = true;
       if (session) { session.reset(); session = null; }
+      clearValveEventsBridge();
+      clearValveMasksBridge();
       renderBrewView();
+      renderValveBar();
     });
     a.on('error', ({ code, message }) => log(`[${code}] ${message}`, 'err'));
     a.on('flow', ({ flowRate }) => {
       _flow = flowRate;
+      // 冻结中流速格不跟着假尖峰刷新（保持冻结前值并置灰）
+      if (session && session.isValveFrozen && session.isValveFrozen()) return;
       const el = $('bm-flow');
       if (el) el.textContent = flowRate.toFixed(2);
     });
     a.on('weight', ({ weight, ts }) => {
-      const el = $('bm-weight');
-      if (el) el.textContent = weight.toFixed(1);
+      const wEl = $('bm-weight');
+      const fEl = $('bm-flow');
       if (session) {
-        session.feed({ weight, flowRate: _flow, ts });
+        const r = session.feed({ weight, flowRate: _flow, ts });
+        // 冻结：重量格显示冻结前基线（不跟着假尖峰跳），重量/流速格置灰；守候则照常
+        const frozen = r && r.frozen;
+        if (frozen) {
+          const base = session.maskedBaselineWeight();
+          if (wEl) wEl.textContent = (base == null ? weight : base).toFixed(1);
+        } else if (wEl) {
+          wEl.textContent = weight.toFixed(1);
+        }
+        const wStat = wEl ? wEl.closest('.bm-stat') : null;
+        const fStat = fEl ? fEl.closest('.bm-stat') : null;
+        if (wStat) wStat.classList.toggle('is-masked', !!frozen);
+        if (fStat) fStat.classList.toggle('is-masked', !!frozen);
         if (session.state === 'POURING' || session.state === 'DRIPPING') maybeDrawLiveCurve();
+      } else if (wEl) {
+        wEl.textContent = weight.toFixed(1);
       }
     });
     a.on('timer',   ({ ms })       => { const el=$('bm-timer'); if (el) el.textContent = (ms/1000).toFixed(1); });
@@ -11426,6 +11885,7 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       const el = $('bm-state-badge');
       if (el) el.textContent = to;
       renderBrewView();
+      renderValveBar();
     });
     s.on('segmentStart', ({ seg, isFirst }) => {
       log(`段 ${seg.index} 开始 @ ${seg.startWeight}g${isFirst ? ' （首段）' : ''}`, 'evt');
@@ -11452,11 +11912,31 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       hideUndoBar();
       stopSessionTimer();
       syncBrewEnd(brew);
+      syncValveEvents(brew);
+      syncValveMasks(brew, brew.liftedAt || Date.now());
       renderBrewView();
     });
     s.on('bypassUpdated', ({ bypass }) => {
       syncBrewEnd(s.brew);
       renderBrewView();
+    });
+    // v13.35 底阀打点 / 撤销：只刷新阀控制条与实时曲线竖线，不重绘冲煮主视图
+    s.on('valveMark', ({ ev }) => {
+      log(`底阀事件 @ ${fmtMmSs(ev.t || 0)} → ${valveGearLabel(ev.gear)}`, 'evt');
+      renderValveBar();
+      drawLiveCurve();
+    });
+    s.on('valveUndo', () => {
+      log('已撤销上一个底阀事件', 'evt');
+      renderValveBar();
+      drawLiveCurve();
+    });
+    // v13.36 守候/冻结/恢复状态切换：刷新阀条提示与实时曲线灰带
+    s.on('valveWatch', ({ phase }) => {
+      if (phase === 'freeze') log('检测到拨阀冲击，已屏蔽扰动读数', 'evt');
+      else if (phase === 'done') log('读数回稳，恢复记录', 'evt');
+      renderValveBar();
+      drawLiveCurve();
     });
   }
 
@@ -11571,6 +12051,7 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
           <div class="bm-stat"><div class="k">段数</div><div class="v">${b.segments.length}</div></div>
         </div>
         ${renderSegList(b, true)}
+        ${renderValveSummary(b)}
         <div style="margin-top:6px;padding:8px 10px;background:#faf6ee;border-radius:8px;font-size:12px">
           <b>Bypass：</b>${b.bypass.amount}g
           <button type="button" id="bm-btn-bypass" style="float:right;margin:0;padding:4px 10px">${b.bypass.amount > 0 ? '修改' : '+ bypass'}</button>
@@ -11583,6 +12064,8 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       });
       $('bm-btn-newbrew').addEventListener('click', () => {
         session.reset();
+        clearValveEventsBridge();
+        clearValveMasksBridge();
         // 注意：不清主表单，让用户决定是否继续记录这次冲煮还是清空重来
       });
     }
@@ -11609,6 +12092,94 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
           </div>
         </div>`;
     }).join('');
+  }
+
+  /* === v13.35 底阀控制条（关/慢/中/快 手动打点） === */
+  function valveGearDotStyle(code) {
+    const color = { closed: '#4a4036', s1: '#5b8c5a', s2: '#d4943a', s3: '#c0504d' }[code] || '#999';
+    return 'background:' + color;
+  }
+  function renderValveBar() {
+    const slot = $('bm-valve-slot');
+    if (!slot) return;
+    // 仅在有进行中的冲煮时展示（IDLE/ARMED 还没注水，POST_BREW 已锁定）
+    if (!session || !['POURING', 'DRIPPING', 'LIFT_PENDING'].includes(session.state)) {
+      slot.innerHTML = '';
+      return;
+    }
+    const events = session.brew.valveEvents || [];
+    const cur = session.currentValveGear();
+    const armed = !!session.isValveArmed();
+    const frozen = !!session.isValveFrozen();
+    const btns = VALVE_GEARS.map(g =>
+      `<button type="button" class="bm-valve-btn ${g.cls}${cur === g.code ? ' active' : ''}" data-valve="${g.code}">${g.label}<small>${g.sub}</small></button>`
+    ).join('');
+    // v13.36 扰动守候/冻结状态条 + 手动兜底
+    let watchBar = '';
+    if (frozen) {
+      watchBar = `<div class="bm-valve-masking is-frozen">⚠ 拨阀扰动屏蔽中…读数回稳后自动恢复
+        <button type="button" class="bm-valve-manual" id="bm-valve-manual">立即恢复</button></div>`;
+    } else if (armed) {
+      watchBar = `<div class="bm-valve-masking is-armed">👆 已记录档位，请拨摇杆；正在等待拨阀冲击（未检出可
+        <button type="button" class="bm-valve-manual" id="bm-valve-manual">手动屏蔽</button>）</div>`;
+    }
+    const rows = events.length
+      ? events.map(ev =>
+          `<div class="vt-row"><span class="vt-dot" style="${valveGearDotStyle(ev.gear)}"></span><span>${fmtMmSs(ev.t || 0)} · ${valveGearLabel(ev.gear)}</span></div>`
+        ).join('')
+      : '<div class="vt-empty">还没动过阀，摇杆切换时点对应档位</div>';
+    slot.innerHTML = `
+      <div class="bm-valve-bar">
+        <div class="bm-valve-head">
+          <span>🚰 底阀（聪明杯摇杆底座）</span>
+          <span class="bm-valve-current">当前：${cur ? valveGearLabel(cur) : '—'}</span>
+        </div>
+        <div class="bm-valve-btns">${btns}</div>
+        ${watchBar}
+        <div class="bm-valve-timeline">${rows}</div>
+        <div class="bm-valve-foot">
+          <span style="font-size:10px;color:#aaa">切档时点一下，记录到时间线；拨阀扰动自动屏蔽</span>
+          <button type="button" class="bm-valve-undo" id="bm-valve-undo" ${events.length ? '' : 'disabled'}>↩ 撤销上一档</button>
+        </div>
+      </div>`;
+    slot.querySelectorAll('.bm-valve-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // 首次打点自动标记「聪明杯底座」，无需先去主表单切换
+        const cb = document.getElementById('clever-base');
+        if (cb && cb.value !== '使用') {
+          cb.value = '使用';
+          if (typeof window.onCleverBaseChange === 'function') {
+            try { window.onCleverBaseChange(); } catch (e) {}
+          }
+        }
+        if (session.markValve(btn.dataset.valve)) {
+          log(`底阀 → ${valveGearLabel(btn.dataset.valve)}`, 'evt');
+        }
+      });
+    });
+    const undo = $('bm-valve-undo');
+    if (undo) undo.addEventListener('click', () => { session.undoValve(); });
+    const manual = $('bm-valve-manual');
+    if (manual) manual.addEventListener('click', () => {
+      session.manualMaskToggle();
+      renderValveBar();
+      drawLiveCurve();
+    });
+  }
+
+  // POST_BREW 页：底阀时间线小结（无底阀事件时不渲染）
+  function renderValveSummary(brew) {
+    const evs = (brew.valveEvents || []).filter(ev => ev.gear);
+    if (!evs.length) return '';
+    const chips = evs.map(ev =>
+      `<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;${valveGearDotStyle(ev.gear)}"></span>
+        ${fmtMmSs(ev.t || 0)} → ${valveGearLabel(ev.gear)}
+      </span>`
+    ).join('');
+    return `<div style="margin-top:6px;padding:8px 10px;background:#f3f0ea;border-radius:8px;font-size:12px">
+      <b>🚰 底阀：</b>${chips}
+    </div>`;
   }
 
   function showUndoBar() {
@@ -11663,15 +12234,51 @@ body.theme-dark .bm-lc-target input{background:#222;border-color:#555;color:#ddd
       const tv = tMax*i/4, x = X(tv);
       grid += `<text x="${x}" y="${H-5}" text-anchor="middle" font-size="9" fill="#aaa">${(tv/1000).toFixed(0)}s</text>`;
     }
-    const wPath = curve.map((p,i) => `${i?'L':'M'}${X(p.t).toFixed(1)},${Yw(p.w).toFixed(1)}`).join('');
-    const fPath = curve.map((p,i) => `${i?'L':'M'}${X(p.t).toFixed(1)},${Yf(p.f).toFixed(1)}`).join('');
+    // v13.36 阀扰动屏蔽区间（绝对ms → 相对首段注水ms）；未闭合区间取当前时刻
+    const _base = session.brew.startedAt || 0;
+    const _now = Date.now();
+    const bands = (session.brew.valveMasks || [])
+      .map(m => { const s = m.sAt - _base; const e = (m.eAt || _now) - _base; return [Math.max(0, s), Math.max(s, e)]; })
+      .filter(b => b[1] > b[0]);
+    const crossesGap = (t0, t1) => bands.some(([a, b]) => t0 <= a + 60 && t1 >= b - 60);
+    const buildPath = (pts, fn) => {
+      let d = '';
+      for (let i = 0; i < pts.length; i++) {
+        d += (i === 0 || crossesGap(pts[i - 1].t, pts[i].t)) ? 'M' : 'L';
+        d += fn(pts[i]);
+      }
+      return d;
+    };
+    const wPath = buildPath(curve, p => `${X(p.t).toFixed(1)},${Yw(p.w).toFixed(1)}`);
+    const fPath = buildPath(curve, p => `${X(p.t).toFixed(1)},${Yf(p.f).toFixed(1)}`);
+    // 灰带：如实标注「阀操作扰动区」，区间内无数据
+    let maskBands = '';
+    bands.forEach(([s, e]) => {
+      const x0 = X(Math.max(0, Math.min(s, tMax)));
+      const x1 = X(Math.max(0, Math.min(e, tMax)));
+      if (x1 <= PAD.l || x0 >= PAD.l + iw || x1 - x0 < 0.5) return;
+      maskBands += `<rect x="${x0.toFixed(1)}" y="${PAD.t}" width="${(x1-x0).toFixed(1)}" height="${ih}" fill="#8a7d63" opacity="0.14"/>`;
+      maskBands += `<text x="${((x0+x1)/2).toFixed(1)}" y="${H-5}" text-anchor="middle" font-size="8" fill="#9a8d74">阀扰</text>`;
+    });
     let goalLine = '';
     if (goal > 0) {
       const yg = Yw(goal);
       goalLine = `<line x1="${PAD.l}" y1="${yg}" x2="${PAD.l+iw}" y2="${yg}" stroke="#4caf7d" stroke-width="1.2" stroke-dasharray="5,4"/>`;
     }
+    // v13.35 底阀档位竖线（关/慢/中/快 四色），点击档位实时叠加
+    const VALVE_SVG_COLOR = { closed: '#4a4036', s1: '#5b8c5a', s2: '#d4943a', s3: '#c0504d' };
+    let valveLines = '';
+    const vEvents = (session.brew.valveEvents || []).filter(ev => ev.gear);
+    vEvents.forEach(ev => {
+      const tMs = (ev.at && session.brew.startedAt) ? (ev.at - session.brew.startedAt) : (ev.t * 1000);
+      if (tMs < 0 || tMs > tMax) return;
+      const x = X(tMs);
+      const col = VALVE_SVG_COLOR[ev.gear] || '#999';
+      valveLines += `<line x1="${x.toFixed(1)}" y1="${PAD.t}" x2="${x.toFixed(1)}" y2="${PAD.t+ih}" stroke="${col}" stroke-width="1.4" stroke-dasharray="3,3" opacity="0.85"/>`;
+      valveLines += `<text x="${x.toFixed(1)}" y="${PAD.t+9}" text-anchor="middle" font-size="9" font-weight="700" fill="${col}">${valveGearLabel(ev.gear)}</text>`;
+    });
     host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block">
-      ${grid}${goalLine}
+      ${grid}${maskBands}${goalLine}${valveLines}
       <path d="${fPath}" fill="none" stroke="#f0a560" stroke-width="1.3" stroke-linejoin="round"/>
       <path d="${wPath}" fill="none" stroke="#3b7dd8" stroke-width="2" stroke-linejoin="round"/>
     </svg>`;
@@ -13514,7 +14121,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.32 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.36 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
