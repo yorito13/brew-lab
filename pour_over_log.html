@@ -3345,7 +3345,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.36</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.38</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3973,7 +3973,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.36</div>
+    <div class="about-version">Brew Lab · v13.38</div>
   </div>
 </div>
 
@@ -11218,19 +11218,32 @@ body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
   class LiftDetector {
     constructor(opts = {}) {
       this.threshold = opts.threshold ?? 30;
-      this.windowMs  = opts.windowMs  ?? 1000;
-      this.window = [];
+      this.refW = null;      // v13.37 稳定基线：只跟随平稳读数，不被冲击/提壶拉走
+      this.frames = 0;
       this.armed = false;
     }
-    arm()    { this.armed = true; this.window = []; }
-    disarm() { this.armed = false; this.window = []; }
+    arm()    { this.armed = true; this.refW = null; this.frames = 0; }
+    disarm() { this.armed = false; this.refW = null; this.frames = 0; }
+    // v13.37 只重置帧计数、保留 refW：冻结期结束后恢复喂数据时，
+    // 基线必须还是冻结前那个干净值。若在这里重建基线，兜底退出时读数
+    // 可能还在冲击尾巴上，基线就被污染成峰值，随后回落到正常重量会永久误判提壶。
+    resetWindow() { this.frames = 0; }
+    // 基线只吸收「贴近基线」的平稳读数，避免把拨阀冲高吸进基线、也避免把提壶过程慢慢跟过去
+    _trackRef(w) {
+      if (this.refW === null) { this.refW = w; return; }
+      if (Math.abs(w - this.refW) <= 2) this.refW = this.refW * 0.9 + w * 0.1;
+    }
     feed({ weight, ts }) {
       if (!this.armed) return false;
-      this.window.push({ ts, w: weight });
-      while (this.window.length && ts - this.window[0].ts > this.windowMs) this.window.shift();
-      if (this.window.length < 3) return false;
-      const maxW = this.window.reduce((m, s) => Math.max(m, s.w), -Infinity);
-      return (maxW - weight) >= this.threshold;
+      if (this.refW === null) { this._trackRef(weight); return false; }
+      this.frames++;
+      if (this.frames < 3) { this._trackRef(weight); return false; }
+      // v13.37 抗手力冲击：原判据「1秒窗口内 max-当前 ≥ 30g」会把拨阀时
+      // 「读数冲高→回落」误判成移开滤杯（冲高那一帧进了窗口当上界）。
+      // 改为对比跨窗口的稳定基线：真提壶=相对基线净降 ≥ 阈值；冲高回落=基线不动、净变化≈0。
+      if ((this.refW - weight) >= this.threshold) return true;
+      this._trackRef(weight);
+      return false;
     }
   }
 
@@ -11421,7 +11434,16 @@ body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
     // 守候期检测冲击；返回 true 表示本帧起进入冻结
     _detectImpact(weight, at) {
       if (!this._vmArmAt || this._vmFrozen) return false;
-      if (at - this._vmArmAt > VMK_ARM_MS) { this._disarmValveWatch(); this._emit('valveWatch', { phase: 'armTimeout', at }); return false; }
+      // v13.38 本帧相对稳定基线已净降达提壶阈值 → 是提杯收尾，不是拨阀手力冲击：
+      // 不冻结、不屏蔽，交给提壶判定处理（否则提杯会被当成扰动吞掉，延迟识别）
+      if (this._lift.refW !== null && (this._lift.refW - weight) >= this._lift.threshold) return false;
+      if (at - this._vmArmAt > VMK_ARM_MS) {
+        this._disarmValveWatch();
+        // v13.37 守候超时解除：重置提壶检测帧计数（保留基线），避免残留冲击帧影响判断
+        if (this._lift.armed) this._lift.resetWindow();
+        this._emit('valveWatch', { phase: 'armTimeout', at });
+        return false;
+      }
       const th = this._impactThreshold(this._wHist);
       const n = this._wHist.length;
       let hit = false;
@@ -11489,6 +11511,10 @@ body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
       const cur = this.brew.valveMasks[this.brew.valveMasks.length - 1];
       if (cur && !cur.eAt) cur.eAt = at;
       this._disarmValveWatch();
+      // v13.37 恢复瞬间重置提壶检测帧计数，但保留冻结前的干净基线：
+      // 兜底退出时读数可能还在冲击尾巴上，若此时重建基线就会被污染成峰值，
+      // 随后回落到正常重量会一直判成移开滤杯。
+      if (this._lift.armed) this._lift.resetWindow();
       this._emit('valveWatch', { phase: 'done', at, mask: cur });
     }
     // 手动兜底：守候久未检出冲击时，用户可立即冻结；再点一次恢复
@@ -11556,7 +11582,12 @@ body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
       if (this._wHist.length > 40) this._wHist.shift();
       // 已冻结：本帧只参与判稳，不写曲线、不喂探测器；恢复当帧落入下面正常记录
       if (this._vmFrozen) {
-        if (this._updateFreeze(weight, ts)) return { frozen: true, weight, flowRate, ts };
+        // v13.38 冻结期间若出现明显净降（提杯），说明冲煮已结束：立即结束冻结，往下交给提壶判定
+        if (this._lift.refW !== null && (this._lift.refW - weight) >= this._lift.threshold) {
+          this._exitFreeze(ts);
+        } else if (this._updateFreeze(weight, ts)) {
+          return { frozen: true, weight, flowRate, ts };
+        }
       } else if (this._vmArmAt) {
         // 守候：数据照记，仅检测冲击；检出当帧丢弃
         if (this._detectImpact(weight, ts)) return { frozen: true, weight, flowRate, ts };
@@ -11574,6 +11605,9 @@ body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
       if (this.state === 'ARMED' || this.state === 'POURING' || this.state === 'DRIPPING') {
         this._pour.feed({ weight, flowRate, ts });
       }
+      // v13.38 提壶判定不再受阀扰动守候/冻结门控：新判据用跨窗口稳定基线，
+      // 拨阀「冲高→回落」净变化≈0 不会误触发；若在这里暂停判定，反而会漏掉
+      // 「关阀打点后马上提杯」这种正常收尾动作。
       if (this.state === 'DRIPPING' && this._lift.feed({ weight, ts })) {
         this._enterLiftPending(ts, weight);
       }
@@ -11588,6 +11622,8 @@ body.theme-dark .bm-valve-manual{background:#2a2620;color:#c9b891}
     }
     _enterLiftPending(ts, weight) {
       this._lift.disarm();
+      // v13.38 提杯即收尾：若此刻还在阀扰动守候中，一并解除，不留残留守候态
+      this._disarmValveWatch();
       this.brew.liftedAt = ts;
       this._setState('LIFT_PENDING');
       this._emit('lift', { at: ts, weight });
@@ -14121,7 +14157,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.36 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.38 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
