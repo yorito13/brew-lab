@@ -1,6 +1,6 @@
 // 手冲咖啡日志 PWA Service Worker
 // 版本：bump 此值即可让用户在下次访问时拿到最新文件
-const VERSION = 'brewlab-v13.38-lift-finish-guard-2026-10-31';
+const VERSION = 'brewlab-v13.39-valve-timeline-bypass-fix-2026-11-15';
 const PRECACHE = VERSION + '-precache';
 
 // 需要预缓存的核心资源（同目录相对路径）

@@ -441,7 +441,27 @@
             appearance: none;
     text-align: center;
   }
-  .pour-list.clever-on .pour-item .pour-valve { display: block; }
+  /* v13.39 段内阀位下拉不再显示：阀门操作统一由下方「阀门操作时间线」记录，
+     与注水段彻底分离。DOM 与字段保留，老记录的段阀位数据不丢、统计仍可回填。 */
+  .pour-list.clever-on .pour-item .pour-valve { display: none; }
+  /* v13.39 阀门操作时间线（手动记录，与注水段分离） */
+  .valve-timeline { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .valve-timeline.vt-on { display: block; }
+  .vt-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .vt-title { font-size: var(--fs-body); font-weight: var(--fw-semi); color: var(--ink); }
+  .vt-hint { font-size: var(--fs-tag); color: var(--text-tertiary); line-height: 1.5; }
+  .vt-list { display: flex; flex-direction: column; gap: 6px; }
+  .vt-row { display: flex; align-items: center; gap: 6px; }
+  .vt-time { flex: 0 0 78px; padding: 9px 6px; font-size: var(--fs-body); border: 1px solid var(--line);
+             border-radius: var(--radius-md); text-align: center; background: #fff; color: var(--ink); }
+  .vt-gear { flex: 1 1 0; min-width: 0; padding: 9px 6px; font-size: var(--fs-body); border: 1px solid var(--line);
+             border-radius: var(--radius-md); background: #fff; color: var(--ink); text-align: center;
+             -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+  .vt-gear[data-state="closed"] { background: #fdf0e0; border-color: #ffb74d; color: #b35900; font-weight: var(--fw-semi); }
+  .vt-gear[data-state="s1"]     { background: #eef5ec; border-color: #9dc79b; color: #3f6b3c; }
+  .vt-gear[data-state="s2"]     { background: #fdf6e8; border-color: #e3b96f; color: #8a5a13; }
+  .vt-gear[data-state="s3"], .vt-gear[data-state="open"] { background: #fdeceb; border-color: #e39a96; color: #8f3a34; }
+  .vt-add { margin-top: 8px; }
   /* 阀门状态颜色提示 */
   .pour-item .pour-valve[data-state="closed"] {
     background: var(--accent-amber-soft);
@@ -3345,7 +3365,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     </svg>
     <span class="brand-name">Brew Lab</span>
   </h1>
-  <div class="sub">手冲咖啡 · 实验室级分析 · v13.38</div>
+  <div class="sub">手冲咖啡 · 实验室级分析 · v13.39</div>
   <div class="actions">
     <button id="pwa-install-btn" onclick="installPWA()" style="display:none;background:rgba(255,255,255,0.28);">📲 安装为应用</button>
     <button id="compare-mode-btn" onclick="toggleCompareMode()">📊 对比</button>
@@ -3587,6 +3607,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
           </div>
           <div id="pour-list" class="pour-list"></div>
           <button type="button" class="add-pour-btn" onclick="addPour()">+ 增加一段</button>
+          <!-- v13.39 阀门操作时间线：与注水段独立，仅「聪明杯底座=使用」时显示 -->
+          <div id="valve-timeline" class="valve-timeline">
+            <div class="vt-head">
+              <span class="vt-title">阀门操作时间线</span>
+              <span class="vt-hint">与注水段独立，不注水时的拨阀（浸泡关阀/沥干开阀）也记在这里</span>
+            </div>
+            <div id="valve-event-list" class="vt-list"></div>
+            <button type="button" class="add-pour-btn vt-add" onclick="addValveEvent()">+ 添加阀门操作</button>
+          </div>
           <div class="tpl-action-row">
             <button type="button" class="tpl-action-btn" id="tpl-save-btn" onclick="saveAsTemplate()" title="把当前分段结构保存为模板">💾 存为模板</button>
             <button type="button" class="tpl-action-btn" id="tpl-apply-btn" onclick="openTemplateModal()" title="选择已有模板填充分段">📋 用模板</button>
@@ -3973,7 +4002,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     <div class="about-name">Snarkex</div>
     <div class="about-role">设计与开发</div>
     <a class="about-link" href="https://github.com/yorito13/brew-lab" target="_blank" rel="noopener">github.com/yorito13/brew-lab</a>
-    <div class="about-version">Brew Lab · v13.38</div>
+    <div class="about-version">Brew Lab · v13.39</div>
   </div>
 </div>
 
@@ -4401,6 +4430,85 @@ function onMainTempChange(inp) {
 }
 // v13.35: 聪明杯摇杆底座档位。s1=慢流 s2=中流 s3=快流，open 为旧数据兼容（等同全开/快）
 const POUR_VALVE_LABELS = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '开' };
+// ===== v13.39 手动阀门操作时间线（与注水段独立）=====
+// 数据格式与连秤一致：[[相对首段注水秒, 档位code], ...]，复盘曲线/对比图直接复用
+const VT_GEAR_OPTS = [['closed', '关 · 浸泡'], ['s1', '慢速 s1'], ['s2', '中速 s2'], ['s3', '快速 s3 全开']];
+function addValveEvent(time = '', gear = '') {
+  const list = document.getElementById('valve-event-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'vt-row';
+  row.innerHTML = `
+    <input type="text" class="vt-time" placeholder="0:00" value="${time}" title="拨阀时刻（M:SS）" onchange="onValveEventEdit()">
+    <select class="vt-gear" data-state="${gear}" onchange="this.dataset.state=this.value; onValveEventEdit()">
+      <option value="">档位</option>
+      ${VT_GEAR_OPTS.map(([c, l]) => `<option value="${c}"${c === gear ? ' selected' : ''}>${l}</option>`).join('')}
+    </select>
+    <button type="button" class="pour-lap" onclick="lapValveEvent(this)" title="把当前计时器秒数写入这一行">⏱</button>
+    <button type="button" class="del-btn" onclick="this.parentNode.remove(); onValveEventEdit()">×</button>`;
+  list.appendChild(row);
+  onValveEventEdit();
+}
+function lapValveEvent(btn) {
+  const row = btn.closest('.vt-row');
+  const inp = row && row.querySelector('.vt-time');
+  if (inp) inp.value = fmtTimerSec(timerState.sec);
+  onValveEventEdit();
+}
+function getValveEventsUI() {
+  const list = document.getElementById('valve-event-list');
+  if (!list) return [];
+  const out = [];
+  list.querySelectorAll('.vt-row').forEach(row => {
+    const t = parseDurationSec(row.querySelector('.vt-time').value);
+    const g = row.querySelector('.vt-gear').value;
+    if (t === null || !g) return;
+    out.push([t, g === 'open' ? 's3' : g]);
+  });
+  out.sort((a, b) => a[0] - b[0]);
+  return out;
+}
+function setValveEventsUI(arr) {
+  const list = document.getElementById('valve-event-list');
+  if (!list) return;
+  list.innerHTML = '';
+  (Array.isArray(arr) ? arr : []).forEach(item => {
+    if (!Array.isArray(item) || item.length < 2) return;
+    const t = parseFloat(item[0]);
+    if (!isFinite(t) || t < 0) return;
+    addValveEvent(fmtTimerSec(t), item[1] === 'open' ? 's3' : item[1]);
+  });
+}
+function onValveEventEdit() {
+  // 同步到连秤共用的桥接节点（若存在），两处保持一致
+  const vb = document.getElementById('bm-valve-events-bridge');
+  if (vb) {
+    const arr = getValveEventsUI();
+    vb.value = arr.length ? JSON.stringify(arr) : '';
+  }
+  if (typeof markAnalysisStale === 'function') markAnalysisStale();
+}
+// 老记录只有「段阀位」时，按段开始时刻回填成时间线（复盘曲线/详情共用）
+function deriveValveEventsFromPours(pours) {
+  const out = [];
+  (pours || []).forEach(p => {
+    if (!p || !p.valve || p.bypass === '1') return;
+    const t = parseDurationSec(p.time);
+    if (t === null) return;
+    out.push([t, p.valve === 'open' ? 's3' : p.valve]);
+  });
+  return out;
+}
+// 时间线在某一时刻的阀门档位：取该时刻之前（含）最后一次拨阀；之前没有记录则返回 ''
+function valveGearAt(valveEvents, sec) {
+  let gear = '';
+  (valveEvents || []).forEach(ev => {
+    if (!Array.isArray(ev) || ev.length < 2) return;
+    const t = parseFloat(ev[0]);
+    if (isFinite(t) && t <= sec) gear = ev[1];
+  });
+  return gear;
+}
 function onValveChange(sel) {
   sel.dataset.state = sel.value || '';
   if (typeof markAnalysisStale === 'function') markAnalysisStale();
@@ -4440,6 +4548,8 @@ function updateBypassVisibility() {
 function onCleverBaseChange() {
   const cb = document.getElementById('clever-base').value;
   const list = document.getElementById('pour-list');
+  const vt = document.getElementById('valve-timeline');
+  if (vt) vt.classList.toggle('vt-on', cb === '使用');
   if (cb === '使用') {
     list.classList.add('clever-on');
   } else {
@@ -5193,7 +5303,10 @@ document.addEventListener('DOMContentLoaded', initBeanPicker);
 if (document.readyState !== 'loading') initBeanPicker();
 
 function getFormData() {
-  return {
+  // v13.39 修复：这里原本是 `return { ... }` 直接返回字面量，
+  // 导致下方 v13.35 底阀时间线 / v13.36 阀扰动屏蔽区间的落库代码全部不可达，
+  // 连秤记录的 valveEvents、valveMasks 从未真正写进记录（复盘曲线因此看不到阀门标记）。
+  const data = {
     beanName: document.getElementById('bean-name').value.trim(),
     origin: document.getElementById('origin').value.trim(),
     farm: document.getElementById('farm').value.trim(),
@@ -5221,13 +5334,19 @@ function getFormData() {
     strengthWant: document.getElementById('strength-want').dataset.value || '',
     notes: document.getElementById('notes').value.trim()
   };
-  // v13.35 连秤底阀时间线：[[相对首段注水秒, 档位code], ...]（来自连秤模块隐藏桥接节点）
-  const vb = document.getElementById('bm-valve-events-bridge');
-  if (vb && vb.value && vb.value.trim()) {
-    try {
-      const arr = JSON.parse(vb.value);
-      if (Array.isArray(arr) && arr.length) data.valveEvents = arr;
-    } catch (e) {}
+  // v13.39 手动阀门时间线优先（与注水段独立）；为空时回落到连秤打点桥接
+  const _vtManual = (typeof getValveEventsUI === 'function') ? getValveEventsUI() : [];
+  if (_vtManual.length) {
+    data.valveEvents = _vtManual;
+  } else {
+    // v13.35 连秤底阀时间线：[[相对首段注水秒, 档位code], ...]（来自连秤模块隐藏桥接节点）
+    const vb = document.getElementById('bm-valve-events-bridge');
+    if (vb && vb.value && vb.value.trim()) {
+      try {
+        const arr = JSON.parse(vb.value);
+        if (Array.isArray(arr) && arr.length) data.valveEvents = arr;
+      } catch (e) {}
+    }
   }
   // v13.36 阀操作屏蔽区间：[[起秒,止秒], ...]
   const vmb = document.getElementById('bm-valve-masks-bridge');
@@ -5269,6 +5388,9 @@ function setFormData(d) {
   if (_vb) {
     _vb.value = (Array.isArray(d.valveEvents) && d.valveEvents.length) ? JSON.stringify(d.valveEvents) : '';
   }
+  // v13.39 回灌手动阀门时间线；老记录只有段阀位时按段开始时刻回填
+  let _vtArr = (Array.isArray(d.valveEvents) && d.valveEvents.length) ? d.valveEvents : deriveValveEventsFromPours(d.pours);
+  setValveEventsUI(_vtArr);
   // v13.36 回灌阀操作屏蔽区间
   const _vmb = document.getElementById('bm-valve-masks-bridge');
   if (_vmb) {
@@ -6777,8 +6899,12 @@ function computeExtraction(d) {
       r.kw.some(k => (k === '聪明杯' || k === 'clever' || k === '浸泡') && dl.includes(k.toLowerCase()))
     );
   })();
-  const isCleverInfuse = d.cleverBase === '使用'
-    && (d.pours || []).some(p => p.valve === 'closed' && p.bypass !== '1' && parseFloat(p.water) > 0);
+  // v13.39 阀门状态统一走独立时间线；老记录没有 valveEvents 时由段阀位回填
+  const _veAll = (Array.isArray(d.valveEvents) && d.valveEvents.length)
+    ? d.valveEvents : deriveValveEventsFromPours(d.pours);
+  const isCleverInfuse = d.cleverBase === '使用' && (_veAll.length
+    ? _veAll.some(ev => Array.isArray(ev) && ev[1] === 'closed')
+    : (d.pours || []).some(p => p.valve === 'closed' && p.bypass !== '1' && parseFloat(p.water) > 0));
   const isImmersion = isImmersionDripper || isCleverInfuse;
   // 命中动态修饰配置（如激流 dynamic='torrent'）
   const dynamicKey = (() => {
@@ -6823,7 +6949,7 @@ function computeExtraction(d) {
     const totalWater = allPours.reduce((s, p) => s + parseFloat(p.water || 0), 0);
     const cbCfg = KNOWLEDGE.extraction.cleverBase;
     if (totalWater > 0) {
-      const filledValve = allPours.filter(p => p.valve === 'open' || p.valve === 'closed' || p.valve === 's1' || p.valve === 's2' || p.valve === 's3');
+      const filledValve = _veAll.length ? _veAll : allPours.filter(p => p.valve === 'open' || p.valve === 'closed' || p.valve === 's1' || p.valve === 's2' || p.valve === 's3');
       if (filledValve.length === 0) {
         // 选了用底座但完全没填阀门 → 中等浸泡兜底
         factor *= cbCfg.unknownFactor;
@@ -6834,8 +6960,14 @@ function computeExtraction(d) {
           note: `按中等浸泡估算（×${cbCfg.unknownFactor.toFixed(2)}），补全各段阀门可让萃取率计算更准`
         });
       } else {
-        const closedWater = allPours
-          .filter(p => p.valve === 'closed')
+        // v13.39 优先按独立时间线判定「该段注水开始时阀门是否关闭」；
+        // 老记录没有时间线时退回段阀位（行为不变）
+        const closedWater = (_veAll.length
+          ? allPours.filter(p => {
+              const t = parseDurationSec(p.time);
+              return t !== null && valveGearAt(_veAll, t) === 'closed';
+            })
+          : allPours.filter(p => p.valve === 'closed'))
           .reduce((s, p) => s + parseFloat(p.water || 0), 0);
         const closedRatio = closedWater / totalWater;
         const cbFactor = 1 + (cbCfg.maxFactor - 1) * closedRatio;
@@ -6934,18 +7066,25 @@ function analyzeBrew(d, opts) {
   // 视为累计语义并转换；否则视为已是增量（向后兼容），照原样使用。保留 _rawPours 给曲线。
   const _rawPours = d.pours || [];
   if (_rawPours.length > 0) {
-    const _vals = _rawPours.map(p => parseFloat(p.water) || 0);
-    let _isCum = _rawPours.length > 1;
-    for (let i = 1; i < _vals.length; i++) {
-      if (_vals[i] < _vals[i-1]) { _isCum = false; break; }
+    // v13.39 累计/增量判定只看非 bypass 段：BP 段的 water 是「该段旁路水量」，
+    // 不属于秤上累计序列。把它算进单调性判断，会把整组误判成增量
+    // （例：50 / 130 / 202 / BP25 → 202>25 递减 → 误判为增量，萃取水被算成 382g）。
+    const _seq = _rawPours.filter(p => p.bypass !== '1').map(p => parseFloat(p.water) || 0);
+    let _isCum = _seq.length > 1;
+    for (let i = 1; i < _seq.length; i++) {
+      if (_seq[i] < _seq[i-1]) { _isCum = false; break; }
     }
-    const _normPours = _rawPours.map((p, i) => {
-      const cum = _isCum ? _vals[i] : _vals.slice(0, i + 1).reduce((a, b) => a + b, 0);
-      const segWater = _isCum ? Math.max(_vals[i] - (i > 0 ? _vals[i-1] : 0), 0) : _vals[i];
-      return Object.assign({}, p, {
-        water: String(segWater),
-        cumWater: cum
-      });
+    let _cum = 0;
+    const _normPours = _rawPours.map(p => {
+      const v = parseFloat(p.water) || 0;
+      if (p.bypass === '1') {
+        // BP 段：water 即该段旁路水量，不进累计序列，cumWater 停留在上一段累计
+        return Object.assign({}, p, { water: String(v), cumWater: _cum });
+      }
+      const prev = _cum;
+      _cum = _isCum ? v : _cum + v;
+      const segWater = _isCum ? Math.max(v - prev, 0) : v;
+      return Object.assign({}, p, { water: String(segWater), cumWater: _cum });
     });
     d = Object.assign({}, d, { pours: _normPours });
   }
@@ -6965,15 +7104,23 @@ function analyzeBrew(d, opts) {
   const notesScan = scanNotesAroma(d.notes);
 
   // bypass 旁路水预算：标记了 bypass 的段不参与萃取，只稀释入杯浓度。
-  // 总水量 d.totalWater 视为「入杯水量」（向后兼容用户既有填写习惯）。
-  // 有效萃取水量 = d.totalWater - bypass 水量（粉水比类判断按它走）。
+  // v13.39 水量语义改为「以分段数据为准」，不再从总水里倒扣：
+  //   萃取水 effectiveWater = 非 BP 段增量合计（就是实际注进粉床的水）
+  //   入杯总水 totalWaterN  = 萃取水 + BP 旁路水
+  // 旧逻辑「入杯总水 = 手填 totalWater，萃取水 = 总水 − BP」在手填总水本就不含 BP 时
+  // 会重复扣减（202g 注水 + 25g BP 被算成 176.5g 有效水）。
+  // 手填 totalWater 仅在完全没有分段数据时兜底（老记录只有总水量）。
   const bypassWater = (d.pours || [])
     .filter(p => p.bypass === '1' && parseFloat(p.water) > 0)
     .reduce((s, p) => s + parseFloat(p.water), 0);
-  const totalWaterN = parseFloat(d.totalWater) || 0;
-  const effectiveWater = bypassWater > 0 && totalWaterN > 0
-    ? Math.max(totalWaterN - bypassWater, 0)
-    : totalWaterN;
+  const segExtractWater = (d.pours || [])
+    .filter(p => p.bypass !== '1' && parseFloat(p.water) > 0)
+    .reduce((s, p) => s + parseFloat(p.water), 0);
+  const totalWaterField = parseFloat(d.totalWater) || 0;
+  const effectiveWater = segExtractWater > 0
+    ? segExtractWater
+    : (bypassWater > 0 && totalWaterField > 0 ? Math.max(totalWaterField - bypassWater, 0) : totalWaterField);
+  const totalWaterN = segExtractWater > 0 ? segExtractWater + bypassWater : totalWaterField;
   const hasBypass = bypassWater > 0;
   if (hasBypass) {
     const doseN = parseFloat(d.dose) || 0;
@@ -7434,8 +7581,9 @@ function analyzeBrew(d, opts) {
 
   if (d.strengthWant === 'higher' || d.strengthWant === 'lower') {
     const doseN = parseFloat(d.dose) || 0;
-    const totalN = parseFloat(d.totalWater) || 0;
+    const totalN = totalWaterN;
     // 浓度方向走「入杯粉水比」（总水/粉），bypass 直接影响入杯浓度
+    // v13.39 入杯总水统一取自上方分段推导值（萃取水 + BP），不再直接读手填 totalWater
     const curR = doseN > 0 && totalN > 0 ? (totalN / doseN) : 0;
     if (d.strengthWant === 'higher') {
       findings.push({ level: 'info', text: '🎯 浓度方向：希望更高 → 增粉或减水（粉水比往 1:13~14 收）' });
@@ -8615,9 +8763,11 @@ function buildSingleEvalPrompt(record) {
     objective.push('分段：' + pourSummary);
   }
   // v13.35: 连秤记录的底阀操作时间线 [[相对秒, 档位], ...]，档位 closed=关 s1=慢 s2=中 s3=快
-  if (Array.isArray(record.valveEvents) && record.valveEvents.length) {
+  const _recVE = (Array.isArray(record.valveEvents) && record.valveEvents.length)
+    ? record.valveEvents : deriveValveEventsFromPours(record.pours);
+  if (_recVE.length) {
     const vGear = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '开' };
-    const vLine = record.valveEvents.map(item => {
+    const vLine = _recVE.map(item => {
       if (!Array.isArray(item) || item.length < 2) return '';
       const t = parseFloat(item[0]);
       if (!isFinite(t)) return '';
@@ -9886,8 +10036,10 @@ function buildCompareCurvesSVG(records, colors) {
   const CMP_VALVE_COLOR = { closed: '#4a4036', s1: '#5b8c5a', s2: '#d4943a', s3: '#c0504d', open: '#c0504d' };
   const CMP_VALVE_SHORT = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '快' };
   const cmpValveMarks = (Array.isArray(records) ? records : []).map((r, i) => {
-    if (!r || !Array.isArray(r.valveEvents)) return '';
-    return r.valveEvents.map(item => {
+    if (!r) return '';
+    // v13.39 老记录由段阀位回填
+    const _rve = (Array.isArray(r.valveEvents) && r.valveEvents.length) ? r.valveEvents : deriveValveEventsFromPours(r.pours);
+    return _rve.map(item => {
       if (!Array.isArray(item) || item.length < 2) return '';
       const t = parseFloat(item[0]);
       if (!isFinite(t) || t < 0 || t > xMaxRounded) return '';
@@ -10098,7 +10250,12 @@ function buildBrewCurveHTML(brew) {
   // v13.35 底阀档位竖线（复盘回放）：brew.valveEvents = [[相对秒, gear], ...]
   const VALVE_CHART_COLOR = { closed: '#4a4036', s1: '#5b8c5a', s2: '#d4943a', s3: '#c0504d', open: '#c0504d' };
   const VALVE_GEAR_SHORT = { closed: '关', s1: '慢', s2: '中', s3: '快', open: '快' };
-  const valveMarks = (Array.isArray(brew.valveEvents) ? brew.valveEvents : []).map(item => {
+  // v13.39 老手动记录没有 valveEvents 时，由「段阀位 + 段开始时刻」回填，
+  // 保证阀门时间线在复盘曲线也能显示（与连秤记录同一套绘制）
+  const _vtSrc = (Array.isArray(brew.valveEvents) && brew.valveEvents.length)
+    ? brew.valveEvents
+    : deriveValveEventsFromPours(brew.pours);
+  const valveMarks = _vtSrc.map(item => {
     if (!Array.isArray(item) || item.length < 2) return '';
     let t = parseFloat(item[0]);
     if (!isFinite(t) || t < 0) return '';
@@ -14157,7 +14314,7 @@ function runUnitTests() {
     else      { fail++; log('fail', '  ✗ ' + name + ' — ' + (detail || 'assertion failed')); }
   }
   log('info-log', '════════════════════════════════════════════════');
-  log('info-log', 'Brew Lab · PSD v13.38 · Unit Tests');
+  log('info-log', 'Brew Lab · PSD v13.39 · Unit Tests');
   log('info-log', '════════════════════════════════════════════════');
 
   // Test 1: 单峰
